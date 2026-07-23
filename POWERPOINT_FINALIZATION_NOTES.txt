@@ -1,0 +1,68 @@
+Traditional Governments Database & Explorer
+PowerPoint Finalization Notes
+
+The presentation is fully editable. Text, code panels, diagrams, cards, labels,
+and callouts are native PowerPoint objects. Live website captures are embedded as
+images because they document the actual rendered project.
+
+MORPH TRANSITIONS
+
+The automated presentation library used to create this file does not expose a
+PowerPoint Morph-transition API. The slides were therefore built with repeated
+object names and matching positions so Morph can be applied manually in desktop
+PowerPoint.
+
+Recommended sequence:
+
+1. Slides 6 -> 7 -> 8 -> 9 -> 10
+   Purpose: show the HTML document growing from a basic structure into the full
+   homepage information architecture.
+   Transition: Morph, 0.8 seconds, advance on click.
+
+2. Slides 12 -> 13 -> 14 -> 15 -> 16 -> 17
+   Purpose: transform design tokens into hero styling, responsive grids,
+   components, interaction states, and the styled live homepage.
+   Transition: Morph, 0.8 seconds, advance on click.
+
+3. Slides 19 -> 20 -> 21 -> 22
+   Purpose: move from API loading to filtering, layer integration, and the final
+   website.
+   Transition: Morph, 0.8 seconds, advance on click.
+
+Use Fade (0.5 seconds) on section-divider slides 5, 11, and 18.
+
+OPTIONAL BUILD ANIMATIONS
+
+Keep animation restrained. The deck is designed to work without animations.
+
+- Slide 3: Wipe the gold path from left to right, then reveal stages 01-05 in
+  order.
+- Slide 4: Fade the four technology cards in from left to right.
+- Slides 6-9, 12-16, 19-20: reveal the code panel first, then the corresponding
+  browser/result panel.
+- Slide 19: reveal Flask API -> normalizeGroup -> shared state -> DOM renderers
+  in sequence.
+- Slide 21: reveal HTML, CSS, and JavaScript, then the arrow and final interface.
+- Slide 22: fade in the “Next: live website demonstration” callout last.
+
+Recommended animation duration: 0.3-0.5 seconds. Avoid sound, bouncing, spinning,
+or automatic timing.
+
+PRESENTER HANDOFF
+
+After slide 22, open the live site and demonstrate:
+
+- Homepage counters and continent map markers
+- Map-marker navigation to a filtered Groups Explorer
+- Search, filters, sorting, pagination, and reset
+- Group detail dialog
+- Statistics charts
+- Side-by-side comparison
+- Arabic RTL interface
+- Dark mode and preference persistence
+
+FONT NOTE
+
+The deck uses Aptos, Georgia, and Consolas. These are standard Microsoft Office
+fonts on current Windows installations. If Georgia is unavailable, use Cambria
+for presentation headings.

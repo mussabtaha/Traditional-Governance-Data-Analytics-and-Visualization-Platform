@@ -1,0 +1,166 @@
+<!doctype html>
+<html class="preferences-pending" lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="js/preferences.js"></script>
+  <meta name="description" content="Explore traditional communities and governance systems around the world.">
+  <title>Traditional Governments Database & Explorer</title>
+  <link href="assets/vendor/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/style.css?v=homepage-redesign-1" rel="stylesheet">
+  <link href="css/home.css?v=homepage-reference-match-5" rel="stylesheet">
+</head>
+<body class="home-page dashboard-home is-loading" data-page="home">
+  <a class="skip-link" href="#main-content" data-en="Skip to main content" data-ar="انتقل إلى المحتوى الرئيسي">Skip to main content</a>
+  <div class="site-loader" id="siteLoader" aria-hidden="true"><div class="loader-mark"></div></div>
+
+  <header class="site-header home-header">
+    <div class="container nav-shell home-nav-shell">
+      <a class="brand home-brand" href="index.html" aria-label="Traditional Governments home">
+        <span class="home-brand-icon"><i class="bi bi-bank2"></i></span>
+        <span class="brand-copy">
+          <strong data-en="Traditional Governments" data-ar="الحكومات التقليدية">Traditional Governments</strong>
+          <small data-en="Database & Explorer" data-ar="قاعدة البيانات والمستكشف">Database &amp; Explorer</small>
+        </span>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="navMenu" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
+
+      <nav class="home-navigation" aria-label="Primary navigation">
+        <ul class="nav-menu" id="navMenu">
+          <li><a class="nav-link active" href="index.html" data-en="Home" data-ar="الرئيسية">Home</a></li>
+          <li><a class="nav-link" href="groups.html" data-en="Groups" data-ar="المجموعات">Groups</a></li>
+          <li><a class="nav-link" href="#distribution-map" data-en="Interactive Map" data-ar="الخريطة التفاعلية">Interactive Map</a></li>
+          <li><a class="nav-link" href="statistics.html" data-en="Statistics" data-ar="الإحصاءات">Statistics</a></li>
+          <li><a class="nav-link" href="comparison.html" data-en="Comparison" data-ar="المقارنة">Comparison</a></li>
+          <li><a class="nav-link" href="about.html" data-en="About" data-ar="عن المشروع">About</a></li>
+          <li><a class="nav-link" href="contact.html" data-en="Contact" data-ar="اتصل بنا">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="home-nav-actions site-preference-controls">
+        <button class="language-switch" id="languageSwitch" type="button" aria-label="Switch to Arabic">
+          <i class="bi bi-globe2"></i><span id="languageLabel">العربية</span><i class="bi bi-chevron-down"></i>
+        </button>
+        <button class="theme-switch" id="themeSwitch" type="button" aria-label="Enable dark mode"><i class="bi bi-moon-fill"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="home-hero" aria-labelledby="hero-title">
+      <div class="container">
+        <div class="home-hero-content" data-reveal>
+          <h1 id="hero-title">
+            <span data-en="Explore Traditional" data-ar="استكشف الحكومات">Explore Traditional</span>
+            <span data-en="Governments Around the World" data-ar="التقليدية حول العالم">Governments Around the World</span>
+          </h1>
+          <p data-en="A comprehensive database of traditional communities and their governance systems." data-ar="قاعدة بيانات شاملة للمجتمعات التقليدية وأنظمة الحوكمة الخاصة بها.">A comprehensive database of traditional communities and their governance systems.</p>
+          <div class="home-hero-actions">
+            <a class="home-btn home-btn-primary" href="groups.html"><i class="bi bi-map"></i><span data-en="Explore Groups" data-ar="استكشف المجموعات">Explore Groups</span></a>
+            <a class="home-btn home-btn-gold" href="#distribution-map"><i class="bi bi-geo-alt"></i><span data-en="View Map" data-ar="عرض الخريطة">View Map</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-dashboard" aria-label="Homepage dashboard">
+      <div class="container">
+        <section class="home-stats" id="overview" aria-label="Dataset summary">
+          <article class="home-stat-card" data-reveal>
+            <div class="home-stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div><strong class="home-stat-number" data-counter data-metric="totalGroups" data-target="0">0</strong><span class="home-stat-label" data-en="Total Groups" data-ar="إجمالي المجموعات">Total Groups</span><small data-en="Traditional communities" data-ar="المجتمعات التقليدية">Traditional communities</small></div>
+          </article>
+          <article class="home-stat-card" data-reveal>
+            <div class="home-stat-icon"><i class="bi bi-globe2"></i></div>
+            <div><strong class="home-stat-number" data-counter data-metric="totalCountries" data-target="0">0</strong><span class="home-stat-label" data-en="Countries" data-ar="الدول">Countries</span><small data-en="Around the world" data-ar="حول العالم">Around the world</small></div>
+          </article>
+          <article class="home-stat-card" data-reveal>
+            <div class="home-stat-icon gold"><i class="bi bi-globe-americas"></i></div>
+            <div><strong class="home-stat-number" data-counter data-metric="totalContinents" data-target="0">0</strong><span class="home-stat-label" data-en="Continents" data-ar="القارات">Continents</span><small data-en="All continents" data-ar="جميع القارات">All continents</small></div>
+          </article>
+          <article class="home-stat-card" data-reveal>
+            <div class="home-stat-icon"><i class="bi bi-bank2"></i></div>
+            <div><strong class="home-stat-number" data-counter data-metric="totalTraditional" data-target="0">0</strong><span class="home-stat-label" data-en="Traditional Governments" data-ar="الحكومات التقليدية">Traditional Governments</span><small data-en="Have traditional systems" data-ar="لديها أنظمة تقليدية">Have traditional systems</small></div>
+          </article>
+          <article class="home-stat-card" data-reveal>
+            <div class="home-stat-icon gold"><i class="bi bi-people"></i></div>
+            <div><strong class="home-stat-number" data-counter data-metric="totalRegions" data-target="0">0</strong><span class="home-stat-label" data-en="Regions" data-ar="المناطق">Regions</span><small data-en="Geographic regions" data-ar="المناطق الجغرافية">Geographic regions</small></div>
+          </article>
+        </section>
+
+        <section class="home-features" aria-label="Explore database tools">
+          <article class="home-feature-card" data-reveal>
+            <div class="home-feature-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="home-feature-content"><h2 data-en="Explore Groups" data-ar="استكشف المجموعات">Explore Groups</h2><p data-en="Search and explore detailed information about each community." data-ar="ابحث واستعرض معلومات تفصيلية عن كل مجتمع.">Search and explore detailed information about each community.</p><a href="groups.html"><span data-en="Browse Groups" data-ar="تصفح المجموعات">Browse Groups</span><i class="bi bi-arrow-right"></i></a></div>
+          </article>
+          <article class="home-feature-card" data-reveal>
+            <div class="home-feature-icon gold"><i class="bi bi-map-fill"></i></div>
+            <div class="home-feature-content"><h2 data-en="Interactive Map" data-ar="الخريطة التفاعلية">Interactive Map</h2><p data-en="Visualize the geographic distribution of traditional groups." data-ar="استعرض التوزيع الجغرافي للمجموعات التقليدية.">Visualize the geographic distribution of traditional groups.</p><a href="#distribution-map"><span data-en="Open Map" data-ar="فتح الخريطة">Open Map</span><i class="bi bi-arrow-right"></i></a></div>
+          </article>
+          <article class="home-feature-card" data-reveal>
+            <div class="home-feature-icon"><i class="bi bi-bar-chart-fill"></i></div>
+            <div class="home-feature-content"><h2 data-en="Statistics" data-ar="الإحصاءات">Statistics</h2><p data-en="View comprehensive charts and analysis of the data." data-ar="اعرض الرسوم البيانية والتحليلات الشاملة للبيانات.">View comprehensive charts and analysis of the data.</p><a href="statistics.html"><span data-en="View Statistics" data-ar="عرض الإحصاءات">View Statistics</span><i class="bi bi-arrow-right"></i></a></div>
+          </article>
+          <article class="home-feature-card" data-reveal>
+            <div class="home-feature-icon gold"><i class="bi bi-columns-gap"></i></div>
+            <div class="home-feature-content"><h2 data-en="Comparison" data-ar="المقارنة">Comparison</h2><p data-en="Compare two groups side by side across key criteria." data-ar="قارن بين مجموعتين جنباً إلى جنب وفق المعايير الرئيسية.">Compare two groups side by side across key criteria.</p><a href="comparison.html"><span data-en="Compare Groups" data-ar="قارن المجموعات">Compare Groups</span><i class="bi bi-arrow-right"></i></a></div>
+          </article>
+        </section>
+
+        <section class="home-lower-grid">
+          <article class="home-panel home-map-panel" id="distribution-map" data-reveal>
+            <header class="home-panel-header">
+              <h2><i class="bi bi-globe2"></i><span data-en="Global Distribution of Traditional Groups" data-ar="التوزيع العالمي للمجموعات التقليدية">Global Distribution of Traditional Groups</span></h2>
+              <a href="groups.html"><i class="bi bi-map"></i><span data-en="View Full Map" data-ar="عرض الخريطة الكاملة">View Full Map</span></a>
+            </header>
+            <div class="home-map-wrapper">
+              <img class="home-map-image" src="assets/images/world-map.svg" alt="World distribution map">
+              <button class="home-map-marker marker-americas" type="button" data-continent="Americas" data-en-title="View groups in Americas" data-ar-title="عرض مجموعات الأمريكيتين" aria-label="View groups in Americas">…</button>
+              <button class="home-map-marker marker-europe" type="button" data-continent="Europe" data-en-title="View groups in Europe" data-ar-title="عرض مجموعات أوروبا" aria-label="View groups in Europe">…</button>
+              <button class="home-map-marker marker-africa" type="button" data-continent="Africa" data-en-title="View groups in Africa" data-ar-title="عرض مجموعات أفريقيا" aria-label="View groups in Africa">…</button>
+              <button class="home-map-marker marker-asia" type="button" data-continent="Asia" data-en-title="View groups in Asia" data-ar-title="عرض مجموعات آسيا" aria-label="View groups in Asia">…</button>
+              <button class="home-map-marker marker-oceania" type="button" data-continent="Oceania" data-en-title="View groups in Oceania" data-ar-title="عرض مجموعات أوقيانوسيا" aria-label="View groups in Oceania">…</button>
+            </div>
+            <div class="home-map-legend"><i class="bi bi-circle-fill"></i><span data-en="Number of Groups" data-ar="عدد المجموعات">Number of Groups</span></div>
+          </article>
+
+          <article class="home-panel home-table-panel" data-reveal>
+            <header class="home-panel-header">
+              <h2><i class="bi bi-people"></i><span data-en="Latest Added Groups" data-ar="أحدث المجموعات المضافة">Latest Added Groups</span></h2>
+              <a href="groups.html" data-en="View All" data-ar="عرض الكل">View All</a>
+            </header>
+            <div class="home-table-wrap">
+              <table class="home-latest-table">
+                <thead><tr><th data-en="Group Name" data-ar="اسم المجموعة">Group Name</th><th data-en="Region" data-ar="المنطقة">Region</th><th data-en="Leadership Type" data-ar="نوع القيادة">Leadership Type</th><th data-en="Recognized" data-ar="معترف بها">Recognized</th></tr></thead>
+                <tbody id="latestGroupsBody"><tr><td colspan="4" class="empty-state" data-en="Loading groups…" data-ar="جارٍ تحميل المجموعات…">Loading groups…</td></tr></tbody>
+              </table>
+            </div>
+            <a class="home-table-cta" href="groups.html"><span data-en="Explore All Groups" data-ar="استكشف جميع المجموعات">Explore All Groups</span><i class="bi bi-list-ul"></i></a>
+          </article>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="home-footer">
+    <div class="container home-footer-grid">
+      <section class="home-footer-brand">
+        <a class="brand home-brand" href="index.html"><span class="home-brand-icon"><i class="bi bi-bank2"></i></span><span class="brand-copy"><strong data-en="Traditional Governments" data-ar="الحكومات التقليدية">Traditional Governments</strong><small data-en="Database & Explorer" data-ar="قاعدة البيانات والمستكشف">Database &amp; Explorer</small></span></a>
+        <p data-en="A comprehensive database dedicated to documenting and exploring traditional governments and communities worldwide." data-ar="قاعدة بيانات شاملة مخصصة لتوثيق واستكشاف الحكومات والمجتمعات التقليدية حول العالم.">A comprehensive database dedicated to documenting and exploring traditional governments and communities worldwide.</p>
+      </section>
+      <section><h2 data-en="Quick Links" data-ar="روابط سريعة">Quick Links</h2><ul><li><a href="index.html" data-en="Home" data-ar="الرئيسية">Home</a></li><li><a href="groups.html" data-en="Groups" data-ar="المجموعات">Groups</a></li><li><a href="#distribution-map" data-en="Interactive Map" data-ar="الخريطة التفاعلية">Interactive Map</a></li><li><a href="statistics.html" data-en="Statistics" data-ar="الإحصاءات">Statistics</a></li></ul></section>
+      <section><h2 data-en="Resources" data-ar="المصادر">Resources</h2><ul><li><a href="about.html" data-en="About Project" data-ar="عن المشروع">About Project</a></li><li><a href="about.html#methodology" data-en="Methodology" data-ar="المنهجية">Methodology</a></li><li><a href="about.html#data-fields" data-en="Data Dictionary" data-ar="قاموس البيانات">Data Dictionary</a></li><li><a href="contact.html" data-en="Contact" data-ar="اتصل بنا">Contact</a></li></ul></section>
+      <section class="home-subscribe"><h2 data-en="Stay Updated" data-ar="ابق على اطلاع">Stay Updated</h2><p data-en="Subscribe to get updates about new groups and features." data-ar="اشترك للحصول على تحديثات حول المجموعات والميزات الجديدة.">Subscribe to get updates about new groups and features.</p><form id="homeSubscribeForm"><label class="visually-hidden" for="homeSubscribeEmail">Email</label><input id="homeSubscribeEmail" type="email" required placeholder="Enter your email"><button type="submit" aria-label="Subscribe"><i class="bi bi-send"></i></button></form><small id="homeSubscribeStatus" aria-live="polite"></small></section>
+      <section><h2 data-en="Follow Us" data-ar="تابعنا">Follow Us</h2><div class="home-socials"><a href="#" aria-label="X"><i class="bi bi-twitter-x"></i></a><a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a><a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a><a href="#" aria-label="GitHub"><i class="bi bi-github"></i></a><a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a></div></section>
+    </div>
+    <div class="home-footer-bottom"><div class="container"><span data-en="© 2026 Traditional Governments Database & Explorer. All rights reserved." data-ar="© 2026 قاعدة بيانات ومستكشف الحكومات التقليدية. جميع الحقوق محفوظة.">© 2026 Traditional Governments Database &amp; Explorer. All rights reserved.</span><span><a href="#" data-en="Privacy Policy" data-ar="سياسة الخصوصية">Privacy Policy</a><i></i><a href="#" data-en="Terms of Use" data-ar="شروط الاستخدام">Terms of Use</a></span></div></div>
+  </footer>
+
+  <a class="back-to-top" id="backToTop" href="#main-content" aria-label="Back to top"><i class="bi bi-arrow-up"></i></a>
+  <script src="assets/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="js/i18n.js?v=map-filter-1" defer></script>
+  <script src="js/script.js?v=group-names-ar-1" defer></script>
+</body>
+</html>

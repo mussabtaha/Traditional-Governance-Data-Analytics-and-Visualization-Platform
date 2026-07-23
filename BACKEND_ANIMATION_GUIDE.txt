@@ -1,0 +1,197 @@
+TRADITIONAL GOVERNMENTS — BACKEND ANIMATION GUIDE
+=================================================
+
+IMPORTANT
+---------
+The generated deck contains editable objects, stable object names, and speaker-note click cues.
+Native PowerPoint animations and transitions were NOT embedded because the available presentation
+library cannot create or verify them reliably. Apply the instructions below manually in PowerPoint.
+Do not enable automatic slide advancement. All effects should start On Click unless stated otherwise.
+
+Recommended timing
+------------------
+- Fade / Appear: 0.30–0.40 seconds
+- Wipe arrows: 0.35 seconds, From Left for requests and From Right for responses
+- Subtle emphasis: 0.25 seconds
+- Morph transition: 0.80 seconds, On Mouse Click
+- Avoid Bounce, Spin, random Fly In, and excessive Zoom.
+
+SLIDE 21 — Backend — Processing, Data, and APIs
+------------------------------------------------
+1. backend-transition-title — Fade — On Click — 0.40 s
+2. layer-1 — Appear — On Click — 0.30 s
+3. arrow between layer-1 and layer-2 — Wipe From Left — After Previous — 0.35 s
+4. layer-2 — Appear — On Click — 0.30 s
+5. arrow between layer-2 and layer-3 — Wipe From Left — After Previous — 0.35 s
+6. layer-3 — Appear — On Click — 0.30 s
+Morph: No; use a clean Fade transition into the backend section.
+
+SLIDE 22 — One backend supplies every data-driven page
+-------------------------------------------------------
+1. backend-role-1 and backend-role-2 — Fade — On Click — 0.35 s
+2. backend-role-3 and backend-role-4 — Fade — On Click — 0.35 s
+3. backend-role-5 and backend-role-6 — Fade — On Click — 0.35 s
+4. “Browser interface → Flask logic → MySQL research data” — Wipe From Left — On Click — 0.40 s
+Morph: Optional from slide 21; preserve the three-layer reading direction.
+
+SLIDE 23 — The project uses a compact, verified backend stack
+----------------------------------------------------------------
+1. stack-1 and stack-2 — Fade — On Click — 0.35 s
+2. stack-3 and stack-4 — Fade — On Click — 0.35 s
+3. stack-5, stack-6, and stack-7 — Fade — On Click — 0.40 s
+Morph: Yes, 0.80 s. Repeated title/subtitle objects are already named consistently.
+
+SLIDE 24 — The backend folder separates startup, routes, configuration, and data access
+-----------------------------------------------------------------------------------------
+1. dev-code-panel — Wipe From Left — On Click — 0.45 s
+2. file-role-1 and file-role-2 — Fade — On Click — 0.35 s
+3. file-role-3 — Fade — On Click — 0.35 s; apply subtle emphasis after appearing
+4. file-role-4 and file-role-5 — Fade — On Click — 0.35 s
+Morph: Yes, 0.80 s.
+
+SLIDE 25 — The application factory assembles the Flask server
+----------------------------------------------------------------
+1. dev-code-panel — Fade — On Click — 0.35 s
+2. factory-node-1 — Appear — On Click — 0.30 s
+3. factory-node-2 — Appear — On Click — 0.30 s
+4. factory-node-3 — Appear — On Click — 0.30 s
+5. configuration / connection pool / routes pills — Fade — On Click — 0.35 s
+Morph: Yes, 0.80 s. Keep slide-title, slide-subtitle, and dev-code-panel names unchanged.
+
+SLIDE 26 — The local server starts on the port the frontend already expects
+----------------------------------------------------------------------------
+1. dev-code-panel — Fade — On Click — 0.35 s
+2. server-address — Fade — On Click — 0.35 s
+3. Local API address — Subtle emphasis — On Click — 0.25 s
+4. host / port / debug values — Appear together — On Click — 0.35 s
+5. development-server qualification — Fade — On Click — 0.30 s
+Morph: Yes, 0.80 s.
+
+SLIDE 27 — A Blueprint turns URL paths into Python functions
+-------------------------------------------------------------
+1. dev-code-panel — Fade — On Click — 0.35 s
+2. route-flow-1 — Appear — On Click — 0.30 s
+3. first connecting arrow — Wipe From Left — After Previous — 0.35 s
+4. route-flow-2 — Appear — On Click — 0.30 s
+5. second connecting arrow — Wipe From Left — After Previous — 0.35 s
+6. route-flow-3 — Appear — On Click — 0.30 s
+7. endpoint-count statement — Fade — On Click — 0.30 s
+Morph: Yes, 0.80 s.
+
+SLIDE 28 — The browser request lands on the matching Flask route
+-----------------------------------------------------------------
+1. workflow-browser — Fade — On Click — 0.35 s
+2. workflow-request-arrow — Wipe From Left — On Click — 0.35 s
+3. endpoint URL pill — Appear — With Previous — 0.30 s
+4. workflow-flask — Fade — On Click — 0.35 s
+5. response.json() line in workflow-browser — Subtle emphasis — On Click — 0.25 s
+Morph: Yes, 0.80 s. This begins the detailed request–response sequence.
+
+SLIDE 29 — Query parameters become validated Python values
+-----------------------------------------------------------
+1. query-parameter-map URL — Fade — On Click — 0.30 s
+2. continent mapping row — Wipe From Left — On Click — 0.35 s
+3. page mapping row — Wipe From Left — On Click — 0.35 s
+4. limit mapping row — Wipe From Left — On Click — 0.35 s
+5. dev-code-panel — Fade — On Click — 0.35 s
+6. validation statement — Appear — On Click — 0.30 s
+Morph: Yes, 0.80 s.
+
+SLIDE 30 — A shared connection pool links Flask to MySQL safely
+----------------------------------------------------------------
+1. dev-code-panel — Fade — On Click — 0.35 s
+2. db-flow-1 — Appear — On Click — 0.30 s
+3. db-flow-2 — Appear — On Click — 0.30 s
+4. db-flow-3 — Appear — On Click — 0.30 s
+5. environment-key line — Fade — On Click — 0.30 s
+6. DB_PASSWORD = [REDACTED] — Subtle emphasis — On Click — 0.25 s
+Morph: Yes, 0.80 s.
+
+SLIDE 31 — Optional filters build one real parameterized SQL query
+-------------------------------------------------------------------
+1. dev-code-panel — Fade — On Click — 0.35 s
+2. SQL STRUCTURE line — Wipe From Left — On Click — 0.40 s
+3. safe-execute — Fade — On Click — 0.35 s
+4. safe-parameter explanation — Appear — On Click — 0.30 s
+Morph: Yes, 0.80 s.
+
+SLIDE 32 — Database rows become a predictable JSON response
+-------------------------------------------------------------
+1. workflow-database — Fade — On Click — 0.35 s
+2. fetchall / _json_row lines — Subtle emphasis — On Click — 0.25 s
+3. cursor.close / connection.close lines — Subtle emphasis — On Click — 0.25 s
+4. workflow-json success + groups — Wipe From Left — On Click — 0.40 s
+5. workflow-json pagination — Wipe From Left — On Click — 0.40 s
+6. conversion note — Fade — On Click — 0.30 s
+Morph: Yes, 0.80 s. This is the request sequence turning back toward the browser.
+
+SLIDE 33 — The live explorer filters locally after paginated API loading
+---------------------------------------------------------------------------
+1. filter-paths current-live-UI heading and flow — Fade — On Click — 0.35 s
+2. workflow-frontend — Fade — On Click — 0.40 s
+3. Africa URL-state and record-count pills — Appear — On Click — 0.30 s
+4. backend-filter-capability block — Fade — On Click — 0.35 s
+5. distinction paragraph — Appear — On Click — 0.30 s
+Morph: Yes, 0.80 s. Do not imply the current filter control sends a filtered API request.
+
+SLIDE 34 — Aggregate SQL powers the statistics dashboard
+---------------------------------------------------------
+1. dev-code-panel /stats section — Fade — On Click — 0.35 s
+2. COUNT and SUM lines — Subtle emphasis — On Click — 0.25 s
+3. top-country GROUP BY query — Fade — On Click — 0.35 s
+4. stats-result — Fade — On Click — 0.40 s
+5. COUNT / SUM / GROUP BY / LIMIT 10 pills — Appear together — On Click — 0.35 s
+Morph: Yes, 0.80 s.
+
+SLIDE 35 — Validation and error handlers keep failures understandable
+------------------------------------------------------------------------
+1. dev-code-panel positive-integer validation — Fade — On Click — 0.35 s
+2. limit rule — Subtle emphasis — On Click — 0.25 s
+3. missing-group 404 block — Fade — On Click — 0.35 s
+4. status-200 — Appear — On Click — 0.25 s
+5. status-400 and status-404 — Appear — On Click — 0.30 s
+6. status-500 and status-503 — Appear — On Click — 0.30 s
+7. generic-error explanation — Fade — On Click — 0.30 s
+Morph: Yes, 0.80 s.
+
+SLIDE 36 — One page load completes the full request–response cycle
+------------------------------------------------------------------------
+1. workflow-step-1 — Appear — On Click — 0.25 s
+2. workflow-arrow-1 — Wipe From Left — After Previous — 0.30 s; then workflow-step-2 — Appear
+3. workflow-arrow-2 — Wipe From Left — After Previous — 0.30 s; then workflow-step-3 — Appear
+4. workflow-arrow-3 — Wipe From Left — After Previous — 0.30 s; then workflow-step-4 — Appear
+5. workflow-step-5 — Appear — On Click — 0.30 s
+6. workflow-step-6 — Appear — On Click — 0.30 s; then workflow-response-arrow — Wipe From Right
+7. workflow-step-7 — Appear — On Click — 0.30 s
+8. workflow-step-8 — Appear — On Click — 0.30 s
+9. three responsibility pills — Fade — On Click — 0.35 s
+Morph: Use a Fade transition into this summary; keep all advances manual.
+
+SLIDE 37 — Four layers converge into one full-stack research website
+---------------------------------------------------------------------
+1. converge-1 — Appear — On Click — 0.25 s
+2. converge-2 — Appear — On Click — 0.25 s
+3. converge-3 — Appear — On Click — 0.25 s
+4. converge-4 — Appear — On Click — 0.25 s
+5. arrow to dev-browser-frame — Wipe From Left — On Click — 0.35 s
+6. dev-browser-frame — Fade — After Previous — 0.40 s
+7. four result cards — Fade — On Click — 0.35 s
+Morph: Yes, 0.80 s. This is the backend-to-integration Morph target.
+
+SLIDE 38 — Traditional Governments Database & Explorer
+------------------------------------------------------
+1. final-title and summary — Fade — On Click — 0.40 s
+2. Flask / MySQL / JSON / EN-AR labels — Appear — On Click — 0.35 s
+3. feature line — Fade — On Click — 0.30 s
+4. dev-browser-frame — Fade — On Click — 0.45 s
+5. “Next: live full-stack website demonstration” — Subtle emphasis — On Click — 0.25 s
+Morph: Yes, 0.80 s. Advance to the live demonstration only when the presenter clicks.
+
+FINAL POWERPOINT CHECK
+----------------------
+1. Confirm every slide advances On Mouse Click only.
+2. Confirm every Wipe arrow follows the request or response direction.
+3. Confirm Morph duration is approximately 0.80 seconds.
+4. Run slides 21–38 in Slide Show mode and compare the click sequence with the speaker notes.
+5. Do not animate individual code lines except for the small emphasis cues listed above.
+
