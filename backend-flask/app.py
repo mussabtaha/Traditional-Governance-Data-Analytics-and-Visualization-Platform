@@ -14,6 +14,7 @@ from routes.api import api
 ALLOWED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
+    "https://traditional-governance-frontend.onrender.com",
 ]
 
 
