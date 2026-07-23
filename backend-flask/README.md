@@ -45,11 +45,24 @@ The API will be available at `http://localhost:3000/api`.
 - `GET /api/leadership`
 - `GET /api/largest-groups`
 - `GET /api/top-countries`
+- `GET /api/group-options`
 - `GET /api/groups`
 - `GET /api/groups/:id`
 
-The groups endpoint supports the same `page`, `limit`, `search`, `continent`,
-`region`, and `any_tpi` query parameters as the Express implementation.
+The groups endpoint performs pagination, filtering, and sorting in MySQL. It
+supports:
+
+- `page` and `limit`
+- `search`
+- `country`, `continent`, and `region`
+- `leadership` (`King`, `Chief`, or `Headman`)
+- `recognition` (`0`, `1`, or `missing`)
+- `any_tpi` (`0`, `1`, or `missing`)
+- `sort` and `direction` (`asc` or `desc`)
+
+`GET /api/group-options` returns only the lightweight id, name, Arabic name,
+and country fields needed by the comparison selectors. Full comparison records
+are loaded from `GET /api/groups/:id` when selected.
 
 ## Optional Arabic group names
 

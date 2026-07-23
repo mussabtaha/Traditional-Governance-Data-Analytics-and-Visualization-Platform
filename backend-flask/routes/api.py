@@ -13,6 +13,23 @@ from database.db import fetch_all, fetch_one
 
 api = Blueprint("api", __name__, url_prefix="/api")
 MAX_SAFE_INTEGER = 9_007_199_254_740_991
+LEADERSHIP_COLUMNS = {
+    "king": "king",
+    "chief": "chief",
+    "headman": "headman",
+}
+SORT_COLUMNS = {
+    "id": "id",
+    "groupname": "group_name",
+    "group_name": "group_name",
+    "country": "country",
+    "continent": "continent",
+    "region": "region",
+    "population": "groupsize",
+    "groupsize": "groupsize",
+    "formackn": "formackn",
+    "recognition": "formackn",
+}
 
 
 def _parse_positive_integer(value, default_value: int | None, field_name: str) -> int:
@@ -60,7 +77,13 @@ def stats():
           COUNT(DISTINCT continent) AS total_continents,
           COUNT(DISTINCT region) AS total_regions,
           COUNT(*) AS total_groups,
-          COALESCE(SUM(any_tpi = 1), 0) AS groups_with_tpi
+          COALESCE(SUM(any_tpi = 1), 0) AS groups_with_tpi,
+          COALESCE(SUM(formackn = 1), 0) AS total_recognized,
+          COALESCE(SUM(formackn = 0), 0) AS total_not_recognized,
+          COALESCE(SUM(formackn IS NULL), 0) AS total_recognition_missing,
+          COALESCE(SUM(func_land = 1), 0) AS total_func_land,
+          COALESCE(SUM(func_sec = 1), 0) AS total_func_sec,
+          COALESCE(SUM(kingheal = 1), 0) AS total_func_heal
         FROM tradgov_groups
         """
     )
@@ -121,6 +144,19 @@ def top_countries():
     return jsonify(success=True, data=rows)
 
 
+@api.get("/group-options")
+def group_options():
+    """Return the lightweight fields required by the comparison selectors."""
+    rows = fetch_all(
+        """
+        SELECT id, group_name, group_name_ar, country
+        FROM tradgov_groups
+        ORDER BY group_name IS NULL ASC, group_name ASC, id ASC
+        """
+    )
+    return jsonify(success=True, data=rows)
+
+
 @api.get("/groups")
 def groups():
     page = _parse_positive_integer(request.args.get("page"), 1, "page")
@@ -140,6 +176,11 @@ def groups():
         )
         query_parameters.extend([search_term, search_term, search_term])
 
+    country = request.args.get("country")
+    if country is not None and country.strip() != "":
+        where_conditions.append("country = %s")
+        query_parameters.append(country.strip())
+
     continent = request.args.get("continent")
     if continent is not None and continent.strip() != "":
         where_conditions.append("continent = %s")
@@ -150,26 +191,70 @@ def groups():
         where_conditions.append("region = %s")
         query_parameters.append(region.strip())
 
+    leadership = request.args.get("leadership")
+    if leadership is not None and leadership.strip() != "":
+        leadership_column = LEADERSHIP_COLUMNS.get(leadership.strip().casefold())
+        if leadership_column is None:
+            raise BadRequest(description="leadership must be King, Chief, or Headman.")
+        where_conditions.append(f"{leadership_column} = 1")
+
+    recognition = request.args.get("recognition")
+    if recognition is not None and recognition != "":
+        if recognition == "missing":
+            where_conditions.append("formackn IS NULL")
+        elif recognition in {"0", "1"}:
+            where_conditions.append("formackn = %s")
+            query_parameters.append(int(recognition))
+        else:
+            raise BadRequest(description="recognition must be 0, 1, or missing.")
+
     any_tpi = request.args.get("any_tpi")
     if any_tpi is not None and any_tpi != "":
-        if any_tpi not in {"0", "1"}:
-            raise BadRequest(description="any_tpi must be either 0 or 1.")
-        where_conditions.append("any_tpi = %s")
-        query_parameters.append(int(any_tpi))
+        if any_tpi == "missing":
+            where_conditions.append("any_tpi IS NULL")
+        elif any_tpi in {"0", "1"}:
+            where_conditions.append("any_tpi = %s")
+            query_parameters.append(int(any_tpi))
+        else:
+            raise BadRequest(description="any_tpi must be 0, 1, or missing.")
+
+    requested_sort = (request.args.get("sort") or "group_name").strip()
+    sort_column = SORT_COLUMNS.get(requested_sort.casefold())
+    if sort_column is None:
+        raise BadRequest(description="Unsupported sort field.")
+
+    sort_direction = (request.args.get("direction") or "asc").strip().lower()
+    if sort_direction not in {"asc", "desc"}:
+        raise BadRequest(description="direction must be asc or desc.")
 
     where_clause = f" WHERE {' AND '.join(where_conditions)}" if where_conditions else ""
     offset = (page - 1) * requested_limit
-
-    count_row = fetch_one(
-        f"SELECT COUNT(*) AS total FROM tradgov_groups{where_clause}",
-        query_parameters,
+    order_clause = (
+        f" ORDER BY {sort_column} IS NULL ASC, "
+        f"{sort_column} {sort_direction.upper()}, id ASC"
     )
+
     rows = fetch_all(
-        f"SELECT * FROM tradgov_groups{where_clause} ORDER BY id ASC LIMIT %s OFFSET %s",
+        (
+            f"SELECT *, COUNT(*) OVER() AS __total_items "
+            f"FROM tradgov_groups{where_clause}{order_clause} LIMIT %s OFFSET %s"
+        ),
         [*query_parameters, requested_limit, offset],
     )
 
-    total_items = int(count_row["total"] if count_row else 0)
+    if rows:
+        total_items = int(rows[0].pop("__total_items", 0))
+        for row in rows[1:]:
+            row.pop("__total_items", None)
+    elif page > 1:
+        # An out-of-range direct URL has no row carrying the window count.
+        count_row = fetch_one(
+            f"SELECT COUNT(*) AS total FROM tradgov_groups{where_clause}",
+            query_parameters,
+        )
+        total_items = int(count_row["total"] if count_row else 0)
+    else:
+        total_items = 0
     total_pages = math.ceil(total_items / requested_limit)
     return jsonify(
         success=True,

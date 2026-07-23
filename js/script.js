@@ -6,7 +6,8 @@
 (function () {
   "use strict";
 
-  const API_BASE_URL = "http://localhost:3000/api";
+  const API_BASE_URL =
+  "https://traditional-governance-data-analytics.onrender.com/api";
   const PAGE_SIZE = 6;
   const BINARY_FIELDS = [
     "Any_TPI", "King", "Chief", "Headman", "KingInher", "KingElect",
@@ -47,7 +48,20 @@
     page: 1,
     sortKey: "GroupName",
     sortDirection: "asc",
-    anyTpiFilter: ""
+    anyTpiFilter: "",
+    pagination: {
+      page: 1,
+      limit: PAGE_SIZE,
+      totalItems: 0,
+      totalPages: 1
+    },
+    filterOptions: {
+      countries: [],
+      continents: [],
+      regions: []
+    },
+    explorerRequestController: null,
+    groupDetailCache: new Map()
   };
 
   const $ = (selector, scope = document) => scope.querySelector(selector);
@@ -67,45 +81,79 @@
     initMapMarkerNavigation();
 
     const page = document.body.dataset.page;
-    const requiresGroups = ["home", "groups", "comparison", "statistics"].includes(page);
-    if (!requiresGroups) return;
-
     try {
-      const needsSummaries = ["home", "statistics"].includes(page);
-      const needsStatistics = page === "statistics";
-      const [groups, stats, continents, leadership, largestGroups, topCountries] = await Promise.all([
-        loadGroups(),
-        needsSummaries ? loadApiData("stats") : Promise.resolve(null),
-        needsSummaries ? loadApiData("continents") : Promise.resolve([]),
-        needsStatistics ? loadApiData("leadership") : Promise.resolve(null),
-        needsStatistics ? loadApiData("largest-groups") : Promise.resolve([]),
-        needsStatistics ? loadApiData("top-countries") : Promise.resolve([])
-      ]);
+      if (page === "groups") {
+        const initialQuery = explorerQueryFromUrl();
+        const [countries, continents, regions, initialPage] = await Promise.all([
+          loadApiData("countries"),
+          loadApiData("continents"),
+          loadApiData("regions"),
+          loadGroupsPage(initialQuery)
+        ]);
+        state.filterOptions = {
+          countries: summaryValues(countries, "country"),
+          continents: summaryValues(continents, "continent"),
+          regions: summaryValues(regions, "region")
+        };
+        state.page = initialPage.pagination.page;
+        state.sortKey = initialQuery.sort;
+        state.sortDirection = initialQuery.direction;
+        state.anyTpiFilter = initialQuery.any_tpi;
+        initExplorer(initialPage);
+        initDetailActions();
+        return;
+      }
 
-      state.groups = groups;
-      state.filtered = [...groups];
-      state.stats = stats ? normalizeStats(stats) : null;
-      state.continents = Array.isArray(continents) ? continents.map(normalizeContinentSummary) : [];
-      state.leadership = normalizeLeadershipSummary(leadership);
-      state.largestGroups = Array.isArray(largestGroups) ? largestGroups.map(normalizeLargestGroup) : [];
-      state.topCountries = Array.isArray(topCountries) ? topCountries.map(normalizeTopCountry) : [];
+      if (page === "home") {
+        const [groupsPage, stats, continents] = await Promise.all([
+          loadGroupsPage({ page: 1, limit: 8, sort: "id", direction: "desc" }),
+          loadApiData("stats"),
+          loadApiData("continents")
+        ]);
+        state.groups = groupsPage.groups;
+        state.filtered = [...groupsPage.groups];
+        state.stats = normalizeStats(stats);
+        state.continents = Array.isArray(continents) ? continents.map(normalizeContinentSummary) : [];
+        updateGlobalDataViews();
+        animateCounters();
+        return;
+      }
 
-      updateGlobalDataViews();
-      initExplorer();
-      initComparison();
-      initStatisticsPage();
-      initDetailActions();
-      animateCounters();
+      if (page === "comparison") {
+        const options = await loadApiData("group-options");
+        state.groups = Array.isArray(options) ? options.map(normalizeGroup) : [];
+        initComparison();
+        return;
+      }
+
+      if (page === "statistics") {
+        const [stats, continents, leadership, largestGroups, topCountries] = await Promise.all([
+          loadApiData("stats"),
+          loadApiData("continents"),
+          loadApiData("leadership"),
+          loadApiData("largest-groups"),
+          loadApiData("top-countries")
+        ]);
+        state.stats = normalizeStats(stats);
+        state.continents = Array.isArray(continents) ? continents.map(normalizeContinentSummary) : [];
+        state.leadership = normalizeLeadershipSummary(leadership);
+        state.largestGroups = Array.isArray(largestGroups) ? largestGroups.map(normalizeLargestGroup) : [];
+        state.topCountries = Array.isArray(topCountries) ? topCountries.map(normalizeTopCountry) : [];
+        updateGlobalDataViews();
+        initStatisticsPage();
+        animateCounters();
+      }
     } catch (error) {
       console.error("Could not load data from the backend API:", error);
       showDataError(error);
     }
   }
 
-  async function loadApiData(endpoint) {
+  async function loadApiData(endpoint, options = {}) {
     const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
       cache: "no-store",
-      headers: { Accept: "application/json" }
+      headers: { Accept: "application/json" },
+      signal: options.signal
     });
     let result = null;
 
@@ -122,35 +170,27 @@
     return result.data;
   }
 
-  async function loadGroups() {
-    const limit = 100;
-    const firstPage = await loadApiData(`groups?page=1&limit=${limit}`);
-    const firstRecords = extractGroupRecords(firstPage);
-    const pagination = firstPage?.pagination || {};
-    const total = toNumber(pagination.total_items ?? pagination.total ?? pagination.total_records);
-    const totalPages = toNumber(pagination.total_pages ?? pagination.totalPages)
-      ?? (total == null ? null : Math.ceil(total / limit));
+  async function loadGroupsPage(query = {}, options = {}) {
+    const params = new URLSearchParams();
+    Object.entries(query).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== "") {
+        params.set(key, String(value));
+      }
+    });
 
-    if (totalPages != null && totalPages > 1) {
-      const remainingPages = await Promise.all(
-        Array.from({ length: totalPages - 1 }, (_, index) => index + 2)
-          .map((page) => loadApiData(`groups?page=${page}&limit=${limit}`))
-      );
-      return [firstRecords, ...remainingPages.map(extractGroupRecords)]
-        .flat()
-        .map(normalizeGroup);
-    }
-
-    const allRecords = [...firstRecords];
-    let page = 2;
-    let records = firstRecords;
-    while (totalPages == null && records.length === limit) {
-      const data = await loadApiData(`groups?page=${page}&limit=${limit}`);
-      records = extractGroupRecords(data);
-      allRecords.push(...records);
-      page += 1;
-    }
-    return allRecords.map(normalizeGroup);
+    const data = await loadApiData(`groups?${params.toString()}`, options);
+    const pagination = data?.pagination || {};
+    return {
+      groups: extractGroupRecords(data).map(normalizeGroup),
+      pagination: {
+        page: toNumber(pagination.page) ?? 1,
+        limit: toNumber(pagination.limit) ?? PAGE_SIZE,
+        totalItems: toNumber(
+          pagination.total_items ?? pagination.total ?? pagination.total_records
+        ) ?? 0,
+        totalPages: toNumber(pagination.total_pages ?? pagination.totalPages) ?? 0
+      }
+    };
   }
 
   function extractGroupRecords(data) {
@@ -159,6 +199,44 @@
       : data?.groups || data?.items || data?.records;
     if (!Array.isArray(records)) throw new Error("groups: unexpected API response format");
     return records;
+  }
+
+  function summaryValues(rows, field) {
+    if (!Array.isArray(rows)) return [];
+    return [...new Set(rows.map((row) => cleanValue(row[field])).filter(Boolean))]
+      .sort((left, right) => String(left).localeCompare(String(right)));
+  }
+
+  function explorerQueryFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const requestedPage = Number(params.get("page"));
+    const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+
+    const supportedSorts = new Set(["GroupName", "Country", "Continent", "Population", "FormAckn"]);
+    const requestedSort = params.get("sort");
+    const sort = supportedSorts.has(requestedSort) ? requestedSort : "GroupName";
+    const direction = params.get("direction") === "desc" ? "desc" : "asc";
+
+    const leadership = ["King", "Chief", "Headman"].includes(params.get("leadership"))
+      ? params.get("leadership")
+      : "";
+    const recognition = ["0", "1", "missing"].includes(params.get("recognition"))
+      ? params.get("recognition")
+      : "";
+
+    return {
+      page,
+      limit: PAGE_SIZE,
+      search: params.get("search") || "",
+      country: params.get("country") || "",
+      continent: params.get("continent") || "",
+      region: params.get("region") || "",
+      leadership,
+      recognition,
+      any_tpi: normalizeBinaryQueryParameter(params.get("any_tpi")),
+      sort,
+      direction
+    };
   }
 
   function normalizeGroup(group) {
@@ -194,7 +272,13 @@
       totalCountries: toNumber(data.total_countries) ?? 0,
       totalContinents: toNumber(data.total_continents) ?? 0,
       totalRegions: toNumber(data.total_regions) ?? 0,
-      totalTraditional: toNumber(data.groups_with_tpi) ?? 0
+      totalTraditional: toNumber(data.groups_with_tpi) ?? 0,
+      totalRecognized: toNumber(data.total_recognized) ?? 0,
+      totalNotRecognized: toNumber(data.total_not_recognized) ?? 0,
+      totalRecognitionMissing: toNumber(data.total_recognition_missing) ?? 0,
+      totalFuncLand: toNumber(data.total_func_land) ?? 0,
+      totalFuncSec: toNumber(data.total_func_sec) ?? 0,
+      totalFuncHeal: toNumber(data.total_func_heal) ?? 0
     };
   }
 
@@ -374,17 +458,15 @@
   }
 
   function updateGlobalDataViews() {
-    const recognized = state.groups.filter((group) => group.FormAckn === 1).length;
-    const traditional = state.groups.filter((group) => group.Any_TPI === 1).length;
     const metrics = state.stats
-      ? { ...state.stats, totalRecognized: recognized }
+      ? state.stats
       : {
           totalGroups: state.groups.length,
           totalCountries: uniqueValues("Country").length,
           totalContinents: uniqueValues("Continent").length,
           totalRegions: uniqueValues("Region").length,
-          totalTraditional: traditional,
-          totalRecognized: recognized
+          totalTraditional: 0,
+          totalRecognized: 0
         };
 
     Object.entries(metrics).forEach(([key, value]) => {
@@ -472,26 +554,39 @@
     window.setTimeout(() => counters.forEach(run), 1200);
   }
 
-  function initExplorer() {
+  function initExplorer(initialPage = null) {
     const tableBody = $("#groupsTableBody");
     if (!tableBody) return;
 
-    populateFilter("countryFilter", uniqueValues("Country"));
-    populateFilter("continentFilter", uniqueValues("Continent"));
-    populateFilter("regionFilter", uniqueValues("Region"));
+    populateFilter("countryFilter", state.filterOptions.countries);
+    populateFilter("continentFilter", state.filterOptions.continents);
+    populateFilter("regionFilter", state.filterOptions.regions);
     applyExplorerQueryParameters();
 
     const search = $("#groupSearch");
-    [search, $("#countryFilter"), $("#continentFilter"), $("#regionFilter"), $("#leadershipFilter"), $("#recognitionFilter")]
+    let searchTimer = null;
+
+    search?.addEventListener("input", () => {
+      window.clearTimeout(searchTimer);
+      state.page = 1;
+      updateExplorerQueryString();
+      searchTimer = window.setTimeout(() => {
+        loadExplorerPage();
+      }, 300);
+    });
+
+    [$("#countryFilter"), $("#continentFilter"), $("#regionFilter"), $("#leadershipFilter"), $("#recognitionFilter")]
       .filter(Boolean)
       .forEach((control) => {
-        control.addEventListener(control === search ? "input" : "change", () => {
+        control.addEventListener("change", () => {
+          window.clearTimeout(searchTimer);
           state.page = 1;
-          applyExplorerFilters();
+          loadExplorerPage();
         });
       });
 
     $("#resetFilters")?.addEventListener("click", () => {
+      window.clearTimeout(searchTimer);
       ["groupSearch", "countryFilter", "continentFilter", "regionFilter", "leadershipFilter", "recognitionFilter"]
         .forEach((id) => {
           const control = $(`#${id}`);
@@ -501,7 +596,7 @@
       state.sortKey = "GroupName";
       state.sortDirection = "asc";
       state.anyTpiFilter = "";
-      applyExplorerFilters();
+      loadExplorerPage();
     });
 
     $$('[data-sort]').forEach((header) => {
@@ -512,11 +607,23 @@
           state.sortKey = key;
           state.sortDirection = "asc";
         }
-        applyExplorerFilters();
+        state.page = 1;
+        loadExplorerPage();
       });
     });
 
-    applyExplorerFilters();
+    if (initialPage) {
+      state.groups = initialPage.groups;
+      state.filtered = [...initialPage.groups];
+      state.pagination = initialPage.pagination;
+      state.page = initialPage.pagination.page;
+      updateExplorerQueryString();
+      renderGroupsTable();
+      renderPagination(initialPage.pagination.totalPages);
+      updateSortIndicators();
+    } else {
+      loadExplorerPage();
+    }
   }
 
   function applyExplorerQueryParameters() {
@@ -527,7 +634,21 @@
     setSelectFromQuery("countryFilter", "country", params.get("country"));
     setSelectFromQuery("continentFilter", "continent", params.get("continent"));
     setSelectFromQuery("regionFilter", "region", params.get("region"));
+    setSelectFromQuery("leadershipFilter", "leadership", params.get("leadership"));
+    setSelectFromQuery("recognitionFilter", "recognition", params.get("recognition"));
     state.anyTpiFilter = normalizeBinaryQueryParameter(params.get("any_tpi"));
+
+    const requestedPage = Number(params.get("page"));
+    if (Number.isInteger(requestedPage) && requestedPage > 0) state.page = requestedPage;
+
+    const requestedSort = params.get("sort");
+    const supportedSorts = new Set(["GroupName", "Country", "Continent", "Population", "FormAckn"]);
+    if (supportedSorts.has(requestedSort)) state.sortKey = requestedSort;
+
+    const requestedDirection = params.get("direction");
+    if (requestedDirection === "asc" || requestedDirection === "desc") {
+      state.sortDirection = requestedDirection;
+    }
   }
 
   function setSelectFromQuery(id, parameterName, requestedValue) {
@@ -563,7 +684,12 @@
       country: $("#countryFilter")?.value || "",
       continent: $("#continentFilter")?.value || "",
       region: $("#regionFilter")?.value || "",
-      any_tpi: state.anyTpiFilter
+      leadership: $("#leadershipFilter")?.value || "",
+      recognition: $("#recognitionFilter")?.value || "",
+      any_tpi: state.anyTpiFilter,
+      page: state.page > 1 ? String(state.page) : "",
+      sort: state.sortKey !== "GroupName" ? state.sortKey : "",
+      direction: state.sortDirection !== "asc" ? state.sortDirection : ""
     };
 
     Object.entries(values).forEach(([key, value]) => {
@@ -586,64 +712,112 @@
     });
   }
 
-  function applyExplorerFilters() {
-    const term = ($("#groupSearch")?.value || "").trim().toLocaleLowerCase();
-    const country = $("#countryFilter")?.value || "";
-    const continent = $("#continentFilter")?.value || "";
-    const region = $("#regionFilter")?.value || "";
-    const leadership = $("#leadershipFilter")?.value || "";
-    const recognition = $("#recognitionFilter")?.value || "";
-    const anyTpi = state.anyTpiFilter;
+  function explorerRequestQuery() {
+    return {
+      page: state.page,
+      limit: PAGE_SIZE,
+      search: ($("#groupSearch")?.value || "").trim(),
+      country: $("#countryFilter")?.value || "",
+      continent: $("#continentFilter")?.value || "",
+      region: $("#regionFilter")?.value || "",
+      leadership: $("#leadershipFilter")?.value || "",
+      recognition: $("#recognitionFilter")?.value || "",
+      any_tpi: state.anyTpiFilter,
+      sort: state.sortKey,
+      direction: state.sortDirection
+    };
+  }
 
-    state.filtered = state.groups.filter((group) => {
-      const matchesTerm = !term || [group.GroupName, group.GroupNameAr]
-        .some((name) => String(name || "").toLocaleLowerCase().includes(term));
-      const matchesCountry = !country || group.Country === country;
-      const matchesContinent = !continent || group.Continent === continent;
-      const matchesRegion = !region || group.Region === region;
-      const matchesLeadership = !leadership || group[leadership] === 1;
-      const matchesRecognition = !recognition || (recognition === "missing" ? group.FormAckn == null : String(group.FormAckn) === recognition);
-      const matchesAnyTpi = !anyTpi || (anyTpi === "missing" ? group.Any_TPI == null : String(group.Any_TPI) === anyTpi);
-      return matchesTerm && matchesCountry && matchesContinent && matchesRegion && matchesLeadership && matchesRecognition && matchesAnyTpi;
-    });
+  async function loadExplorerPage(options = {}) {
+    state.explorerRequestController?.abort();
+    const controller = new AbortController();
+    state.explorerRequestController = controller;
 
-    state.filtered.sort((a, b) => {
-      let left = state.sortKey === "GroupName" ? getGroupDisplayName(a) : a[state.sortKey];
-      let right = state.sortKey === "GroupName" ? getGroupDisplayName(b) : b[state.sortKey];
-      if (left == null) left = state.sortDirection === "asc" ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
-      if (right == null) right = state.sortDirection === "asc" ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
-      const result = typeof left === "number"
-        ? left - right
-        : String(left).localeCompare(String(right), undefined, { sensitivity: "base" });
-      return state.sortDirection === "asc" ? result : -result;
-    });
-
-    const totalPages = Math.max(1, Math.ceil(state.filtered.length / PAGE_SIZE));
-    if (state.page > totalPages) state.page = totalPages;
     updateExplorerQueryString();
-    renderGroupsTable();
-    renderPagination(totalPages);
+    renderExplorerLoading();
+
+    try {
+      const result = await loadGroupsPage(
+        explorerRequestQuery(),
+        { signal: controller.signal }
+      );
+      if (state.explorerRequestController !== controller) return;
+
+      state.groups = result.groups;
+      state.filtered = [...result.groups];
+      state.pagination = result.pagination;
+      state.page = result.pagination.page;
+
+      updateExplorerQueryString();
+      renderGroupsTable();
+      renderPagination(result.pagination.totalPages);
+      updateSortIndicators();
+
+      if (options.scroll) {
+        $("#groupsTable")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      console.error("Could not load the requested groups page:", error);
+      renderExplorerError(error);
+    } finally {
+      if (state.explorerRequestController === controller) {
+        state.explorerRequestController = null;
+      }
+    }
+  }
+
+  function renderExplorerLoading() {
+    const body = $("#groupsTableBody");
+    const count = $("#resultsCount");
+    const pagination = $("#groupsPagination");
+    $("#groupsTable")?.setAttribute("aria-busy", "true");
+    if (count) count.textContent = tr("Loading records…");
+    if (body) {
+      body.innerHTML = `<tr><td colspan="8" class="empty-state">${tr("Loading records…")}</td></tr>`;
+    }
+    if (pagination) pagination.innerHTML = "";
+  }
+
+  function renderExplorerError(error) {
+    const body = $("#groupsTableBody");
+    const count = $("#resultsCount");
+    $("#groupsTable")?.setAttribute("aria-busy", "false");
+    if (count) count.textContent = tr("Unable to load records.");
+    if (body) {
+      body.innerHTML = `<tr><td colspan="8" class="empty-state"><i class="bi bi-exclamation-triangle d-block fs-2 mb-2"></i>${escapeHtml(error?.message || tr("Unable to load records."))}</td></tr>`;
+    }
+  }
+
+  function updateSortIndicators() {
+    $$("[data-sort]").forEach((header) => {
+      if (header.dataset.sort === state.sortKey) {
+        header.setAttribute("aria-sort", state.sortDirection === "asc" ? "ascending" : "descending");
+      } else {
+        header.removeAttribute("aria-sort");
+      }
+    });
   }
 
   function renderGroupsTable() {
     const body = $("#groupsTableBody");
     const count = $("#resultsCount");
     if (!body) return;
+    $("#groupsTable")?.setAttribute("aria-busy", "false");
 
     if (count) {
+      const totalItems = state.pagination.totalItems;
       count.innerHTML = isArabic()
-        ? `عرض <strong>${state.filtered.length.toLocaleString("ar")}</strong> من سجلات قاعدة البيانات`
-        : `Showing <strong>${state.filtered.length.toLocaleString()}</strong> database record${state.filtered.length === 1 ? "" : "s"}`;
+        ? `عرض <strong>${totalItems.toLocaleString("ar")}</strong> من سجلات قاعدة البيانات`
+        : `Showing <strong>${totalItems.toLocaleString()}</strong> database record${totalItems === 1 ? "" : "s"}`;
     }
 
-    if (!state.filtered.length) {
+    if (!state.groups.length) {
       body.innerHTML = `<tr><td colspan="8" class="empty-state"><i class="bi bi-search d-block fs-2 mb-2"></i>${tr("No groups match the selected criteria.")}</td></tr>`;
       return;
     }
 
-    const start = (state.page - 1) * PAGE_SIZE;
-    const records = state.filtered.slice(start, start + PAGE_SIZE);
-    body.innerHTML = records.map(groupTableRow).join("");
+    body.innerHTML = state.groups.map(groupTableRow).join("");
   }
 
   function groupTableRow(group) {
@@ -663,23 +837,22 @@
   function renderPagination(totalPages) {
     const container = $("#groupsPagination");
     if (!container) return;
+    const visibleTotalPages = Math.max(1, totalPages);
     const buttons = [];
     buttons.push(`<button class="page-btn" data-page="${state.page - 1}" ${state.page === 1 ? "disabled" : ""} aria-label="${tr("Previous page")}"><i class="bi bi-chevron-left"></i></button>`);
-    paginationRange(totalPages, state.page).forEach((page) => {
+    paginationRange(visibleTotalPages, state.page).forEach((page) => {
       if (page === "ellipsis") {
         buttons.push('<span class="page-ellipsis" aria-hidden="true">…</span>');
         return;
       }
       buttons.push(`<button class="page-btn ${page === state.page ? "active" : ""}" data-page="${page}" aria-label="${tr("Page {page}", { page })}" ${page === state.page ? 'aria-current="page"' : ""}>${page}</button>`);
     });
-    buttons.push(`<button class="page-btn" data-page="${state.page + 1}" ${state.page === totalPages ? "disabled" : ""} aria-label="${tr("Next page")}"><i class="bi bi-chevron-right"></i></button>`);
+    buttons.push(`<button class="page-btn" data-page="${state.page + 1}" ${state.page >= visibleTotalPages ? "disabled" : ""} aria-label="${tr("Next page")}"><i class="bi bi-chevron-right"></i></button>`);
     container.innerHTML = buttons.join("");
     $$('.page-btn:not([disabled])', container).forEach((button) => {
       button.addEventListener("click", () => {
         state.page = Number(button.dataset.page);
-        renderGroupsTable();
-        renderPagination(totalPages);
-        $("#groupsTable")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        loadExplorerPage({ scroll: true });
       });
     });
   }
@@ -775,7 +948,31 @@
     leftSelect.value = String(state.groups[0]?.id || "");
     rightSelect.value = String(state.groups[1]?.id || "");
 
-    const render = () => renderComparison(Number(leftSelect.value), Number(rightSelect.value));
+    let renderVersion = 0;
+    const render = async () => {
+      const currentVersion = ++renderVersion;
+      const profiles = $("#compareProfiles");
+      const body = $("#comparisonBody");
+      if (profiles) profiles.innerHTML = "";
+      if (body) {
+        body.innerHTML = `<tr><td colspan="3" class="empty-state">${tr("Loading comparison…")}</td></tr>`;
+      }
+
+      try {
+        const [left, right] = await Promise.all([
+          loadGroupDetail(Number(leftSelect.value)),
+          loadGroupDetail(Number(rightSelect.value))
+        ]);
+        if (currentVersion !== renderVersion) return;
+        renderComparison(left, right);
+      } catch (error) {
+        if (currentVersion !== renderVersion) return;
+        console.error("Could not load comparison details:", error);
+        if (body) {
+          body.innerHTML = `<tr><td colspan="3" class="empty-state">${escapeHtml(error?.message || tr("Unable to load records."))}</td></tr>`;
+        }
+      }
+    };
     leftSelect.addEventListener("change", render);
     rightSelect.addEventListener("change", render);
     $("#swapGroups")?.addEventListener("click", () => {
@@ -787,9 +984,23 @@
     render();
   }
 
-  function renderComparison(leftId, rightId) {
-    const left = state.groups.find((group) => group.id === leftId);
-    const right = state.groups.find((group) => group.id === rightId);
+  function loadGroupDetail(id) {
+    if (!Number.isInteger(id) || id < 1) {
+      return Promise.reject(new Error("A valid group must be selected."));
+    }
+    if (state.groupDetailCache.has(id)) return state.groupDetailCache.get(id);
+
+    const request = loadApiData(`groups/${id}`)
+      .then(normalizeGroup)
+      .catch((error) => {
+        state.groupDetailCache.delete(id);
+        throw error;
+      });
+    state.groupDetailCache.set(id, request);
+    return request;
+  }
+
+  function renderComparison(left, right) {
     const profiles = $("#compareProfiles");
     const body = $("#comparisonBody");
     if (!left || !right || !profiles || !body) return;
@@ -838,14 +1049,14 @@
       [tr("Headman")]: state.leadership?.Headman ?? 0
     };
     const functionData = {
-      [tr("Land management")]: countYes("Func_Land"),
-      [tr("Security")]: countYes("Func_Sec"),
-      [tr("Healing / healthcare")]: countYes("Func_Heal")
+      [tr("Land management")]: state.stats?.totalFuncLand ?? 0,
+      [tr("Security")]: state.stats?.totalFuncSec ?? 0,
+      [tr("Healing / healthcare")]: state.stats?.totalFuncHeal ?? 0
     };
     const recognitionData = {
-      [tr("Recognized")]: countYes("FormAckn"),
-      [tr("Not recognized")]: state.groups.filter((group) => group.FormAckn === 0).length,
-      [tr("Not available")]: state.groups.filter((group) => group.FormAckn == null).length
+      [tr("Recognized")]: state.stats?.totalRecognized ?? 0,
+      [tr("Not recognized")]: state.stats?.totalNotRecognized ?? 0,
+      [tr("Not available")]: state.stats?.totalRecognitionMissing ?? 0
     };
     const continentData = Object.fromEntries(
       state.continents.map((item) => [tr(item.continent), item.totalGroups])
@@ -983,10 +1194,6 @@
 
   function uniqueValues(field) {
     return [...new Set(state.groups.map((group) => group[field]).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
-  }
-
-  function countYes(field) {
-    return state.groups.filter((group) => group[field] === 1).length;
   }
 
   function leadershipBadges(group) {
