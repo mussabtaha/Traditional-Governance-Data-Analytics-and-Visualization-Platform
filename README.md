@@ -1,0 +1,768 @@
+<p align="center">
+  <img src="assets/readme/header.svg" width="100%" alt="Traditional Governance Data Analytics and Visualization Platform banner">
+</p>
+
+<h1 align="center">Traditional Governance Data Analytics and Visualization Platform</h1>
+
+<p align="center">
+  An interactive academic platform for exploring, filtering, comparing, analyzing, and visualizing traditional governance data.
+</p>
+
+<p align="center">
+  <a href="https://developer.mozilla.org/en-US/docs/Web/HTML"><img alt="HTML5" src="https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white"></a>
+  <a href="https://developer.mozilla.org/en-US/docs/Web/CSS"><img alt="CSS3" src="https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white"></a>
+  <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"><img alt="JavaScript" src="https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=111111"></a>
+  <a href="https://getbootstrap.com/"><img alt="Bootstrap 5" src="https://img.shields.io/badge/Bootstrap_5-7952B3?logo=bootstrap&logoColor=white"></a>
+  <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white"></a>
+  <a href="https://flask.palletsprojects.com/"><img alt="Flask" src="https://img.shields.io/badge/Flask-000000?logo=flask&logoColor=white"></a>
+  <a href="https://www.mysql.com/"><img alt="MySQL" src="https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white"></a>
+  <a href="https://render.com/"><img alt="Render" src="https://img.shields.io/badge/Render-000000?logo=render&logoColor=white"></a>
+  <a href="https://railway.com/"><img alt="Railway" src="https://img.shields.io/badge/Railway-0B0D0E?logo=railway&logoColor=white"></a>
+  <a href="https://github.com/mussabtaha/Traditional-Governance-Data-Analytics-and-Visualization-Platform"><img alt="GitHub repository" src="https://img.shields.io/badge/GitHub-Repository-181717?logo=github&logoColor=white"></a>
+</p>
+
+<p align="center">
+  <a href="#live-demo">Live Demo</a> ·
+  <a href="#project-overview">Overview</a> ·
+  <a href="#system-architecture">Architecture</a> ·
+  <a href="#dataset-overview">Dataset</a> ·
+  <a href="#api-documentation">API</a> ·
+  <a href="#local-installation">Installation</a> ·
+  <a href="#testing-and-verification">Testing</a>
+</p>
+
+---
+
+## Live Demo
+
+| Service | Link | Status |
+|---|---|---|
+| Flask API | [traditional-governance-data-analytics.onrender.com](https://traditional-governance-data-analytics.onrender.com) | Deployed on Render |
+| API example | [`GET /api/stats`](https://traditional-governance-data-analytics.onrender.com/api/stats) | Live JSON response |
+| Frontend deployment | Coming soon | The repository does not currently contain a confirmed frontend deployment URL |
+
+> Render may need a short warm-up period before the first response when the
+> service has been inactive.
+
+## Project Overview
+
+The Traditional Governance Data Analytics and Visualization Platform is a
+university graduation project that turns a structured traditional governance
+dataset into an accessible research interface. It enables users to inspect
+geographic coverage, search and filter group records, examine institutional
+attributes, compare two groups, and study aggregate patterns through charts and
+a world distribution map.
+
+The active frontend is built with standard web technologies and communicates
+with a Flask REST API. The API uses parameterized SQL queries and a MySQL
+connection pool. MySQL performs pagination, filtering, sorting, and aggregation
+before returning compact JSON responses to the browser.
+
+### ملخص المشروع بالعربية
+
+منصة أكاديمية تفاعلية لاستكشاف بيانات الحوكمة التقليدية وتحليلها وعرضها
+بصرياً. تتيح المنصة البحث في سجلات المجموعات، وتطبيق المرشحات الجغرافية
+والمؤسسية، ومقارنة مجموعتين، واستعراض الإحصاءات والرسوم البيانية وخريطة
+التوزيع العالمي. تتصل الواجهة الأمامية بواجهة برمجية مبنية باستخدام Flask،
+بينما تُنفَّذ عمليات التصفية والترتيب وترقيم الصفحات داخل قاعدة بيانات MySQL.
+
+## Problem Statement
+
+Traditional governance datasets contain many geographic, institutional, and
+binary variables. Reading these records directly from spreadsheets or database
+tables makes it difficult to:
+
+- locate a specific group quickly;
+- combine geographic and governance criteria;
+- interpret `1`, `0`, and missing values consistently;
+- compare institutional characteristics across groups;
+- understand continent, country, leadership, function, and recognition trends;
+- present the dataset clearly to non-technical users.
+
+This project addresses that problem with a responsive interface and a
+server-backed data layer that converts raw records into searchable tables,
+human-readable details, comparisons, maps, and statistical summaries.
+
+## Project Objectives
+
+1. Provide a clear, responsive interface for exploring traditional governance data.
+2. Support bilingual English and Arabic presentation with correct LTR and RTL behavior.
+3. Convert binary and missing values into understandable interface labels.
+4. Enable SQL-backed search, filtering, sorting, and pagination.
+5. Present aggregate patterns through summary cards, charts, and a world map.
+6. Allow side-by-side comparison of two group records.
+7. Keep the frontend modular and the API contract suitable for future development.
+8. Protect database credentials and use parameterized SQL with pooled connections.
+
+## Key Features
+
+- Live data from the Flask API and MySQL database.
+- Responsive multi-page interface built with HTML5, CSS3, JavaScript, and Bootstrap 5.
+- English and Arabic interface support with saved language preference and RTL layout.
+- Light and dark themes saved across pages.
+- Group search across English names, optional Arabic names, and countries.
+- Country, continent, region, leadership, recognition, and TPI filtering.
+- Server-side sorting and pagination with a maximum page size of 100.
+- URL query synchronization for shareable filtered Groups-page states.
+- Request cancellation to prevent stale search or filter responses.
+- Detailed group dialog with human-readable values.
+- Side-by-side comparison with lightweight selector options and on-demand details.
+- Chart.js visualizations for leadership, functions, recognition, continents,
+  largest groups, and the top ten countries.
+- Responsive SVG world map with live continent totals.
+- Clickable map markers that open the Groups page with the matching continent filter.
+- Explicit `Yes`, `No`, and `Not Available` presentation.
+- Optional, manually reviewed Arabic group names with English fallback.
+- Accessible controls, labels, keyboard-operable markers, and semantic tables.
+
+## System Architecture
+
+```mermaid
+flowchart LR
+    U["User browser"] --> F["HTML / CSS / JavaScript frontend"]
+    F --> Q["Fetch API requests"]
+    Q --> A["Flask REST API<br/>hosted on Render"]
+    A --> D[("MySQL database<br/>hosted on Railway")]
+    D -->|Query results| A
+    A -->|JSON response| J["JavaScript normalization<br/>and rendering"]
+    J --> V["Tables · statistics · charts · map<br/>filters · comparisons"]
+    V --> U
+```
+
+| Layer | Responsibility |
+|---|---|
+| Frontend | Multi-page responsive interface, saved preferences, forms, tables, map markers, charts, comparison views, and API-driven rendering. |
+| API layer | `fetch()` requests through the shared `loadApiData()` helper using the Render production API by default. |
+| Backend | Flask validates parameters, builds parameterized SQL, formats standard JSON envelopes, and handles errors. |
+| Database | Railway-hosted MySQL stores `tradgov_groups` and summary views and performs filtering, sorting, pagination, and aggregation. |
+| Hosting | GitHub stores source code, Render hosts Flask with Gunicorn, and Railway hosts MySQL. A public frontend deployment is not yet documented. |
+
+## Application Workflow
+
+```mermaid
+flowchart TD
+    S["1. User opens an application page"] --> J["2. JavaScript sends an API request"]
+    J --> V["3. Flask validates query parameters"]
+    V --> Q["4. Flask creates a parameterized SQL query"]
+    Q --> M["5. MySQL executes filtering, sorting, and pagination"]
+    M --> R["6. Flask returns a JSON response"]
+    R --> N["7. JavaScript normalizes and displays the result"]
+    N --> I["8. User changes a filter, sort, search, or page"]
+    I --> P["9. Only the requested page is fetched again"]
+    P --> V
+```
+
+## Technology Stack
+
+| Area | Technology | Use in this project |
+|---|---|---|
+| Structure | HTML5 | Six semantic application pages and native dialog/form elements |
+| Styling | CSS3 | Responsive layouts, themes, RTL support, animations, map positioning |
+| UI framework | Bootstrap 5 | Grid, forms, responsive utilities, and bundled JavaScript |
+| Client logic | Vanilla JavaScript | API loading, normalization, filtering state, pagination, charts, preferences |
+| Charts | Chart.js | Doughnut and bar charts with accessible canvas labels |
+| Icons | Bootstrap Icons | Navigation, cards, controls, tables, and status indicators |
+| Backend | Python and Flask | REST endpoints, validation, errors, and response formatting |
+| CORS | Flask-CORS | Approved frontend origins for API requests |
+| Database driver | `mysql-connector-python` | MySQL connection pool and dictionary cursors |
+| Configuration | `python-dotenv` | Local environment-variable loading |
+| Production server | Gunicorn 23 | Render production process |
+| Database | MySQL | Group records, summary views, SQL filtering, sorting, and pagination |
+| API hosting | Render | Public Flask API |
+| Database hosting | Railway | Hosted MySQL database |
+| Source control | Git and GitHub | Repository and team collaboration |
+
+## Dataset Overview
+
+The deployed API reported the following values on **24 July 2026**:
+
+| Metric | Confirmed value |
+|---|---:|
+| Traditional group records | 1,557 |
+| Countries | 130 |
+| Continents represented | 5 |
+| Regions represented | 7 |
+| Records with a traditional political institution (`any_tpi = 1`) | 1,351 |
+| Formally acknowledged records | 744 |
+
+These values come from the live [`/api/stats`](https://traditional-governance-data-analytics.onrender.com/api/stats)
+endpoint and may change when the database is updated.
+
+The active database table is `tradgov_groups`. Summary endpoints also read the
+views `vw_country_summary`, `vw_continent_summary`, `vw_region_summary`, and
+`vw_leadership_summary`.
+
+## Data Fields
+
+The table below documents fields that are confirmed in the API and frontend.
+It does not assign academic meanings beyond those defined by the project UI.
+
+| Category | API/database field | Frontend label or use |
+|---|---|---|
+| Record identity | `id` | Internal database identifier used by detail requests |
+| Record identity | `groupid` | Source group identifier |
+| Geography | `country` | Country |
+| Geography | `continent` | Continent |
+| Geography | `region` | Region |
+| Group | `group_name` | Original/source group name |
+| Group | `group_name_ar` | Optional manually reviewed Arabic name |
+| Group | `groupsize` | Population/group size |
+| Institution | `any_tpi` | Traditional political institution present |
+| Leadership | `king` | King |
+| Leadership | `chief` | Chief |
+| Leadership | `headman` | Headman |
+| Succession | `kinginher` | King selected through inheritance |
+| Succession | `kingelect` | King selected through election |
+| Succession | `kingapp` | King selected through appointment |
+| Function | `func_land` | Land management |
+| Function | `func_sec` | Security |
+| Function | `kingheal` | Healing/healthcare value displayed as `Func_Heal` |
+| Administration | `counceld` | Advisory or decision-making council |
+| Administration | `assembly` | Public or community assembly |
+| Recognition | `formackn` | Formal acknowledgement by the state |
+
+The interface also contains a `Func_DR` display field for dispute resolution,
+but the current live record structure does not provide a corresponding value.
+The frontend therefore displays it as `Not Available`.
+
+### Binary and missing values
+
+Many institutional variables use:
+
+- `1` → **Yes / Present**
+- `0` → **No / Absent**
+- `NULL` → **Not Available** or not applicable in the source record
+
+The frontend preserves missingness rather than silently converting unknown
+values to `No`.
+
+## Main Application Pages
+
+| Page | Purpose and interactions |
+|---|---|
+| [`index.html`](index.html) — Home | Hero introduction, live summary cards, tool navigation, latest records, and an SVG world map with live continent counts. Selecting a marker opens the Groups page with that continent filter. |
+| [`groups.html`](groups.html) — Groups | Search, geographic and institutional filters, sortable table, server-side pagination, reset control, URL-synchronized state, and detailed group dialog. |
+| [`statistics.html`](statistics.html) — Statistics | Live summary metrics and six Chart.js visualizations: leadership, functions, formal recognition, continent distribution, largest groups, and top ten countries. |
+| [`comparison.html`](comparison.html) — Comparison | Loads lightweight group options, fetches two selected records by ID, supports swapping selections, and renders geography, leadership, functions, structure, and recognition side by side. |
+| [`about.html`](about.html) — About | Explains project purpose, interface methodology, value handling, and supported data fields. |
+| [`contact.html`](contact.html) — Contact | Frontend-only project enquiry form with browser validation and user feedback. It does not send messages to a backend. |
+
+## Screenshots and Visual Preview
+
+No verified application screenshots are currently stored in the repository.
+To avoid presenting generated mockups as working software, this README uses
+honest capture placeholders.
+
+| Planned visual | Expected filename | Status |
+|---|---|---|
+| Home dashboard | `assets/screenshots/home-dashboard.png` | Capture required |
+| Interactive map | `assets/screenshots/interactive-map.png` | Capture required |
+| Groups explorer | `assets/screenshots/groups-explorer.png` | Capture required |
+| Statistics dashboard | `assets/screenshots/statistics-dashboard.png` | Capture required |
+| Comparison view | `assets/screenshots/comparison-view.png` | Capture required |
+| Arabic interface | `assets/screenshots/arabic-interface.png` | Capture required |
+
+See the [screenshot capture guide](assets/screenshots/README.md) for naming,
+quality, privacy, and framing instructions.
+
+## API Documentation
+
+**Base URL**
+
+```text
+https://traditional-governance-data-analytics.onrender.com/api
+```
+
+All successful endpoints use:
+
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+
+Errors use a non-2xx HTTP status with:
+
+```json
+{
+  "success": false,
+  "message": "A user-readable error message."
+}
+```
+
+### Endpoint reference
+
+| Method | Path | Purpose | Parameters | Example |
+|---|---|---|---|---|
+| `GET` | `/api/health` | Check Flask and database availability | None | [`/api/health`](https://traditional-governance-data-analytics.onrender.com/api/health) |
+| `GET` | `/api/stats` | Return overall counts, recognition, functions, and coverage totals | None | [`/api/stats`](https://traditional-governance-data-analytics.onrender.com/api/stats) |
+| `GET` | `/api/countries` | Return country summary rows ordered by group total | None | [`/api/countries`](https://traditional-governance-data-analytics.onrender.com/api/countries) |
+| `GET` | `/api/continents` | Return group totals by continent | None | [`/api/continents`](https://traditional-governance-data-analytics.onrender.com/api/continents) |
+| `GET` | `/api/regions` | Return group totals by region | None | [`/api/regions`](https://traditional-governance-data-analytics.onrender.com/api/regions) |
+| `GET` | `/api/leadership` | Return king, chief, and headman totals | None | [`/api/leadership`](https://traditional-governance-data-analytics.onrender.com/api/leadership) |
+| `GET` | `/api/largest-groups` | Return the ten largest records with a population value | None | [`/api/largest-groups`](https://traditional-governance-data-analytics.onrender.com/api/largest-groups) |
+| `GET` | `/api/top-countries` | Return the ten countries with the most group records | None | [`/api/top-countries`](https://traditional-governance-data-analytics.onrender.com/api/top-countries) |
+| `GET` | `/api/group-options` | Return lightweight ID/name/country rows for comparison selectors | None | [`/api/group-options`](https://traditional-governance-data-analytics.onrender.com/api/group-options) |
+| `GET` | `/api/groups` | Return one filtered, sorted, paginated group page | Query parameters below | [`/api/groups?page=1&limit=100`](https://traditional-governance-data-analytics.onrender.com/api/groups?page=1%26limit=100) |
+| `GET` | `/api/groups/<id>` | Return one complete group record | Positive integer path ID | [`/api/groups/1`](https://traditional-governance-data-analytics.onrender.com/api/groups/1) |
+
+### `/api/groups` query parameters
+
+| Parameter | Accepted values | Behavior |
+|---|---|---|
+| `page` | Positive integer; default `1` | Requested result page |
+| `limit` | `1`–`100`; default `20` | Records returned per page |
+| `search` | Text | Searches `group_name`, `group_name_ar`, and `country` |
+| `country` | Exact country value | SQL country filter |
+| `continent` | Exact continent value | SQL continent filter |
+| `region` | Exact region value | SQL region filter |
+| `leadership` | `King`, `Chief`, `Headman` | Requires the selected leadership column to equal `1` |
+| `recognition` | `1`, `0`, `missing` | Filters `formackn` |
+| `any_tpi` | `1`, `0`, `missing` | Filters traditional institution availability |
+| `sort` | `id`, `GroupName`, `country`, `continent`, `region`, `population`, `FormAckn` and supported aliases | Whitelisted SQL sort field |
+| `direction` | `asc`, `desc` | Sort direction |
+
+Example request:
+
+```http
+GET /api/groups?page=1&limit=100&continent=Africa&leadership=Chief&recognition=1&sort=Population&direction=desc
+```
+
+Paginated response shape:
+
+```json
+{
+  "success": true,
+  "data": {
+    "groups": [
+      {
+        "id": 1,
+        "country": "Example country",
+        "continent": "Africa",
+        "region": "Example region",
+        "group_name": "Example group",
+        "group_name_ar": null,
+        "any_tpi": 1
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 100,
+      "total_items": 726,
+      "total_pages": 8
+    }
+  }
+}
+```
+
+<details>
+<summary><strong>Additional short response examples</strong></summary>
+
+Health:
+
+```json
+{
+  "success": true,
+  "data": {
+    "backend": "connected",
+    "database": "connected"
+  }
+}
+```
+
+Continent summaries:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "continent": "Africa",
+      "total_groups": 726
+    }
+  ]
+}
+```
+
+Comparison options:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "group_name": "Example group",
+      "group_name_ar": null,
+      "country": "Example country"
+    }
+  ]
+}
+```
+
+Single group:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "groupid": 2001012,
+    "group_name": "Example group",
+    "group_name_ar": null,
+    "country": "Example country",
+    "any_tpi": 1,
+    "formackn": 1
+  }
+}
+```
+
+</details>
+
+## Server-Side Pagination and Filtering
+
+The first frontend implementation downloaded every Groups API page and combined
+all records in JavaScript. As the database and network distance increased, that
+approach produced unnecessary requests, longer waits, and excessive browser
+memory use.
+
+The current implementation uses proper server-side pagination:
+
+- the first Groups-page data request is `/groups?page=1&limit=100`;
+- pages 2–16 are not requested during initial loading;
+- selecting another page requests only that page;
+- search, country, continent, region, leadership, recognition, TPI, sort, and
+  direction values are sent as query parameters;
+- Flask validates the parameters and uses whitelisted field mappings;
+- MySQL executes filtering, sorting, total counting, `LIMIT`, and `OFFSET`;
+- the response provides `page`, `limit`, `total_items`, and `total_pages`;
+- the browser stores only the current page of full group records;
+- comparison selectors use lightweight option rows, while full records are
+  requested by ID only when selected;
+- `AbortController` cancels superseded explorer requests, and a controller
+  identity check prevents stale responses from replacing newer results.
+
+This design reduces network traffic, improves Railway/Render performance, keeps
+the interface responsive, and scales more effectively than downloading the
+entire dataset on every visit.
+
+## Project Structure
+
+```text
+Traditional-Governance-Data-Analytics-and-Visualization-Platform/
+├── index.html                       # Home dashboard and interactive map
+├── groups.html                      # Search, filters, table, details, pagination
+├── statistics.html                  # Summary cards and Chart.js visualizations
+├── comparison.html                  # Side-by-side group comparison
+├── about.html                       # Project purpose and field information
+├── contact.html                     # Frontend-only enquiry form
+├── css/
+│   ├── home.css                     # Homepage-specific layout and map styling
+│   └── style.css                    # Shared components, themes, RTL, responsiveness
+├── js/
+│   ├── preferences.js               # Early global language/theme persistence
+│   ├── i18n.js                      # English/Arabic translation behavior
+│   └── script.js                    # API, rendering, charts, filters, comparison
+├── assets/
+│   ├── images/
+│   │   ├── hero-village.png
+│   │   └── world-map.svg
+│   ├── icons/
+│   ├── readme/
+│   │   └── header.svg
+│   ├── screenshots/
+│   │   └── README.md                # Authentic screenshot capture guide
+│   ├── vendor/                      # Local Bootstrap, icons, fonts, and Chart.js
+│   └── world-countries.geojson
+├── data/
+│   └── groups.json                  # Legacy/sample frontend data; active UI uses API
+├── backend-flask/
+│   ├── app.py                       # Flask factory, CORS, errors, application entry
+│   ├── config.py                    # Environment-backed settings
+│   ├── requirements.txt             # Python dependencies
+│   ├── .env.example                 # Safe local configuration template
+│   ├── database/
+│   │   └── db.py                    # Lazy MySQL pool and query helpers
+│   ├── routes/
+│   │   └── api.py                   # REST endpoints and SQL filters
+│   ├── migrations/
+│   │   ├── 001_add_group_name_ar.sql
+│   │   ├── 002_fix_confirmed_group_name_encoding.sql
+│   │   ├── encoding_diagnosis_report.md
+│   │   └── reviewed_arabic_group_names.sql
+│   ├── scripts/
+│   │   ├── encoding_diagnosis.py
+│   │   └── apply_encoding_repairs.py
+│   └── tests/
+│       └── test_server_pagination.py
+└── .gitignore
+```
+
+Generated folders, credentials, virtual environments, Git internals, and
+temporary files are intentionally omitted.
+
+## Local Installation
+
+### Prerequisites
+
+- Git
+- Python 3.10 or newer
+- A modern browser
+- VS Code with Live Server, or another local HTTP server
+- Valid MySQL credentials for the existing schema
+
+A local MySQL server is not required when valid Railway MySQL credentials are
+available.
+
+### 1. Clone the repository
+
+```powershell
+git clone https://github.com/mussabtaha/Traditional-Governance-Data-Analytics-and-Visualization-Platform.git
+cd Traditional-Governance-Data-Analytics-and-Visualization-Platform
+```
+
+### 2. Create the backend environment
+
+```powershell
+cd backend-flask
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+If PowerShell blocks activation for the current process:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+```
+
+### 3. Create the local environment file
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Replace the placeholders in `.env` with valid credentials.
+
+> **Never commit the `.env` file to GitHub.**
+
+## Environment Variables
+
+```dotenv
+DB_HOST=your_database_host
+DB_PORT=your_database_port
+DB_USER=your_database_user
+DB_PASSWORD=your_database_password
+DB_NAME=tradgov_db
+PORT=3000
+```
+
+| Variable | Purpose |
+|---|---|
+| `DB_HOST` | MySQL host |
+| `DB_PORT` | MySQL port |
+| `DB_USER` | MySQL user |
+| `DB_PASSWORD` | MySQL password |
+| `DB_NAME` | Database name, normally `tradgov_db` |
+| `PORT` | Flask port; defaults to `3000` when omitted |
+
+## Running the Application
+
+### Run Flask locally
+
+From `backend-flask` with the virtual environment active:
+
+```powershell
+python app.py
+```
+
+Verify the local API:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing http://localhost:3000/api/health
+```
+
+### Run the frontend
+
+Open a second PowerShell terminal in the repository root and use either:
+
+1. **VS Code Live Server** on port `5500`; or
+2. Python's static HTTP server:
+
+```powershell
+python -m http.server 5500
+```
+
+Then open:
+
+```text
+http://localhost:5500/index.html
+```
+
+The frontend defaults to the deployed Render API. For local API development,
+set the following global before the shared `js/script.js` file loads:
+
+```html
+<script>
+  window.TRADGOV_CONFIG = {
+    apiBaseUrl: "http://localhost:3000/api"
+  };
+</script>
+```
+
+Remove that local override before production deployment. The production default
+remains:
+
+```text
+https://traditional-governance-data-analytics.onrender.com/api
+```
+
+## Deployment Architecture
+
+| Platform | Responsibility |
+|---|---|
+| GitHub | Stores frontend, Flask backend, migrations, tests, and documentation |
+| Render | Hosts the Flask REST API |
+| Railway | Hosts the MySQL database |
+| Frontend host | Not yet confirmed; the static frontend can be deployed separately |
+
+Render should run from the `backend-flask` working directory with:
+
+```text
+gunicorn app:app
+```
+
+The frontend sends requests to the Render API, and Flask connects to Railway
+using secrets stored in the hosting environment. The current Flask CORS
+configuration permits:
+
+```text
+http://localhost:5500
+http://127.0.0.1:5500
+```
+
+Before deploying the frontend, add its exact production origin to the approved
+CORS list and configure it through the deployment environment.
+
+## Testing and Verification
+
+The repository contains six Flask contract tests covering:
+
+- combined SQL filtering, sorting, and pagination;
+- missing recognition values;
+- out-of-range page totals;
+- invalid leadership rejection;
+- invalid sort-direction rejection;
+- the lightweight comparison-options endpoint.
+
+Run them from `backend-flask` after configuring the environment:
+
+```powershell
+python -m unittest discover -s tests -t .
+```
+
+Useful verification commands:
+
+```powershell
+# Python syntax
+python -m compileall app.py config.py database routes tests
+
+# Shared frontend JavaScript syntax
+node --check ..\js\script.js
+
+# Local API health
+Invoke-WebRequest -UseBasicParsing http://localhost:3000/api/health
+
+# Production statistics response
+Invoke-WebRequest -UseBasicParsing `
+  https://traditional-governance-data-analytics.onrender.com/api/stats
+```
+
+Checks performed during the documented refactor included HTTP 200 verification,
+database row-count verification, pagination metadata checks, SQL-filter tests,
+page-change tests, filter-reset tests, CORS response checks, and browser-console
+inspection.
+
+No GitHub Actions or other automated CI/CD workflow is currently present, so
+this README does not claim continuous integration.
+
+## Security Notes
+
+- Store database credentials only in environment variables.
+- Keep `.env` in `.gitignore`; never commit it.
+- Do not commit `.venv`, `__pycache__`, local logs, or credential exports.
+- Keep user-supplied values in parameterized SQL queries.
+- Keep sort and leadership fields restricted to server-side allowlists.
+- Store production secrets in Render and Railway environment settings.
+- Rotate database credentials immediately if they are exposed.
+- Never place real credentials, private hosts, or secret URLs in README examples.
+- Review CORS origins before any public frontend deployment.
+- The current API is read-only and exposes only `GET` routes.
+
+## Team Members
+
+<!--
+Replace the placeholder rows below with the verified team details.
+Do not add names, student IDs, or GitHub profiles without each member's approval.
+-->
+
+| Name | Student ID | Role | GitHub |
+|---|---|---|---|
+| _Team member 1_ | _Student ID_ | _Role_ | _GitHub profile_ |
+| _Team member 2_ | _Student ID_ | _Role_ | _GitHub profile_ |
+| _Team member 3_ | _Student ID_ | _Role_ | _GitHub profile_ |
+| _Team member 4_ | _Student ID_ | _Role_ | _GitHub profile_ |
+
+## Academic Information
+
+| Item | Details |
+|---|---|
+| University | _Add university name_ |
+| Faculty | _Add faculty name_ |
+| Department | _Add department name_ |
+| Supervisor | _Add supervisor name and title_ |
+| Academic year | _20XX / 20XX_ |
+| Course / project title | _Add the official graduation-project course title_ |
+
+## Future Improvements
+
+- Deploy the static frontend and document its verified public URL.
+- Add reviewed screenshots and a short demonstration video.
+- Expand manually reviewed Arabic group names without changing source names.
+- Add export and citation features for research workflows.
+- Add automated accessibility and cross-browser regression testing.
+- Add CI checks for Python, JavaScript, API contracts, and documentation links.
+- Add a controlled data-administration workflow if future project scope permits it.
+- Document the dataset's approved academic citation and codebook provenance.
+
+These are proposed extensions, not features claimed by the current system.
+
+## Acknowledgements
+
+This project uses open-source technologies including Python, Flask, MySQL
+Connector/Python, Flask-CORS, Bootstrap, Bootstrap Icons, and Chart.js.
+
+The project team should add the verified dataset citation, university,
+supervisor, academic reviewers, and any research collaborators before final
+submission.
+
+## License and Academic Usage Notice
+
+This repository does not currently include an open-source `LICENSE` file.
+Unless the project owners add one, the source and documentation should be
+treated as an academic graduation-project submission. Reuse, redistribution,
+or publication should be approved by the project team and the relevant
+university.
+
+Dataset rights and citation requirements remain subject to the original data
+source and institutional guidance.
+
+---
+
+<p align="center">
+  <strong>Traditional Governance Data Analytics and Visualization Platform</strong><br>
+  Built for transparent exploration, responsible interpretation, and academic analysis.
+</p>

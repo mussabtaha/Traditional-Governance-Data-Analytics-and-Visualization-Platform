@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="260" viewBox="0 0 1200 260" role="img" aria-labelledby="title description">
+  <title id="title">Traditional Governance Data Analytics and Visualization Platform</title>
+  <desc id="description">A decorative forest green and gold banner representing global data, governance, and analysis.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b2b1c"/>
+      <stop offset="0.58" stop-color="#123524"/>
+      <stop offset="1" stop-color="#24553d"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ead29f"/>
+      <stop offset="1" stop-color="#c8a96a"/>
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#ffffff" stroke-opacity=".045"/>
+    </pattern>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#06170f" flood-opacity=".36"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="260" rx="24" fill="url(#background)"/>
+  <rect width="1200" height="260" rx="24" fill="url(#grid)"/>
+  <circle cx="1115" cy="38" r="180" fill="#c8a96a" opacity=".08"/>
+  <circle cx="95" cy="252" r="170" fill="#ffffff" opacity=".035"/>
+
+  <g transform="translate(78 48)" filter="url(#shadow)">
+    <circle cx="80" cy="80" r="78" fill="#f8f7f3" fill-opacity=".08" stroke="#c8a96a" stroke-width="2"/>
+    <path d="M39 65h82M48 65v58M68 65v58M92 65v58M112 65v58M39 123h82M34 132h92M80 21 31 54h98Z"
+          fill="none" stroke="url(#gold)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="80" cy="45" r="5" fill="#ead29f"/>
+  </g>
+
+  <g transform="translate(248 68)" fill="#ffffff">
+    <text x="0" y="46" font-family="Segoe UI, Arial, sans-serif" font-size="38" font-weight="700" letter-spacing=".4">
+      Traditional Governance
+    </text>
+    <text x="0" y="88" font-family="Segoe UI, Arial, sans-serif" font-size="27" font-weight="500" fill="#ead29f">
+      Data Analytics &amp; Visualization Platform
+    </text>
+    <text x="0" y="129" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#ffffff" fill-opacity=".76">
+      Explore · Filter · Compare · Analyze · Visualize
+    </text>
+  </g>
+
+  <g transform="translate(930 77)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0 107h172" stroke="#ffffff" stroke-opacity=".2" stroke-width="2"/>
+    <path d="M18 107V72M57 107V38M96 107V57M135 107V15" stroke="#c8a96a" stroke-width="13"/>
+    <path d="m14 52 43-25 39 12 43-34" stroke="#f8f7f3" stroke-width="4"/>
+    <circle cx="14" cy="52" r="5" fill="#f8f7f3"/>
+    <circle cx="57" cy="27" r="5" fill="#f8f7f3"/>
+    <circle cx="96" cy="39" r="5" fill="#f8f7f3"/>
+    <circle cx="139" cy="5" r="5" fill="#f8f7f3"/>
+  </g>
+</svg>
