@@ -6,9 +6,10 @@
 (function () {
   "use strict";
 
-  const API_BASE_URL =
-  "https://traditional-governance-data-analytics.onrender.com/api";
-  const PAGE_SIZE = 6;
+  const PRODUCTION_API_BASE_URL =
+    "https://traditional-governance-data-analytics.onrender.com/api";
+  const API_BASE_URL = resolveApiBaseUrl();
+  const PAGE_SIZE = 100;
   const BINARY_FIELDS = [
     "Any_TPI", "King", "Chief", "Headman", "KingInher", "KingElect",
     "KingApp", "Func_Land", "Func_DR", "Func_Sec", "Func_Heal",
@@ -68,6 +69,15 @@
   const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
   const tr = (value, variables) => window.SiteI18n?.t(value, variables) ?? String(value ?? "");
   const isArabic = () => (window.SitePreferences?.getLanguage() || document.documentElement.lang) === "ar";
+
+  function resolveApiBaseUrl() {
+    const configuredUrl =
+      window.TRADGOV_CONFIG?.apiBaseUrl ||
+      window.TRADGOV_API_BASE_URL ||
+      PRODUCTION_API_BASE_URL;
+
+    return String(configuredUrl).replace(/\/+$/, "");
+  }
 
   document.addEventListener("DOMContentLoaded", init);
 
@@ -173,6 +183,8 @@
   async function loadGroupsPage(query = {}, options = {}) {
     const params = new URLSearchParams();
     Object.entries(query).forEach(([key, value]) => {
+      if (key === "sort" && value === "GroupName") return;
+      if (key === "direction" && value === "asc") return;
       if (value !== null && value !== undefined && value !== "") {
         params.set(key, String(value));
       }
