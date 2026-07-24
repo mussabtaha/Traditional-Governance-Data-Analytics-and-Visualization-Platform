@@ -15,7 +15,7 @@
   <a href="https://getbootstrap.com/"><img alt="Bootstrap 5" src="https://img.shields.io/badge/Bootstrap_5-7952B3?logo=bootstrap&logoColor=white"></a>
   <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white"></a>
   <a href="https://flask.palletsprojects.com/"><img alt="Flask" src="https://img.shields.io/badge/Flask-000000?logo=flask&logoColor=white"></a>
-  <a href="https://www.mysql.com/"><img alt="MySQL" src="https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white"></a>
+  <a href="https://github.com/mysql/mysql-server"><img alt="MySQL" src="https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white"></a>
   <a href="https://render.com/"><img alt="Render" src="https://img.shields.io/badge/Render-000000?logo=render&logoColor=white"></a>
   <a href="https://railway.com/"><img alt="Railway" src="https://img.shields.io/badge/Railway-0B0D0E?logo=railway&logoColor=white"></a>
   <a href="https://github.com/mussabtaha/Traditional-Governance-Data-Analytics-and-Visualization-Platform"><img alt="GitHub repository" src="https://img.shields.io/badge/GitHub-Repository-181717?logo=github&logoColor=white"></a>
@@ -27,7 +27,8 @@
   <a href="#system-architecture">Architecture</a> ·
   <a href="#dataset-overview">Dataset</a> ·
   <a href="#api-documentation">API</a> ·
-  <a href="#local-installation">Installation</a> ·
+  <a href="#how-to-run-the-shared-source-code-on-a-new-windows-computer">Windows Setup</a> ·
+  <a href="#team-collaboration-on-github">Collaboration</a> ·
   <a href="#testing-and-verification">Testing</a>
 </p>
 
@@ -37,12 +38,13 @@
 
 | Service | Link | Status |
 |---|---|---|
-| Flask API | [traditional-governance-data-analytics.onrender.com](https://traditional-governance-data-analytics.onrender.com) | Deployed on Render |
+| Frontend application | [traditional-governance-frontend.onrender.com](https://traditional-governance-frontend.onrender.com) | Live Render Static Site |
+| Flask API health | [`GET /api/health`](https://traditional-governance-data-analytics.onrender.com/api/health) | Live Render Web Service |
 | API example | [`GET /api/stats`](https://traditional-governance-data-analytics.onrender.com/api/stats) | Live JSON response |
-| Frontend deployment | Coming soon | The repository does not currently contain a confirmed frontend deployment URL |
 
 > Render may need a short warm-up period before the first response when the
-> service has been inactive.
+> service has been inactive. The backend root URL has no `/` route and normally
+> returns `Endpoint not found`; use `/api/health` or `/api/stats` to test it.
 
 ## Project Overview
 
@@ -119,23 +121,23 @@ human-readable details, comparisons, maps, and statistical summaries.
 
 ```mermaid
 flowchart LR
-    U["User browser"] --> F["HTML / CSS / JavaScript frontend"]
-    F --> Q["Fetch API requests"]
-    Q --> A["Flask REST API<br/>hosted on Render"]
-    A --> D[("MySQL database<br/>hosted on Railway")]
+    U["User browser"] --> F["Static HTML / CSS / JavaScript frontend<br/>Render Static Site"]
+    F --> Q["Fetch API request"]
+    Q --> A["Flask REST API + Gunicorn<br/>Render Web Service"]
+    A -->|Environment-backed connection| D[("MySQL database<br/>Railway")]
     D -->|Query results| A
-    A -->|JSON response| J["JavaScript normalization<br/>and rendering"]
-    J --> V["Tables · statistics · charts · map<br/>filters · comparisons"]
+    A -->|JSON response| F
+    F --> V["JavaScript rendering<br/>tables · charts · map · filters · comparisons"]
     V --> U
 ```
 
 | Layer | Responsibility |
 |---|---|
-| Frontend | Multi-page responsive interface, saved preferences, forms, tables, map markers, charts, comparison views, and API-driven rendering. |
-| API layer | `fetch()` requests through the shared `loadApiData()` helper using the Render production API by default. |
-| Backend | Flask validates parameters, builds parameterized SQL, formats standard JSON envelopes, and handles errors. |
+| Frontend | A Render Static Site serves the responsive multi-page interface, saved preferences, forms, tables, map markers, charts, and comparisons. |
+| API layer | The browser sends cross-origin `fetch()` requests through the shared `loadApiData()` helper to the Render production API. |
+| Backend | A Render Web Service runs Flask with Gunicorn. Flask validates parameters, builds parameterized SQL, formats JSON envelopes, and handles errors. |
 | Database | Railway-hosted MySQL stores `tradgov_groups` and summary views and performs filtering, sorting, pagination, and aggregation. |
-| Hosting | GitHub stores source code, Render hosts Flask with Gunicorn, and Railway hosts MySQL. A public frontend deployment is not yet documented. |
+| Hosting | GitHub stores the source code. Render hosts both the static frontend and Flask API, while Railway hosts MySQL. Flask connects to Railway through environment variables. |
 
 ## Application Workflow
 
@@ -251,7 +253,10 @@ values to `No`.
 
 No verified application screenshots are currently stored in the repository.
 To avoid presenting generated mockups as working software, this README uses
-honest capture placeholders.
+honest capture placeholders. New screenshots should be captured from the live
+frontend at
+[traditional-governance-frontend.onrender.com](https://traditional-governance-frontend.onrender.com)
+after its API data finishes loading.
 
 | Planned visual | Expected filename | Status |
 |---|---|---|
@@ -263,7 +268,8 @@ honest capture placeholders.
 | Arabic interface | `assets/screenshots/arabic-interface.png` | Capture required |
 
 See the [screenshot capture guide](assets/screenshots/README.md) for naming,
-quality, privacy, and framing instructions.
+recommended viewports, language and theme states, quality, privacy, and framing
+instructions.
 
 ## API Documentation
 
@@ -304,7 +310,7 @@ Errors use a non-2xx HTTP status with:
 | `GET` | `/api/largest-groups` | Return the ten largest records with a population value | None | [`/api/largest-groups`](https://traditional-governance-data-analytics.onrender.com/api/largest-groups) |
 | `GET` | `/api/top-countries` | Return the ten countries with the most group records | None | [`/api/top-countries`](https://traditional-governance-data-analytics.onrender.com/api/top-countries) |
 | `GET` | `/api/group-options` | Return lightweight ID/name/country rows for comparison selectors | None | [`/api/group-options`](https://traditional-governance-data-analytics.onrender.com/api/group-options) |
-| `GET` | `/api/groups` | Return one filtered, sorted, paginated group page | Query parameters below | [`/api/groups?page=1&limit=100`](https://traditional-governance-data-analytics.onrender.com/api/groups?page=1%26limit=100) |
+| `GET` | `/api/groups` | Return one filtered, sorted, paginated group page | Query parameters below | [`/api/groups?page=1&limit=100`](https://traditional-governance-data-analytics.onrender.com/api/groups?page=1&limit=100) |
 | `GET` | `/api/groups/<id>` | Return one complete group record | Positive integer path ID | [`/api/groups/1`](https://traditional-governance-data-analytics.onrender.com/api/groups/1) |
 
 ### `/api/groups` query parameters
@@ -502,95 +508,166 @@ Traditional-Governance-Data-Analytics-and-Visualization-Platform/
 Generated folders, credentials, virtual environments, Git internals, and
 temporary files are intentionally omitted.
 
-## Local Installation
+## How to Run the Shared Source Code on a New Windows Computer
 
-### Prerequisites
+This guide starts from a clean Windows computer. It runs the Flask backend and
+static frontend locally while using valid credentials for the existing Railway
+database.
 
-- Git
-- Python 3.10 or newer
-- A modern browser
-- VS Code with Live Server, or another local HTTP server
-- Valid MySQL credentials for the existing schema
+### A. Required software
 
-A local MySQL server is not required when valid Railway MySQL credentials are
-available.
+Install:
 
-### 1. Clone the repository
+- [Git for Windows](https://git-scm.com/download/win)
+- [Python](https://www.python.org/downloads/) — Python 3.11 or 3.12 is recommended
+- [Visual Studio Code](https://code.visualstudio.com/)
+- the VS Code **Live Server** extension, or Python's built-in HTTP server
+- a modern browser such as Chrome, Edge, or Firefox
+
+The following applications are **not required** to run the project:
+
+- Node.js;
+- HeidiSQL;
+- a local MySQL server, when valid Railway credentials are available.
+
+### B. Clone the repository
+
+Open PowerShell:
 
 ```powershell
 git clone https://github.com/mussabtaha/Traditional-Governance-Data-Analytics-and-Visualization-Platform.git
 cd Traditional-Governance-Data-Analytics-and-Visualization-Platform
 ```
 
-### 2. Create the backend environment
+### C. Enter the Flask backend
 
 ```powershell
 cd backend-flask
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
 ```
 
-If PowerShell blocks activation for the current process:
+### D. Create a new virtual environment
+
+```powershell
+python -m venv .venv
+```
+
+Create a new `.venv` on each computer. Do not copy or reuse a virtual
+environment created on another computer because its paths and installed
+binaries are machine-specific.
+
+### E. Activate the environment
+
+PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+If PowerShell blocks the activation script:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate.ps1
 ```
 
-### 3. Create the local environment file
+The policy change above affects only the current PowerShell process.
+
+Command Prompt alternative:
+
+```bat
+.venv\Scripts\activate.bat
+```
+
+### F. Install dependencies
+
+```powershell
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+### G. Create the `.env` file
+
+PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Replace the placeholders in `.env` with valid credentials.
+Command Prompt alternative:
 
-> **Never commit the `.env` file to GitHub.**
+```bat
+copy .env.example .env
+```
 
-## Environment Variables
+Open `.env` and enter credentials supplied securely by the project owner:
 
 ```dotenv
-DB_HOST=your_database_host
-DB_PORT=your_database_port
-DB_USER=your_database_user
-DB_PASSWORD=your_database_password
+DB_HOST=
+DB_PORT=
+DB_USER=
+DB_PASSWORD=
 DB_NAME=tradgov_db
 PORT=3000
 ```
 
 | Variable | Purpose |
 |---|---|
-| `DB_HOST` | MySQL host |
-| `DB_PORT` | MySQL port |
+| `DB_HOST` | Railway MySQL host |
+| `DB_PORT` | Railway MySQL port |
 | `DB_USER` | MySQL user |
 | `DB_PASSWORD` | MySQL password |
 | `DB_NAME` | Database name, normally `tradgov_db` |
-| `PORT` | Flask port; defaults to `3000` when omitted |
+| `PORT` | Local Flask port |
 
-## Running the Application
+> **Never commit `.env` to GitHub.** The project owner must share valid
+> database credentials securely and separately, never in Git, email screenshots,
+> public chat, or README examples.
 
-### Run Flask locally
+### H. Run the backend
 
-From `backend-flask` with the virtual environment active:
+From `backend-flask`, with `.venv` active:
 
 ```powershell
 python app.py
 ```
 
-Verify the local API:
+Expected local backend:
 
-```powershell
-Invoke-WebRequest -UseBasicParsing http://localhost:3000/api/health
+```text
+http://127.0.0.1:3000
 ```
 
-### Run the frontend
+Verify the API in a browser:
 
-Open a second PowerShell terminal in the repository root and use either:
+```text
+http://127.0.0.1:3000/api/stats
+```
 
-1. **VS Code Live Server** on port `5500`; or
-2. Python's static HTTP server:
+Or verify it in PowerShell:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:3000/api/stats
+```
+
+### I. Run the frontend
+
+Keep Flask running and open a second terminal or VS Code window at the
+repository root.
+
+#### Method 1 — VS Code Live Server
+
+1. Open the repository root in VS Code.
+2. Open `index.html`.
+3. Click **Go Live**.
+4. Confirm that the browser opens:
+
+```text
+http://127.0.0.1:5500/index.html
+```
+
+#### Method 2 — Python static server
+
+From the repository root:
 
 ```powershell
 python -m http.server 5500
@@ -599,11 +676,22 @@ python -m http.server 5500
 Then open:
 
 ```text
-http://localhost:5500/index.html
+http://127.0.0.1:5500/index.html
 ```
 
-The frontend defaults to the deployed Render API. For local API development,
-set the following global before the shared `js/script.js` file loads:
+Do not open pages directly with a `file:///` URL. An HTTP server gives the
+frontend a valid origin for API and CORS behavior.
+
+### J. Local backend override
+
+The frontend uses the deployed Render API by default:
+
+```text
+https://traditional-governance-data-analytics.onrender.com/api
+```
+
+For local full-stack testing, place this configuration before the shared
+`js/script.js` element in the HTML page being tested:
 
 ```html
 <script>
@@ -613,21 +701,53 @@ set the following global before the shared `js/script.js` file loads:
 </script>
 ```
 
-Remove that local override before production deployment. The production default
-remains:
+- **Production mode:** uses the Render API.
+- **Local mode:** can override the base URL with `window.TRADGOV_CONFIG`.
+- Remove or disable the local override before production deployment.
 
-```text
-https://traditional-governance-data-analytics.onrender.com/api
-```
+### K. Complete run order
+
+1. Install Python and Git.
+2. Clone the repository.
+3. Create a new `.venv`.
+4. Activate `.venv`.
+5. Install `requirements.txt`.
+6. Create `.env` and enter securely supplied credentials.
+7. Run Flask with `python app.py`.
+8. Run Live Server or `python -m http.server 5500`.
+9. Open the frontend in a browser.
+10. Verify `/api/stats` and confirm that the UI displays live records.
+
+### L. Common problems and fixes
+
+<details>
+<summary><strong>Open the Windows troubleshooting table</strong></summary>
+
+| Problem | Direct solution |
+|---|---|
+| `python` is not recognized | Install Python from python.org, enable **Add Python to PATH**, reopen the terminal, or try `py` instead of `python`. |
+| `git` is not recognized | Install Git for Windows and reopen PowerShell or VS Code. |
+| `Activate.ps1` is not recognized | Confirm that the terminal is inside `backend-flask` and that `.venv` was created successfully. |
+| PowerShell execution-policy error | Run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`, then activate again. |
+| `.venv` is missing | Run `python -m venv .venv` inside `backend-flask`; do not copy another person's environment. |
+| `.env` is missing | Run `Copy-Item .env.example .env`, then add valid credentials. |
+| Database connection error | Check `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, Railway availability, and whether the credentials are still valid. This is different from a route 404. |
+| CORS error | Confirm that the frontend origin exactly matches an origin in Flask's `ALLOWED_ORIGINS`. Include scheme, host, and port. |
+| `gunicorn: command not found` | Activate `.venv` and reinstall `requirements.txt`. On Windows, use `python app.py`; Gunicorn is the Render/Linux production server. |
+| `Endpoint not found` | The backend root `/` has no route, so its 404 is normal. Test `/api/stats` or `/api/health`. |
+| Render service is slow initially | A sleeping free service may take a short time to wake. Wait and retry the API endpoint. |
+| Frontend loads but data is missing | Test the configured API `/api/stats`, inspect the browser console/network panel, confirm the API base URL, and distinguish API/CORS errors from database failures. |
+
+</details>
 
 ## Deployment Architecture
 
 | Platform | Responsibility |
 |---|---|
-| GitHub | Stores frontend, Flask backend, migrations, tests, and documentation |
-| Render | Hosts the Flask REST API |
+| GitHub | Source control for the frontend, Flask backend, migrations, tests, and documentation |
+| Render Static Site | Hosts the public frontend at [traditional-governance-frontend.onrender.com](https://traditional-governance-frontend.onrender.com) |
+| Render Web Service | Hosts the Flask API at [traditional-governance-data-analytics.onrender.com](https://traditional-governance-data-analytics.onrender.com/api/health) |
 | Railway | Hosts the MySQL database |
-| Frontend host | Not yet confirmed; the static frontend can be deployed separately |
 
 Render should run from the `backend-flask` working directory with:
 
@@ -635,17 +755,21 @@ Render should run from the `backend-flask` working directory with:
 gunicorn app:app
 ```
 
-The frontend sends requests to the Render API, and Flask connects to Railway
-using secrets stored in the hosting environment. The current Flask CORS
-configuration permits:
+The browser loads the static frontend from Render and sends `fetch()` requests
+to the Render Flask service. Flask connects securely to Railway using
+environment variables stored in the hosting environment.
+
+The current Flask-CORS configuration explicitly permits:
 
 ```text
 http://localhost:5500
 http://127.0.0.1:5500
+https://traditional-governance-frontend.onrender.com
 ```
 
-Before deploying the frontend, add its exact production origin to the approved
-CORS list and configure it through the deployment environment.
+The production frontend origin must remain in Flask's allowed-origin list.
+Changing the frontend domain or adding a custom domain requires adding that
+exact new origin and redeploying the backend.
 
 ## Testing and Verification
 
@@ -699,8 +823,51 @@ this README does not claim continuous integration.
 - Store production secrets in Render and Railway environment settings.
 - Rotate database credentials immediately if they are exposed.
 - Never place real credentials, private hosts, or secret URLs in README examples.
-- Review CORS origins before any public frontend deployment.
+- Keep local and production CORS origins explicit; add new domains only after review.
 - The current API is read-only and exposes only `GET` routes.
+
+## Team Collaboration on GitHub
+
+The repository owner can invite team members from the repository's
+**Settings → Collaborators** page. Each invitation must be accepted before that
+person receives collaborator access. A pending invitation is not an active
+collaborator.
+
+Collaborator access and the GitHub **Contributors** list are different:
+
+- accepting an invitation grants repository access;
+- a collaborator does not automatically appear under Contributors;
+- a person normally appears after commits authored by their Git identity are
+  pushed to the repository or merged through a pull request;
+- the repository can remain under the owner's username even when several
+  collaborators work on it;
+- a GitHub Organization is optional if the team wants the repository owner name
+  to represent the group rather than one person.
+
+Each member should use their own GitHub account and configure their own identity:
+
+```powershell
+git config --global user.name "Full Name"
+git config --global user.email "email@example.com"
+```
+
+Pull the latest shared work before editing or pushing:
+
+```powershell
+git pull
+```
+
+Standard collaboration workflow:
+
+```powershell
+git add .
+git commit -m "Describe the change"
+git pull
+git push
+```
+
+Resolve any pull conflicts carefully before pushing. Never share one GitHub
+account among all team members.
 
 ## Team Members
 
@@ -708,6 +875,10 @@ this README does not claim continuous integration.
 Replace the placeholder rows below with the verified team details.
 Do not add names, student IDs, or GitHub profiles without each member's approval.
 -->
+
+GitHub collaborator access does not update this table automatically. The team
+must manually add each verified member's name, student ID, role, and GitHub
+profile.
 
 | Name | Student ID | Role | GitHub |
 |---|---|---|---|
@@ -729,12 +900,14 @@ Do not add names, student IDs, or GitHub profiles without each member's approval
 
 ## Future Improvements
 
-- Deploy the static frontend and document its verified public URL.
-- Add reviewed screenshots and a short demonstration video.
+- Add a custom domain for the deployed frontend.
+- Add uptime monitoring for the Render frontend and API.
+- Add automated deployment and post-deployment health checks.
+- Add more reviewed screenshots and a short demonstration video.
 - Expand manually reviewed Arabic group names without changing source names.
 - Add export and citation features for research workflows.
 - Add automated accessibility and cross-browser regression testing.
-- Add CI checks for Python, JavaScript, API contracts, and documentation links.
+- Add CI/CD validation for Python, JavaScript, API contracts, and documentation links.
 - Add a controlled data-administration workflow if future project scope permits it.
 - Document the dataset's approved academic citation and codebook provenance.
 
