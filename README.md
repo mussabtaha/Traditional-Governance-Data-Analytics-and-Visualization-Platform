@@ -1111,21 +1111,20 @@ profile.
 
 | Name | Student ID | Role | GitHub |
 |---|---|---|---|
-| _Team member 1_ | _Student ID_ | _Role_ | _GitHub profile_ |
-| _Team member 2_ | _Student ID_ | _Role_ | _GitHub profile_ |
-| _Team member 3_ | _Student ID_ | _Role_ | _GitHub profile_ |
-| _Team member 4_ | _Student ID_ | _Role_ | _GitHub profile_ |
+| _Rashed Al-Bashir_ | _20-204_ | _Role_ | _RashidAlbashir_ |
+| _Malaz Ibrahim_ | _17-229_ | _Role_ | _malazibrahim203_ |
+| _Musab Taha_ | _20-312_ | _Role_ | _mussabtaha_ |
 
 ## Academic Information
 
 | Item | Details |
 |---|---|
-| University | _Add university name_ |
-| Faculty | _Add faculty name_ |
-| Department | _Add department name_ |
-| Supervisor | _Add supervisor name and title_ |
-| Academic year | _20XX / 20XX_ |
-| Course / project title | _Add the official graduation-project course title_ |
+| University | _University of Khartoum_ |
+| Faculty | _school of math_ |
+| Department | _CS / CS & ST_ |
+| Supervisor | _Safa M.Ahmed_ |
+| Academic year | _2026 / 2027_ |
+| project title | _Traditional Governance Data Analytics and Visualization Platform_ |
 
 ## Future Improvements
 
