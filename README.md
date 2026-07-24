@@ -23,7 +23,7 @@
 <p align="center">
   <a href="https://traditional-governance-frontend.onrender.com">Frontend</a>
   &nbsp;·&nbsp;
-  <a href="https://traditional-governance-data-analytics.onrender.com/api">Backend API</a>
+  <a href="https://traditional-governance-data-analytics.onrender.com/api/health">Backend API health</a>
   &nbsp;·&nbsp;
   <a href="https://traditional-governance-data-analytics.onrender.com/api/stats">API test endpoint</a>
 </p>
@@ -72,8 +72,8 @@
 
 The deployed application and API were verified as reachable with HTTP `200`,
 and the homepage was inspected after its live dataset finished loading. The
-browser capture command was unavailable during this documentation update, so
-no PNG was fabricated and no broken image reference is embedded below.
+browser screenshot operation timed out during this documentation update, so no
+PNG was fabricated and no broken image reference is embedded below.
 
 | Planned authentic capture | Required path | Current status |
 |---|---|---|
@@ -332,7 +332,7 @@ cd Traditional-Governance-Data-Analytics-and-Visualization-Platform
 ```
 
 <p align="center">
-  <img src="assets/readme/step-1-clone.svg" width="92%" alt="Terminal command illustration for cloning and entering the project repository">
+  <img src="assets/readme/step-1-clone.svg" width="78%" alt="Terminal command illustration for cloning and entering the project repository">
 </p>
 
 ### 2. Create and activate the backend environment
@@ -344,7 +344,7 @@ python -m venv .venv
 ```
 
 <p align="center">
-  <img src="assets/readme/step-2-venv.svg" width="92%" alt="Terminal command illustration for creating and activating the Python virtual environment">
+  <img src="assets/readme/step-2-venv.svg" width="78%" alt="Terminal command illustration for creating and activating the Python virtual environment">
 </p>
 
 ### 3. Install the backend requirements
@@ -354,7 +354,7 @@ python -m pip install -r requirements.txt
 ```
 
 <p align="center">
-  <img src="assets/readme/step-3-install.svg" width="92%" alt="Terminal command illustration for installing the Flask backend requirements">
+  <img src="assets/readme/step-3-install.svg" width="78%" alt="Terminal command illustration for installing the Flask backend requirements">
 </p>
 
 ### 4. Create the local environment file
@@ -368,7 +368,7 @@ described in [Detailed Windows Setup](#detailed-windows-setup). Never commit
 `.env`.
 
 <p align="center">
-  <img src="assets/readme/step-4-env.svg" width="92%" alt="Terminal command illustration for copying the safe environment template">
+  <img src="assets/readme/step-4-env.svg" width="78%" alt="Terminal command illustration for copying the safe environment template">
 </p>
 
 ### 5. Run Flask in Terminal 1
@@ -380,7 +380,7 @@ python app.py
 Flask should be available at `http://127.0.0.1:3000`.
 
 <p align="center">
-  <img src="assets/readme/step-5-run-backend.svg" width="92%" alt="Terminal command illustration for running the Flask backend on port 3000">
+  <img src="assets/readme/step-5-run-backend.svg" width="78%" alt="Terminal command illustration for running the Flask backend on port 3000">
 </p>
 
 ### 6. Run the frontend in Terminal 2
@@ -398,7 +398,7 @@ The frontend uses the deployed API by default; apply the
 services together.
 
 <p align="center">
-  <img src="assets/readme/step-6-run-frontend.svg" width="92%" alt="Terminal command illustration for running the static frontend server on port 5500">
+  <img src="assets/readme/step-6-run-frontend.svg" width="78%" alt="Terminal command illustration for running the static frontend server on port 5500">
 </p>
 
 <p align="center">
