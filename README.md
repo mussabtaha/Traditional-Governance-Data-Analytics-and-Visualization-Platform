@@ -1109,11 +1109,11 @@ GitHub collaborator access does not update this table automatically. The team
 must manually add each verified member's name, student ID, role, and GitHub
 profile.
 
-| Name | Student ID | Role | GitHub |
+| Name | Student ID  | GitHub |
 |---|---|---|---|
-| _Rashed Al-Bashir_ | _20-204_ | _Role_ | _RashidAlbashir_ |
-| _Malaz Ibrahim_ | _17-229_ | _Role_ | _malazibrahim203_ |
-| _Musab Taha_ | _20-312_ | _Role_ | _mussabtaha_ |
+| _Rashed Al-Bashir_ | _20-204_ | _RashidAlbashir_ |
+| _Malaz Ibrahim_ | _17-229_ | _malazibrahim203_ |
+| _Musab Taha_ | _20-312_ | _mussabtaha_ |
 
 ## Academic Information
 
