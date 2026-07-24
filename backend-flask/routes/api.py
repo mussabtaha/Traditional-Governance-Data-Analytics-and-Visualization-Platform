@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import math
 import re
-import smtplib
-from email.message import EmailMessage
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from flask import Blueprint, current_app, jsonify, request
 from werkzeug.exceptions import BadRequest
@@ -34,6 +35,7 @@ SORT_COLUMNS = {
 }
 CONTACT_SUCCESS_MESSAGE = "Your message has been sent successfully."
 CONTACT_FAILURE_MESSAGE = "We could not send your message. Please try again later."
+RESEND_EMAIL_API_URL = "https://api.resend.com/emails"
 CONTACT_FIELD_LIMITS = {
     "name": 120,
     "email": 254,
@@ -114,47 +116,63 @@ def contact():
             400,
         )
 
-    smtp_user = str(current_app.config.get("SMTP_USER", "")).strip()
-    smtp_password = str(current_app.config.get("SMTP_PASSWORD", ""))
+    resend_api_key = str(current_app.config.get("RESEND_API_KEY", "")).strip()
     contact_email = str(current_app.config.get("CONTACT_EMAIL", "")).strip()
-    if not smtp_user or not smtp_password or not contact_email:
+    from_email = str(current_app.config.get("FROM_EMAIL", "")).strip()
+    if not resend_api_key or not contact_email or not from_email:
         current_app.logger.error(
-            "Contact email delivery is unavailable because SMTP configuration is incomplete."
+            "Contact email delivery is unavailable because Resend configuration is incomplete."
         )
         return jsonify(success=False, message=CONTACT_FAILURE_MESSAGE), 500
 
-    email_message = EmailMessage()
-    email_message["Subject"] = (
-        f"Traditional Governance website contact: {values['subject']}"
-    )
-    email_message["From"] = smtp_user
-    email_message["To"] = contact_email
-    email_message["Reply-To"] = values["email"]
-    email_message.set_content(
-        "\n".join(
-            [
-                f"Visitor full name: {values['name']}",
-                f"Visitor email: {values['email']}",
-                f"Selected subject: {values['subject']}",
-                "",
-                "Visitor message:",
-                values["message"],
-                "",
-                "Source: Traditional Governance website",
-            ]
-        )
+    email_text = "\n".join(
+        [
+            f"Visitor full name: {values['name']}",
+            f"Visitor email: {values['email']}",
+            f"Selected subject: {values['subject']}",
+            "",
+            "Visitor message:",
+            values["message"],
+            "",
+            "Source: Traditional Governance website",
+        ]
     )
 
+    resend_payload = {
+        "from": from_email,
+        "to": [contact_email],
+        "subject": f"Traditional Governance website contact: {values['subject']}",
+        "reply_to": values["email"],
+        "text": email_text,
+    }
     try:
-        with smtplib.SMTP_SSL(
-            "smtp.gmail.com",
-            465,
-            timeout=20,
-        ) as smtp_client:
-            smtp_client.login(smtp_user, smtp_password)
-            smtp_client.send_message(email_message)
-    except Exception as error:
-        # Record only the exception type so SMTP diagnostics and credentials cannot
+        resend_request = Request(
+            RESEND_EMAIL_API_URL,
+            data=json.dumps(resend_payload, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "Accept": "application/json",
+                "Authorization": f"Bearer {resend_api_key}",
+                "Content-Type": "application/json",
+                "User-Agent": "traditional-governance-website/1.0",
+            },
+            method="POST",
+        )
+        with urlopen(resend_request, timeout=20) as resend_response:
+            response_payload = json.loads(resend_response.read().decode("utf-8"))
+            if (
+                not 200 <= resend_response.status < 300
+                or not isinstance(response_payload, dict)
+                or not response_payload.get("id")
+            ):
+                raise ValueError("Unexpected Resend response.")
+    except HTTPError as error:
+        current_app.logger.error(
+            "Contact email delivery failed (Resend HTTP %s).",
+            error.code,
+        )
+        return jsonify(success=False, message=CONTACT_FAILURE_MESSAGE), 500
+    except (URLError, TimeoutError, ValueError, UnicodeError) as error:
+        # Record only the exception type so provider diagnostics and API keys cannot
         # leak into application logs or the public response.
         current_app.logger.error(
             "Contact email delivery failed (%s).",

@@ -45,6 +45,6 @@ class Config:
     DB_POOL_NAME = "tradgov_pool"
     DB_POOL_SIZE = 10
     PORT = _port_value("PORT", 3000)
-    SMTP_USER = os.getenv("SMTP_USER", "")
-    SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+    RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
     CONTACT_EMAIL = os.getenv("CONTACT_EMAIL", "")
+    FROM_EMAIL = os.getenv("FROM_EMAIL", "")

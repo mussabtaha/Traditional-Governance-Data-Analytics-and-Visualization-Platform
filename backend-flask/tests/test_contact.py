@@ -1,10 +1,11 @@
-"""Contact endpoint tests with Gmail SMTP fully mocked."""
+"""Contact endpoint tests with the Resend HTTPS request fully mocked."""
 
 from __future__ import annotations
 
-import smtplib
+import json
 import unittest
-from unittest.mock import patch
+from urllib.error import URLError
+from unittest.mock import ANY, patch
 
 from app import app
 
@@ -21,22 +22,24 @@ class ContactApiTests(unittest.TestCase):
     def setUp(self) -> None:
         app.config.update(
             TESTING=True,
-            SMTP_USER="sender@gmail.com",
-            SMTP_PASSWORD="test-app-password",
+            RESEND_API_KEY="test-resend-api-key",
             CONTACT_EMAIL="project@example.com",
+            FROM_EMAIL="Traditional Governance <contact@example.org>",
         )
         self.client = app.test_client()
 
     @patch("routes.api.fetch_one")
     @patch("routes.api.fetch_all")
-    @patch("routes.api.smtplib.SMTP_SSL")
+    @patch("routes.api.urlopen")
     def test_valid_request_sends_one_email_without_database_access(
         self,
-        smtp_ssl,
+        urlopen,
         fetch_all,
         fetch_one,
     ) -> None:
-        smtp_client = smtp_ssl.return_value.__enter__.return_value
+        https_response = urlopen.return_value.__enter__.return_value
+        https_response.status = 200
+        https_response.read.return_value = b'{"id":"email_test_123"}'
 
         response = self.client.post("/api/contact", json=VALID_CONTACT)
 
@@ -48,24 +51,38 @@ class ContactApiTests(unittest.TestCase):
                 "message": "Your message has been sent successfully.",
             },
         )
-        smtp_ssl.assert_called_once_with("smtp.gmail.com", 465, timeout=20)
-        smtp_client.login.assert_called_once_with(
-            "sender@gmail.com",
-            "test-app-password",
-        )
-        smtp_client.send_message.assert_called_once()
+        urlopen.assert_called_once_with(ANY, timeout=20)
 
-        outgoing_email = smtp_client.send_message.call_args.args[0]
-        self.assertEqual(outgoing_email["From"], "sender@gmail.com")
-        self.assertEqual(outgoing_email["To"], "project@example.com")
-        self.assertEqual(outgoing_email["Reply-To"], "amina@example.com")
-        self.assertIn("Amina Hassan", outgoing_email.get_content())
-        self.assertIn("Source: Traditional Governance website", outgoing_email.get_content())
+        resend_request = urlopen.call_args.args[0]
+        self.assertEqual(resend_request.full_url, "https://api.resend.com/emails")
+        self.assertEqual(resend_request.get_method(), "POST")
+        self.assertEqual(
+            resend_request.get_header("Authorization"),
+            "Bearer test-resend-api-key",
+        )
+        self.assertEqual(
+            resend_request.get_header("Content-type"),
+            "application/json",
+        )
+        self.assertEqual(
+            resend_request.get_header("User-agent"),
+            "traditional-governance-website/1.0",
+        )
+
+        outgoing_email = json.loads(resend_request.data.decode("utf-8"))
+        self.assertEqual(
+            outgoing_email["from"],
+            "Traditional Governance <contact@example.org>",
+        )
+        self.assertEqual(outgoing_email["to"], ["project@example.com"])
+        self.assertEqual(outgoing_email["reply_to"], "amina@example.com")
+        self.assertIn("Amina Hassan", outgoing_email["text"])
+        self.assertIn("Source: Traditional Governance website", outgoing_email["text"])
         fetch_all.assert_not_called()
         fetch_one.assert_not_called()
 
-    @patch("routes.api.smtplib.SMTP_SSL")
-    def test_invalid_input_returns_structured_400(self, smtp_ssl) -> None:
+    @patch("routes.api.urlopen")
+    def test_invalid_input_returns_structured_400(self, urlopen) -> None:
         invalid_response = self.client.post(
             "/api/contact",
             json={
@@ -99,14 +116,14 @@ class ContactApiTests(unittest.TestCase):
         self.assertEqual(long_response.status_code, 400)
         self.assertIn("name", long_response.get_json()["errors"])
         self.assertIn("message", long_response.get_json()["errors"])
-        smtp_ssl.assert_not_called()
+        urlopen.assert_not_called()
 
-    @patch("routes.api.smtplib.SMTP_SSL")
-    def test_missing_smtp_configuration_returns_safe_500(self, smtp_ssl) -> None:
+    @patch("routes.api.urlopen")
+    def test_missing_resend_configuration_returns_safe_500(self, urlopen) -> None:
         app.config.update(
-            SMTP_USER="",
-            SMTP_PASSWORD="",
+            RESEND_API_KEY="",
             CONTACT_EMAIL="",
+            FROM_EMAIL="",
         )
 
         response = self.client.post("/api/contact", json=VALID_CONTACT)
@@ -119,14 +136,11 @@ class ContactApiTests(unittest.TestCase):
                 "message": "We could not send your message. Please try again later.",
             },
         )
-        smtp_ssl.assert_not_called()
+        urlopen.assert_not_called()
 
-    @patch("routes.api.smtplib.SMTP_SSL")
-    def test_smtp_failure_returns_safe_500_json(self, smtp_ssl) -> None:
-        smtp_client = smtp_ssl.return_value.__enter__.return_value
-        smtp_client.login.side_effect = smtplib.SMTPException(
-            "private diagnostic detail"
-        )
+    @patch("routes.api.urlopen")
+    def test_resend_failure_returns_safe_500_json(self, urlopen) -> None:
+        urlopen.side_effect = URLError("private diagnostic detail")
 
         response = self.client.post("/api/contact", json=VALID_CONTACT)
 
@@ -139,7 +153,7 @@ class ContactApiTests(unittest.TestCase):
             },
         )
         self.assertNotIn("private diagnostic detail", response.get_data(as_text=True))
-        smtp_client.send_message.assert_not_called()
+        urlopen.assert_called_once_with(ANY, timeout=20)
 
 
 if __name__ == "__main__":

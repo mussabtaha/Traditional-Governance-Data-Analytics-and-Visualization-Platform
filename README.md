@@ -316,14 +316,26 @@ Errors use a non-2xx HTTP status with:
 
 ### Contact email delivery
 
-Contact form messages are delivered through Gmail SMTP and are **not stored in
-MySQL or any other database**. The sending Google account must have 2-Step
-Verification enabled and use a Gmail App Password. Configure `SMTP_USER`,
-`SMTP_PASSWORD`, and `CONTACT_EMAIL` in the local backend `.env` file and as
-secret environment variables in the Render backend service.
+Contact form messages are delivered through the Resend HTTPS Email API and are
+**not stored in MySQL or any other database**. Configure `RESEND_API_KEY`,
+`CONTACT_EMAIL`, and `FROM_EMAIL` in the local backend `.env` file and as
+secret environment variables in the Render backend service. `FROM_EMAIL` must
+use a sender address on a domain verified in Resend.
 
-`SMTP_PASSWORD` is a secret: never place a real App Password in source code,
-README examples, screenshots, commits, or frontend JavaScript.
+`RESEND_API_KEY` is a secret: never place a real API key in source code, README
+examples, screenshots, commits, or frontend JavaScript.
+
+For deployment, verify a sender domain in the
+[Resend Domains dashboard](https://resend.com/docs/dashboard/domains/introduction),
+create a sending-access key in the
+[Resend API Keys dashboard](https://resend.com/docs/dashboard/api-keys/introduction),
+and add the following environment variables to the Render backend service:
+
+```dotenv
+RESEND_API_KEY=your_resend_api_key
+CONTACT_EMAIL=destination@example.com
+FROM_EMAIL=Traditional Governance <contact@your-verified-domain.example>
+```
 
 ### `/api/groups` query parameters
 
@@ -620,9 +632,9 @@ DB_USER=
 DB_PASSWORD=
 DB_NAME=tradgov_db
 PORT=3000
-SMTP_USER=your_gmail_address
-SMTP_PASSWORD=your_gmail_app_password
+RESEND_API_KEY=your_resend_api_key
 CONTACT_EMAIL=destination_email_address
+FROM_EMAIL=verified_sender_email_address
 ```
 
 | Variable | Purpose |
@@ -633,9 +645,9 @@ CONTACT_EMAIL=destination_email_address
 | `DB_PASSWORD` | MySQL password |
 | `DB_NAME` | Database name, normally `tradgov_db` |
 | `PORT` | Local Flask port |
-| `SMTP_USER` | Gmail address used to send contact messages |
-| `SMTP_PASSWORD` | Gmail App Password; never commit this secret |
+| `RESEND_API_KEY` | Secret API key used only by Flask to call Resend over HTTPS |
 | `CONTACT_EMAIL` | Destination address that receives contact messages |
+| `FROM_EMAIL` | Sender address on a domain verified in Resend |
 
 > **Never commit `.env` to GitHub.** The project owner must share valid
 > database credentials securely and separately, never in Git, email screenshots,
@@ -799,9 +811,9 @@ The repository contains ten Flask contract tests covering:
 - invalid leadership rejection;
 - invalid sort-direction rejection;
 - the lightweight comparison-options endpoint;
-- valid contact email construction and one SMTP delivery;
+- valid contact email construction and one mocked Resend HTTPS request;
 - contact input validation and maximum lengths;
-- missing SMTP configuration and safe SMTP failure responses;
+- missing Resend configuration and safe provider failure responses;
 - confirmation that contact delivery performs no database operation.
 
 Run them from `backend-flask` after configuring the environment:
@@ -843,8 +855,8 @@ this README does not claim continuous integration.
 - Keep user-supplied values in parameterized SQL queries.
 - Keep sort and leadership fields restricted to server-side allowlists.
 - Store production secrets in Render and Railway environment settings.
-- Use a Gmail App Password for `SMTP_PASSWORD`; never commit it or expose it to
-  frontend code.
+- Keep `RESEND_API_KEY` only in backend environment variables; never commit it
+  or expose it to frontend code.
 - Rotate database credentials immediately if they are exposed.
 - Never place real credentials, private hosts, or secret URLs in README examples.
 - Keep local and production CORS origins explicit; add new domains only after review.
