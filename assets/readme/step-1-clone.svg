@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="330" viewBox="0 0 1200 330" role="img" aria-labelledby="title desc">
+  <title id="title">Terminal command illustration: clone the repository</title>
+  <desc id="desc">PowerShell commands clone the GitHub repository and enter its directory.</desc>
+  <rect width="1200" height="330" rx="24" fill="#0D271D"/>
+  <rect width="1200" height="58" rx="24" fill="#123524"/><rect y="35" width="1200" height="23" fill="#123524"/>
+  <circle cx="34" cy="29" r="7" fill="#E96B62"/><circle cx="58" cy="29" r="7" fill="#E8B84A"/><circle cx="82" cy="29" r="7" fill="#55B77B"/>
+  <text x="110" y="36" fill="#D8E5DD" font-family="Segoe UI,Arial,sans-serif" font-size="16">Terminal command illustration · Step 1</text>
+  <text x="42" y="108" fill="#C8A96A" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">CLONE THE PROJECT</text>
+  <text x="42" y="163" fill="#8ED0AA" font-family="Consolas,monospace" font-size="18">PS&gt;</text>
+  <text x="92" y="163" fill="#FFFFFF" font-family="Consolas,monospace" font-size="18">git clone https://github.com/mussabtaha/Traditional-Governance-Data-Analytics-and-Visualization-Platform.git</text>
+  <text x="42" y="215" fill="#8ED0AA" font-family="Consolas,monospace" font-size="18">PS&gt;</text>
+  <text x="92" y="215" fill="#FFFFFF" font-family="Consolas,monospace" font-size="18">cd Traditional-Governance-Data-Analytics-and-Visualization-Platform</text>
+  <text x="42" y="278" fill="#8FA399" font-family="Segoe UI,Arial,sans-serif" font-size="15">Creates a local copy and moves PowerShell into the repository root.</text>
+</svg>

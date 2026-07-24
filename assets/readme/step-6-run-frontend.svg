@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+  <title id="title">Terminal command illustration: run the frontend server</title>
+  <desc id="desc">A second PowerShell terminal starts Python's static HTTP server on local port 5500.</desc>
+  <rect width="1200" height="320" rx="24" fill="#0D271D"/>
+  <rect width="1200" height="58" rx="24" fill="#123524"/><rect y="35" width="1200" height="23" fill="#123524"/>
+  <circle cx="34" cy="29" r="7" fill="#E96B62"/><circle cx="58" cy="29" r="7" fill="#E8B84A"/><circle cx="82" cy="29" r="7" fill="#55B77B"/>
+  <text x="110" y="36" fill="#D8E5DD" font-family="Segoe UI,Arial,sans-serif" font-size="16">Terminal command illustration · Step 6</text>
+  <text x="42" y="105" fill="#C8A96A" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">RUN TERMINAL 2 · STATIC FRONTEND</text>
+  <text x="42" y="162" fill="#8ED0AA" font-family="Consolas,monospace" font-size="19">PS&gt;</text>
+  <text x="92" y="162" fill="#FFFFFF" font-family="Consolas,monospace" font-size="19">cd Traditional-Governance-Data-Analytics-and-Visualization-Platform</text>
+  <text x="42" y="210" fill="#8ED0AA" font-family="Consolas,monospace" font-size="19">PS&gt;</text>
+  <text x="92" y="210" fill="#FFFFFF" font-family="Consolas,monospace" font-size="19">python -m http.server 5500</text>
+  <rect x="42" y="246" width="292" height="38" rx="9" fill="#1B4433"/>
+  <text x="58" y="272" fill="#D8E5DD" font-family="Consolas,monospace" font-size="16">http://127.0.0.1:5500</text>
+</svg>

@@ -18,12 +18,16 @@ https://traditional-governance-frontend.onrender.com
 | Filename | Page or state | Capture guidance |
 |---|---|---|
 | `home-dashboard.png` | Home dashboard | English, light mode; include the hero, summary cards, and main exploration cards. |
-| `interactive-map.png` | Home map section | Show the complete world map and all five live continent markers. |
 | `groups-explorer.png` | Groups page | English, light mode; show search, filters, populated table, and pagination. |
 | `statistics-dashboard.png` | Statistics page | Show representative charts with their headings and live data. |
 | `comparison-view.png` | Comparison page | Select two real groups and show both profiles plus part of the comparison table. |
 | `arabic-interface.png` | Representative Arabic page | Show Arabic text, correct RTL layout, and translated controls. |
-| `dark-theme.png` | Representative dark-mode page | Show the saved dark theme on a data-rich page. |
+| `dark-mode.png` | Representative dark-mode page | Show the saved dark theme on a data-rich page. |
+| `contact-page.png` | Contact page | Capture only after deployed email delivery is verified; leave all visitor fields empty. |
+
+Current status: all seven PNG files require manual capture. Browser inspection
+confirmed that the deployed homepage loads live data, but the screenshot command
+timed out during the documentation update. No substitute image was generated.
 
 ## Recommended viewport sizes
 
@@ -44,12 +48,13 @@ the responsive layout remains correct before capturing the final desktop image.
 5. Capture English/light mode for the main page images.
 6. Switch to Arabic and confirm RTL layout before capturing `arabic-interface.png`.
 7. Switch to dark mode and confirm charts, tables, and controls remain readable
-   before capturing `dark-theme.png`.
+   before capturing `dark-mode.png`.
 8. Crop consistently while retaining the page title and relevant controls.
 9. Remove personal data from form fields before capturing.
 10. Save PNG files with the exact lowercase, URL-safe names listed above.
 11. Optimize large images before committing them to Git.
 
-After adding screenshots, replace the placeholder table in the root
-[`README.md`](../../README.md#screenshots-and-visual-preview) with responsive
-image elements and accurate captions.
+After adding screenshots, replace the corresponding status rows in the root
+[`README.md`](../../README.md#project-preview) with responsive image elements
+and accurate captions. Include one large homepage preview followed by
+side-by-side feature images only when every referenced PNG exists.

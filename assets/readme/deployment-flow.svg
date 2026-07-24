@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="400" viewBox="0 0 1400 400" role="img" aria-labelledby="title desc">
+  <title id="title">Production deployment flow</title>
+  <desc id="desc">The Render static frontend calls the Flask API on Render. Flask queries Railway MySQL and sends contact messages through the Resend HTTPS API.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto"><path d="M0 0L11 5.5 0 11Z" fill="#C8A96A"/></marker>
+    <filter id="shadow"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#10271E" flood-opacity=".15"/></filter>
+  </defs>
+  <rect width="1400" height="400" rx="28" fill="#F8F7F3"/>
+  <text x="54" y="62" fill="#123524" font-family="Segoe UI,Arial,sans-serif" font-size="30" font-weight="700">Deployment Flow</text>
+  <text x="54" y="94" fill="#5D6C64" font-family="Segoe UI,Arial,sans-serif" font-size="17">Four managed services, one public research experience</text>
+  <g filter="url(#shadow)" font-family="Segoe UI,Arial,sans-serif">
+    <g transform="translate(55 145)"><rect width="285" height="150" rx="20" fill="#FFFFFF" stroke="#D8DED8"/><text x="25" y="43" fill="#A77C2F" font-size="14" font-weight="700">FRONTEND</text><text x="25" y="78" fill="#123524" font-size="22" font-weight="700">Render Static Site</text><text x="25" y="108" fill="#64736B" font-size="14">HTML · CSS · JavaScript</text><text x="25" y="131" fill="#64736B" font-size="13">traditional-governance-frontend</text></g>
+    <g transform="translate(415 145)"><rect width="285" height="150" rx="20" fill="#123524"/><text x="25" y="43" fill="#C8A96A" font-size="14" font-weight="700">BACKEND</text><text x="25" y="78" fill="#FFFFFF" font-size="22" font-weight="700">Flask on Render</text><text x="25" y="108" fill="#D8E5DD" font-size="14">REST API · validation · CORS</text><text x="25" y="131" fill="#D8E5DD" font-size="13">/api</text></g>
+    <g transform="translate(775 115)"><rect width="260" height="120" rx="20" fill="#FFFFFF" stroke="#D8DED8"/><text x="24" y="40" fill="#A77C2F" font-size="14" font-weight="700">DATA</text><text x="24" y="74" fill="#123524" font-size="21" font-weight="700">Railway MySQL</text><text x="24" y="99" fill="#64736B" font-size="14">Records and summary views</text></g>
+    <g transform="translate(775 255)"><rect width="260" height="100" rx="20" fill="#FFF8E9" stroke="#DCC998"/><text x="24" y="38" fill="#A77C2F" font-size="14" font-weight="700">EMAIL</text><text x="24" y="70" fill="#694A18" font-size="20" font-weight="700">Resend HTTPS API</text></g>
+    <g transform="translate(1110 145)"><rect width="235" height="150" rx="20" fill="#FFFFFF" stroke="#D8DED8"/><text x="24" y="43" fill="#A77C2F" font-size="14" font-weight="700">SOURCE</text><text x="24" y="78" fill="#123524" font-size="22" font-weight="700">GitHub</text><text x="24" y="108" fill="#64736B" font-size="14">Code · docs · history</text><text x="24" y="131" fill="#64736B" font-size="13">Team collaboration</text></g>
+  </g>
+  <g stroke="#C8A96A" stroke-width="4" fill="none" marker-end="url(#arrow)">
+    <path d="M342 220H405"/><path d="M702 205H765"/><path d="M702 250C738 250 738 305 765 305"/>
+  </g>
+  <text x="373" y="203" text-anchor="middle" fill="#6B735E" font-family="Segoe UI,Arial,sans-serif" font-size="13">HTTPS fetch</text>
+</svg>

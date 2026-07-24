@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-labelledby="title desc">
+  <title id="title">Terminal command illustration: install Python requirements</title>
+  <desc id="desc">PowerShell installs the Flask backend requirements into the active virtual environment.</desc>
+  <rect width="1200" height="300" rx="24" fill="#0D271D"/>
+  <rect width="1200" height="58" rx="24" fill="#123524"/><rect y="35" width="1200" height="23" fill="#123524"/>
+  <circle cx="34" cy="29" r="7" fill="#E96B62"/><circle cx="58" cy="29" r="7" fill="#E8B84A"/><circle cx="82" cy="29" r="7" fill="#55B77B"/>
+  <text x="110" y="36" fill="#D8E5DD" font-family="Segoe UI,Arial,sans-serif" font-size="16">Terminal command illustration · Step 3</text>
+  <text x="42" y="112" fill="#C8A96A" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">INSTALL BACKEND DEPENDENCIES</text>
+  <text x="42" y="178" fill="#8ED0AA" font-family="Consolas,monospace" font-size="20">PS&gt;</text>
+  <text x="92" y="178" fill="#FFFFFF" font-family="Consolas,monospace" font-size="20">python -m pip install -r requirements.txt</text>
+  <text x="42" y="248" fill="#8FA399" font-family="Segoe UI,Arial,sans-serif" font-size="15">Run this from backend-flask while .venv is active.</text>
+</svg>

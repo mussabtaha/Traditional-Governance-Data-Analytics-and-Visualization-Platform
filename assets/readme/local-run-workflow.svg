@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="500" viewBox="0 0 1400 500" role="img" aria-labelledby="title desc">
+  <title id="title">Local development run workflow</title>
+  <desc id="desc">Terminal one runs Flask on port 3000, terminal two runs the frontend on port 5500, and the browser opens index.html and requests the local API stats endpoint.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto"><path d="M0 0L11 5.5 0 11Z" fill="#C8A96A"/></marker>
+    <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#10271E" flood-opacity=".16"/></filter>
+  </defs>
+  <rect width="1400" height="500" rx="28" fill="#F8F7F3"/>
+  <text x="54" y="62" fill="#123524" font-family="Segoe UI,Arial,sans-serif" font-size="30" font-weight="700">Local Run Workflow</text>
+  <text x="54" y="94" fill="#5D6C64" font-family="Segoe UI,Arial,sans-serif" font-size="17">Keep both terminals running while you test in the browser</text>
+  <g filter="url(#shadow)" font-family="Segoe UI,Arial,sans-serif">
+    <g transform="translate(55 145)">
+      <rect width="370" height="230" rx="20" fill="#102A20"/>
+      <circle cx="28" cy="27" r="6" fill="#E96B62"/><circle cx="48" cy="27" r="6" fill="#E8B84A"/><circle cx="68" cy="27" r="6" fill="#55B77B"/>
+      <text x="28" y="72" fill="#C8A96A" font-size="16" font-weight="700">TERMINAL 1 · BACKEND</text>
+      <text x="28" y="112" fill="#FFFFFF" font-family="Consolas,monospace" font-size="18">cd backend-flask</text>
+      <text x="28" y="145" fill="#FFFFFF" font-family="Consolas,monospace" font-size="18">python app.py</text>
+      <rect x="28" y="172" width="275" height="34" rx="8" fill="#1B4433"/>
+      <text x="42" y="195" fill="#D9E8DE" font-size="15">http://127.0.0.1:3000</text>
+    </g>
+    <g transform="translate(515 145)">
+      <rect width="370" height="230" rx="20" fill="#102A20"/>
+      <circle cx="28" cy="27" r="6" fill="#E96B62"/><circle cx="48" cy="27" r="6" fill="#E8B84A"/><circle cx="68" cy="27" r="6" fill="#55B77B"/>
+      <text x="28" y="72" fill="#C8A96A" font-size="16" font-weight="700">TERMINAL 2 · FRONTEND</text>
+      <text x="28" y="112" fill="#FFFFFF" font-family="Consolas,monospace" font-size="17">python -m http.server 5500</text>
+      <rect x="28" y="172" width="275" height="34" rx="8" fill="#1B4433"/>
+      <text x="42" y="195" fill="#D9E8DE" font-size="15">http://127.0.0.1:5500</text>
+    </g>
+    <g transform="translate(975 145)">
+      <rect width="370" height="230" rx="20" fill="#FFFFFF" stroke="#D8DED8"/>
+      <rect width="370" height="48" rx="20" fill="#123524"/>
+      <rect y="30" width="370" height="18" fill="#123524"/>
+      <text x="25" y="31" fill="#FFFFFF" font-size="16" font-weight="700">BROWSER</text>
+      <text x="25" y="91" fill="#123524" font-size="18" font-weight="700">Open the interface</text>
+      <text x="25" y="123" fill="#5D6C64" font-family="Consolas,monospace" font-size="15">/index.html</text>
+      <text x="25" y="158" fill="#123524" font-size="16" font-weight="700">Verify the API</text>
+      <text x="25" y="188" fill="#5D6C64" font-family="Consolas,monospace" font-size="14">:3000/api/stats</text>
+    </g>
+  </g>
+  <g stroke="#C8A96A" stroke-width="4" fill="none" marker-end="url(#arrow)">
+    <path d="M427 260H505"/><path d="M887 260H965"/>
+  </g>
+  <text x="700" y="440" text-anchor="middle" fill="#52635A" font-family="Segoe UI,Arial,sans-serif" font-size="16">The frontend uses HTTP on port 5500; Flask serves JSON on port 3000.</text>
+</svg>

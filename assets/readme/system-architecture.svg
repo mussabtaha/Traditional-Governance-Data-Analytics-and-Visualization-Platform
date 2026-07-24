@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="470" viewBox="0 0 1400 470" role="img" aria-labelledby="title desc">
+  <title id="title">Traditional Governance platform system architecture</title>
+  <desc id="desc">Data flows from the user browser to the Render static frontend, through an API request to Flask on Render, then to MySQL on Railway, and returns as JSON to frontend components.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0a2118" flood-opacity=".14"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0L12 6 0 12Z" fill="#C8A96A"/>
+    </marker>
+  </defs>
+  <rect width="1400" height="470" rx="28" fill="#F8F7F3"/>
+  <text x="52" y="62" fill="#123524" font-family="Segoe UI,Arial,sans-serif" font-size="30" font-weight="700">System Architecture</text>
+  <text x="52" y="94" fill="#52635A" font-family="Segoe UI,Arial,sans-serif" font-size="17">Production request and response flow</text>
+
+  <g filter="url(#shadow)" font-family="Segoe UI,Arial,sans-serif">
+    <g transform="translate(40 155)">
+      <rect width="165" height="120" rx="18" fill="#FFFFFF" stroke="#D8DED8"/>
+      <circle cx="82.5" cy="35" r="17" fill="#E6EFE9"/>
+      <text x="82.5" y="42" text-anchor="middle" fill="#123524" font-size="20">1</text>
+      <text x="82.5" y="76" text-anchor="middle" fill="#123524" font-size="18" font-weight="700">User Browser</text>
+      <text x="82.5" y="99" text-anchor="middle" fill="#66736C" font-size="13">Desktop or mobile</text>
+    </g>
+    <g transform="translate(235 155)">
+      <rect width="175" height="120" rx="18" fill="#FFFFFF" stroke="#D8DED8"/>
+      <circle cx="87.5" cy="35" r="17" fill="#E6EFE9"/>
+      <text x="87.5" y="42" text-anchor="middle" fill="#123524" font-size="20">2</text>
+      <text x="87.5" y="76" text-anchor="middle" fill="#123524" font-size="17" font-weight="700">Render Frontend</text>
+      <text x="87.5" y="99" text-anchor="middle" fill="#66736C" font-size="13">HTML · CSS · JavaScript</text>
+    </g>
+    <g transform="translate(440 155)">
+      <rect width="150" height="120" rx="18" fill="#FFF8E9" stroke="#DCC998"/>
+      <circle cx="75" cy="35" r="17" fill="#F2E3BF"/>
+      <text x="75" y="42" text-anchor="middle" fill="#8A5B11" font-size="20">3</text>
+      <text x="75" y="76" text-anchor="middle" fill="#694A18" font-size="17" font-weight="700">Fetch API</text>
+      <text x="75" y="99" text-anchor="middle" fill="#806D4B" font-size="13">HTTPS request</text>
+    </g>
+    <g transform="translate(620 155)">
+      <rect width="175" height="120" rx="18" fill="#123524"/>
+      <circle cx="87.5" cy="35" r="17" fill="#C8A96A"/>
+      <text x="87.5" y="42" text-anchor="middle" fill="#123524" font-size="20">4</text>
+      <text x="87.5" y="76" text-anchor="middle" fill="#FFFFFF" font-size="17" font-weight="700">Flask on Render</text>
+      <text x="87.5" y="99" text-anchor="middle" fill="#D8E5DD" font-size="13">Validation · SQL · CORS</text>
+    </g>
+    <g transform="translate(825 155)">
+      <rect width="165" height="120" rx="18" fill="#FFFFFF" stroke="#D8DED8"/>
+      <circle cx="82.5" cy="35" r="17" fill="#E6EFE9"/>
+      <text x="82.5" y="42" text-anchor="middle" fill="#123524" font-size="20">5</text>
+      <text x="82.5" y="76" text-anchor="middle" fill="#123524" font-size="17" font-weight="700">Railway MySQL</text>
+      <text x="82.5" y="99" text-anchor="middle" fill="#66736C" font-size="13">Filter · sort · aggregate</text>
+    </g>
+    <g transform="translate(1020 155)">
+      <rect width="145" height="120" rx="18" fill="#FFF8E9" stroke="#DCC998"/>
+      <circle cx="72.5" cy="35" r="17" fill="#F2E3BF"/>
+      <text x="72.5" y="42" text-anchor="middle" fill="#8A5B11" font-size="20">6</text>
+      <text x="72.5" y="76" text-anchor="middle" fill="#694A18" font-size="17" font-weight="700">JSON Response</text>
+      <text x="72.5" y="99" text-anchor="middle" fill="#806D4B" font-size="13">Compact data envelope</text>
+    </g>
+    <g transform="translate(1195 155)">
+      <rect width="165" height="120" rx="18" fill="#FFFFFF" stroke="#D8DED8"/>
+      <circle cx="82.5" cy="35" r="17" fill="#E6EFE9"/>
+      <text x="82.5" y="42" text-anchor="middle" fill="#123524" font-size="20">7</text>
+      <text x="82.5" y="76" text-anchor="middle" fill="#123524" font-size="16" font-weight="700">UI Components</text>
+      <text x="82.5" y="99" text-anchor="middle" fill="#66736C" font-size="13">Cards · tables · charts · map</text>
+    </g>
+  </g>
+
+  <g stroke="#C8A96A" stroke-width="4" fill="none" marker-end="url(#arrow)">
+    <path d="M207 215H228"/>
+    <path d="M412 215H433"/>
+    <path d="M592 215H613"/>
+    <path d="M797 215H818"/>
+    <path d="M992 215H1013"/>
+    <path d="M1167 215H1188"/>
+  </g>
+  <rect x="355" y="325" width="690" height="46" rx="23" fill="#E6EFE9"/>
+  <text x="700" y="354" text-anchor="middle" fill="#365A47" font-family="Segoe UI,Arial,sans-serif" font-size="15">Rendered results return to the browser as interactive, accessible interface components</text>
+  <rect x="52" y="405" width="1296" height="1" fill="#D9DFDA"/>
+  <text x="52" y="437" fill="#6D7872" font-family="Segoe UI,Arial,sans-serif" font-size="14">Static frontend: Render  ·  API: Flask + Gunicorn on Render  ·  Database: MySQL on Railway</text>
+</svg>

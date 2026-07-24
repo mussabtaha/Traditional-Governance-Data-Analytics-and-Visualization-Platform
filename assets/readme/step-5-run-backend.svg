@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-labelledby="title desc">
+  <title id="title">Terminal command illustration: run the Flask backend</title>
+  <desc id="desc">PowerShell starts Flask on local port 3000 using python app.py.</desc>
+  <rect width="1200" height="300" rx="24" fill="#0D271D"/>
+  <rect width="1200" height="58" rx="24" fill="#123524"/><rect y="35" width="1200" height="23" fill="#123524"/>
+  <circle cx="34" cy="29" r="7" fill="#E96B62"/><circle cx="58" cy="29" r="7" fill="#E8B84A"/><circle cx="82" cy="29" r="7" fill="#55B77B"/>
+  <text x="110" y="36" fill="#D8E5DD" font-family="Segoe UI,Arial,sans-serif" font-size="16">Terminal command illustration · Step 5</text>
+  <text x="42" y="112" fill="#C8A96A" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">RUN TERMINAL 1 · FLASK API</text>
+  <text x="42" y="178" fill="#8ED0AA" font-family="Consolas,monospace" font-size="20">(.venv) PS&gt;</text>
+  <text x="190" y="178" fill="#FFFFFF" font-family="Consolas,monospace" font-size="20">python app.py</text>
+  <rect x="42" y="218" width="292" height="38" rx="9" fill="#1B4433"/>
+  <text x="58" y="244" fill="#D8E5DD" font-family="Consolas,monospace" font-size="16">http://127.0.0.1:3000</text>
+</svg>

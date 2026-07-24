@@ -9,6 +9,26 @@
 </p>
 
 <p align="center">
+  <a href="https://traditional-governance-frontend.onrender.com">
+    <img src="https://img.shields.io/badge/Open_Live_Website-123524?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Open the live Traditional Governance website">
+  </a>
+  <a href="https://traditional-governance-data-analytics.onrender.com/api/stats">
+    <img src="https://img.shields.io/badge/View_Live_API-C8A96A?style=for-the-badge&logo=flask&logoColor=123524" alt="View the live API statistics response">
+  </a>
+  <a href="https://github.com/mussabtaha/Traditional-Governance-Data-Analytics-and-Visualization-Platform">
+    <img src="https://img.shields.io/badge/View_Repository-111827?style=for-the-badge&logo=github&logoColor=white" alt="Open the GitHub repository">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://traditional-governance-frontend.onrender.com">Frontend</a>
+  &nbsp;·&nbsp;
+  <a href="https://traditional-governance-data-analytics.onrender.com/api">Backend API</a>
+  &nbsp;·&nbsp;
+  <a href="https://traditional-governance-data-analytics.onrender.com/api/stats">API test endpoint</a>
+</p>
+
+<p align="center">
   <a href="https://developer.mozilla.org/en-US/docs/Web/HTML"><img alt="HTML5" src="https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white"></a>
   <a href="https://developer.mozilla.org/en-US/docs/Web/CSS"><img alt="CSS3" src="https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white"></a>
   <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"><img alt="JavaScript" src="https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=111111"></a>
@@ -23,11 +43,13 @@
 
 <p align="center">
   <a href="#live-demo">Live Demo</a> ·
+  <a href="#project-preview">Preview</a> ·
   <a href="#project-overview">Overview</a> ·
   <a href="#system-architecture">Architecture</a> ·
+  <a href="#quick-start-on-windows">Quick Start</a> ·
   <a href="#dataset-overview">Dataset</a> ·
   <a href="#api-documentation">API</a> ·
-  <a href="#how-to-run-the-shared-source-code-on-a-new-windows-computer">Windows Setup</a> ·
+  <a href="#detailed-windows-setup">Detailed Setup</a> ·
   <a href="#team-collaboration-on-github">Collaboration</a> ·
   <a href="#testing-and-verification">Testing</a>
 </p>
@@ -45,6 +67,28 @@
 > Render may need a short warm-up period before the first response when the
 > service has been inactive. The backend root URL has no `/` route and normally
 > returns `Endpoint not found`; use `/api/health` or `/api/stats` to test it.
+
+## Project Preview
+
+The deployed application and API were verified as reachable with HTTP `200`,
+and the homepage was inspected after its live dataset finished loading. The
+browser capture command was unavailable during this documentation update, so
+no PNG was fabricated and no broken image reference is embedded below.
+
+| Planned authentic capture | Required path | Current status |
+|---|---|---|
+| Home dashboard | `assets/screenshots/home-dashboard.png` | Manual capture required |
+| Groups explorer | `assets/screenshots/groups-explorer.png` | Manual capture required |
+| Statistics dashboard | `assets/screenshots/statistics-dashboard.png` | Manual capture required |
+| Comparison view | `assets/screenshots/comparison-view.png` | Manual capture required |
+| Arabic interface | `assets/screenshots/arabic-interface.png` | Manual capture required |
+| Dark mode | `assets/screenshots/dark-mode.png` | Manual capture required |
+| Contact page | `assets/screenshots/contact-page.png` | Capture after deployed email delivery is verified |
+
+The [screenshot capture guide](assets/screenshots/README.md) defines the exact
+viewport, filenames, loading checks, privacy checks, and language/theme states.
+When a verified PNG is added, replace the corresponding status row with the
+responsive image block documented in that guide.
 
 ## Project Overview
 
@@ -121,15 +165,19 @@ human-readable details, comparisons, maps, and statistical summaries.
 
 ```mermaid
 flowchart LR
-    U["User browser"] --> F["Static HTML / CSS / JavaScript frontend<br/>Render Static Site"]
-    F --> Q["Fetch API request"]
-    Q --> A["Flask REST API + Gunicorn<br/>Render Web Service"]
-    A -->|Environment-backed connection| D[("MySQL database<br/>Railway")]
-    D -->|Query results| A
-    A -->|JSON response| F
-    F --> V["JavaScript rendering<br/>tables · charts · map · filters · comparisons"]
+    U["User Browser"] --> F["Render Static Frontend<br/>HTML · CSS · JavaScript"]
+    F --> Q["HTTPS Fetch API Request"]
+    Q --> A["Flask API on Render<br/>Gunicorn · validation · CORS"]
+    A --> D[("MySQL on Railway<br/>filters · sorting · aggregation")]
+    D --> A
+    A --> R["JSON Response"]
+    R --> V["Frontend Components<br/>cards · tables · charts · maps"]
     V --> U
 ```
+
+<p align="center">
+  <img src="assets/readme/system-architecture.svg" width="100%" alt="System architecture showing the browser, Render frontend, Flask API, Railway MySQL, JSON response, and frontend components">
+</p>
 
 | Layer | Responsibility |
 |---|---|
@@ -139,20 +187,23 @@ flowchart LR
 | Database | Railway-hosted MySQL stores `tradgov_groups` and summary views and performs filtering, sorting, pagination, and aggregation. |
 | Hosting | GitHub stores the source code. Render hosts both the static frontend and Flask API, while Railway hosts MySQL. Flask connects to Railway through environment variables. |
 
-## Application Workflow
+## How the Platform Works
 
 ```mermaid
-flowchart TD
-    S["1. User opens an application page"] --> J["2. JavaScript sends an API request"]
-    J --> V["3. Flask validates query parameters"]
-    V --> Q["4. Flask creates a parameterized SQL query"]
-    Q --> M["5. MySQL executes filtering, sorting, and pagination"]
-    M --> R["6. Flask returns a JSON response"]
-    R --> N["7. JavaScript normalizes and displays the result"]
-    N --> I["8. User changes a filter, sort, search, or page"]
-    I --> P["9. Only the requested page is fetched again"]
-    P --> V
+flowchart LR
+    S["1. Open page"] --> J["2. JavaScript request"]
+    J --> V["3. Flask validation"]
+    V --> M["4. MySQL query"]
+    M --> R["5. JSON response"]
+    R --> N["6. Update cards, tables,<br/>charts, and maps"]
 ```
+
+<p align="center">
+  <img src="assets/readme/platform-workflow.svg" width="100%" alt="Six-step workflow from opening a page to updating cards, tables, charts, maps, and comparisons">
+</p>
+
+When a user changes a search term, filter, sort order, or page, the browser
+repeats this focused request cycle. It does not download the entire dataset.
 
 ## Technology Stack
 
@@ -172,6 +223,7 @@ flowchart TD
 | Database | MySQL | Group records, summary views, SQL filtering, sorting, and pagination |
 | API hosting | Render | Public Flask API |
 | Database hosting | Railway | Hosted MySQL database |
+| Contact delivery | Resend | HTTPS email delivery without database storage |
 | Source control | Git and GitHub | Repository and team collaboration |
 
 ## Dataset Overview
@@ -249,27 +301,109 @@ values to `No`.
 | [`about.html`](about.html) — About | Explains project purpose, interface methodology, value handling, and supported data fields. |
 | [`contact.html`](contact.html) — Contact | Validated project enquiry form that sends messages through the Flask email endpoint without storing them in the database. |
 
-## Screenshots and Visual Preview
+## Frontend Experience
 
-No verified application screenshots are currently stored in the repository.
-To avoid presenting generated mockups as working software, this README uses
-honest capture placeholders. New screenshots should be captured from the live
-frontend at
-[traditional-governance-frontend.onrender.com](https://traditional-governance-frontend.onrender.com)
-after its API data finishes loading.
+The interface is organized around focused research tasks. Authentic screenshots
+will be inserted only after verified captures exist; the paths below remain
+plain text so GitHub never displays a broken or fabricated image.
 
-| Planned visual | Expected filename | Status |
+| Experience | What it demonstrates | Planned screenshot |
 |---|---|---|
-| Home dashboard | `assets/screenshots/home-dashboard.png` | Capture required |
-| Interactive map | `assets/screenshots/interactive-map.png` | Capture required |
-| Groups explorer | `assets/screenshots/groups-explorer.png` | Capture required |
-| Statistics dashboard | `assets/screenshots/statistics-dashboard.png` | Capture required |
-| Comparison view | `assets/screenshots/comparison-view.png` | Capture required |
-| Arabic interface | `assets/screenshots/arabic-interface.png` | Capture required |
+| **Home Dashboard** | Live summary cards, latest groups, world distribution markers, and direct navigation to the main tools. | `assets/screenshots/home-dashboard.png` |
+| **Groups Explorer** | Search, geographic and institutional filters, sorting, server-side pagination, URL state, and the full details dialog. | `assets/screenshots/groups-explorer.png` |
+| **Statistics** | Leadership, functions, recognition, continent and country totals, largest groups, and top-country charts. | `assets/screenshots/statistics-dashboard.png` |
+| **Comparison** | Two record selectors and a side-by-side view of geography, leadership, functions, administrative structure, and recognition. | `assets/screenshots/comparison-view.png` |
+| **Arabic Interface** | Translated controls, RTL layout, Arabic-name fallback behavior, and a saved language preference. | `assets/screenshots/arabic-interface.png` |
+| **Dark Mode** | Saved theme preference and consistent contrast across cards, forms, tables, comparison panels, and charts. | `assets/screenshots/dark-mode.png` |
+| **Contact** | Validated submission to `POST /api/contact` with real success/error feedback and no database storage. | `assets/screenshots/contact-page.png` |
 
-See the [screenshot capture guide](assets/screenshots/README.md) for naming,
-recommended viewports, language and theme states, quality, privacy, and framing
-instructions.
+## Quick Start on Windows
+
+Install [Git](https://git-scm.com/download/win) and
+[Python 3.11 or 3.12](https://www.python.org/downloads/), then follow these six
+steps. The SVG cards are **terminal command illustrations**; the code blocks
+remain the authoritative, copyable commands.
+
+### 1. Clone the project
+
+```powershell
+git clone https://github.com/mussabtaha/Traditional-Governance-Data-Analytics-and-Visualization-Platform.git
+cd Traditional-Governance-Data-Analytics-and-Visualization-Platform
+```
+
+<p align="center">
+  <img src="assets/readme/step-1-clone.svg" width="92%" alt="Terminal command illustration for cloning and entering the project repository">
+</p>
+
+### 2. Create and activate the backend environment
+
+```powershell
+cd backend-flask
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+<p align="center">
+  <img src="assets/readme/step-2-venv.svg" width="92%" alt="Terminal command illustration for creating and activating the Python virtual environment">
+</p>
+
+### 3. Install the backend requirements
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+<p align="center">
+  <img src="assets/readme/step-3-install.svg" width="92%" alt="Terminal command illustration for installing the Flask backend requirements">
+</p>
+
+### 4. Create the local environment file
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Add the Railway database values and the optional Resend contact-email values
+described in [Detailed Windows Setup](#detailed-windows-setup). Never commit
+`.env`.
+
+<p align="center">
+  <img src="assets/readme/step-4-env.svg" width="92%" alt="Terminal command illustration for copying the safe environment template">
+</p>
+
+### 5. Run Flask in Terminal 1
+
+```powershell
+python app.py
+```
+
+Flask should be available at `http://127.0.0.1:3000`.
+
+<p align="center">
+  <img src="assets/readme/step-5-run-backend.svg" width="92%" alt="Terminal command illustration for running the Flask backend on port 3000">
+</p>
+
+### 6. Run the frontend in Terminal 2
+
+Open another PowerShell window at the repository root:
+
+```powershell
+python -m http.server 5500
+```
+
+Open `http://127.0.0.1:5500/index.html` and verify the local API at
+`http://127.0.0.1:3000/api/stats`. Keep both terminals running.
+The frontend uses the deployed API by default; apply the
+[local backend override](#j-local-backend-override) when testing both local
+services together.
+
+<p align="center">
+  <img src="assets/readme/step-6-run-frontend.svg" width="92%" alt="Terminal command illustration for running the static frontend server on port 5500">
+</p>
+
+<p align="center">
+  <img src="assets/readme/local-run-workflow.svg" width="100%" alt="Local workflow with Flask in Terminal 1, the frontend server in Terminal 2, and browser verification">
+</p>
 
 ## API Documentation
 
@@ -321,6 +455,9 @@ Contact form messages are delivered through the Resend HTTPS Email API and are
 `CONTACT_EMAIL`, and `FROM_EMAIL` in the local backend `.env` file and as
 secret environment variables in the Render backend service. `FROM_EMAIL` must
 use a sender address on a domain verified in Resend.
+
+Render Free blocks direct outbound SMTP ports, so the project uses Resend over
+HTTPS instead of SMTP. The browser never receives or stores the Resend API key.
 
 `RESEND_API_KEY` is a secret: never place a real API key in source code, README
 examples, screenshots, commits, or frontend JavaScript.
@@ -500,7 +637,12 @@ Traditional-Governance-Data-Analytics-and-Visualization-Platform/
 │   │   └── world-map.svg
 │   ├── icons/
 │   ├── readme/
-│   │   └── header.svg
+│   │   ├── header.svg
+│   │   ├── system-architecture.svg
+│   │   ├── platform-workflow.svg
+│   │   ├── local-run-workflow.svg
+│   │   ├── deployment-flow.svg
+│   │   └── step-*.svg                  # Six terminal command illustrations
 │   ├── screenshots/
 │   │   └── README.md                # Authentic screenshot capture guide
 │   ├── vendor/                      # Local Bootstrap, icons, fonts, and Chart.js
@@ -525,18 +667,22 @@ Traditional-Governance-Data-Analytics-and-Visualization-Platform/
 │   │   ├── encoding_diagnosis.py
 │   │   └── apply_encoding_repairs.py
 │   └── tests/
-│       └── test_server_pagination.py
+│       ├── test_server_pagination.py
+│       └── test_contact.py
 └── .gitignore
 ```
 
 Generated folders, credentials, virtual environments, Git internals, and
 temporary files are intentionally omitted.
 
-## How to Run the Shared Source Code on a New Windows Computer
+## Detailed Windows Setup
 
 This guide starts from a clean Windows computer. It runs the Flask backend and
 static frontend locally while using valid credentials for the existing Railway
 database.
+
+<details>
+<summary><strong>Open the complete Windows setup, local override, and troubleshooting guide</strong></summary>
 
 ### A. Required software
 
@@ -770,7 +916,13 @@ For local full-stack testing, place this configuration before the shared
 
 </details>
 
+</details>
+
 ## Deployment Architecture
+
+<p align="center">
+  <img src="assets/readme/deployment-flow.svg" width="100%" alt="Deployment flow connecting the Render frontend, Flask API on Render, Railway MySQL, Resend email API, and GitHub source">
+</p>
 
 | Platform | Responsibility |
 |---|---|
@@ -778,6 +930,7 @@ For local full-stack testing, place this configuration before the shared
 | Render Static Site | Hosts the public frontend at [traditional-governance-frontend.onrender.com](https://traditional-governance-frontend.onrender.com) |
 | Render Web Service | Hosts the Flask API at [traditional-governance-data-analytics.onrender.com](https://traditional-governance-data-analytics.onrender.com/api/health) |
 | Railway | Hosts the MySQL database |
+| Resend | Delivers Contact-page messages through an HTTPS email API without storing them in MySQL |
 
 Render should run from the `backend-flask` working directory with:
 
