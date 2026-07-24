@@ -1172,18 +1172,89 @@
   function initContactForm() {
     const form = $("#contactForm");
     const status = $("#formStatus");
+    const submitButton = $("#contactSubmit");
+    const submitLabel = $("#contactSubmitLabel");
     if (!form) return;
-    form.addEventListener("submit", (event) => {
+
+    let isSubmitting = false;
+    const successMessage = "Your message has been sent successfully.";
+    const failureMessage = "We could not send your message. Please try again later.";
+
+    const hideStatus = () => {
+      if (!status) return;
+      status.textContent = "";
+      status.classList.remove("is-visible", "is-error");
+      status.setAttribute("role", "status");
+    };
+
+    const showStatus = (message, isError = false) => {
+      if (!status) return;
+      status.textContent = tr(message);
+      status.classList.toggle("is-error", isError);
+      status.classList.add("is-visible");
+      status.setAttribute("role", isError ? "alert" : "status");
+    };
+
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
       event.stopPropagation();
+      if (isSubmitting) return;
+
+      hideStatus();
       form.classList.add("was-validated");
       if (!form.checkValidity()) return;
-      if (status) {
-        status.textContent = tr("Thank you. Your message has been captured in this frontend demonstration (nothing was sent).");
-        status.classList.add("is-visible");
+
+      isSubmitting = true;
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.setAttribute("aria-busy", "true");
       }
-      form.reset();
-      form.classList.remove("was-validated");
+      if (submitLabel) submitLabel.textContent = tr("Sending...");
+
+      const formData = new FormData(form);
+      const payload = {
+        name: String(formData.get("name") || "").trim(),
+        email: String(formData.get("email") || "").trim(),
+        subject: String(formData.get("subject") || "").trim(),
+        message: String(formData.get("message") || "").trim()
+      };
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/contact`, {
+          method: "POST",
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        let result = null;
+        try {
+          result = await response.json();
+        } catch {
+          result = null;
+        }
+
+        if (!response.ok || result?.success !== true) {
+          showStatus(result?.message || failureMessage, true);
+          return;
+        }
+
+        showStatus(result.message || successMessage);
+        form.reset();
+        form.classList.remove("was-validated");
+      } catch (error) {
+        console.error("Contact form request failed.", error);
+        showStatus(failureMessage, true);
+      } finally {
+        isSubmitting = false;
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.removeAttribute("aria-busy");
+        }
+        if (submitLabel) submitLabel.textContent = tr("Send Message");
+      }
     });
   }
 

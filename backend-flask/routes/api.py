@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import math
 import re
+import smtplib
+from email.message import EmailMessage
 
 from flask import Blueprint, current_app, jsonify, request
 from werkzeug.exceptions import BadRequest
@@ -30,6 +32,15 @@ SORT_COLUMNS = {
     "formackn": "formackn",
     "recognition": "formackn",
 }
+CONTACT_SUCCESS_MESSAGE = "Your message has been sent successfully."
+CONTACT_FAILURE_MESSAGE = "We could not send your message. Please try again later."
+CONTACT_FIELD_LIMITS = {
+    "name": 120,
+    "email": 254,
+    "subject": 160,
+    "message": 5_000,
+}
+CONTACT_EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 def _parse_positive_integer(value, default_value: int | None, field_name: str) -> int:
@@ -46,6 +57,112 @@ def _parse_positive_integer(value, default_value: int | None, field_name: str) -
     if parsed_value < 1 or parsed_value > MAX_SAFE_INTEGER:
         raise BadRequest(description=f"{field_name} must be a positive integer.")
     return parsed_value
+
+
+def _validate_contact_payload(payload) -> tuple[dict[str, str], dict[str, str]]:
+    """Return cleaned contact values and field-level validation errors."""
+
+    if not isinstance(payload, dict):
+        return {}, {"request": "A JSON object is required."}
+
+    cleaned: dict[str, str] = {}
+    errors: dict[str, str] = {}
+
+    for field, maximum_length in CONTACT_FIELD_LIMITS.items():
+        value = payload.get(field)
+        if not isinstance(value, str) or not value.strip():
+            errors[field] = f"{field.capitalize()} is required."
+            continue
+
+        cleaned_value = value.strip()
+        if len(cleaned_value) > maximum_length:
+            errors[field] = (
+                f"{field.capitalize()} must not exceed {maximum_length} characters."
+            )
+            continue
+        cleaned[field] = cleaned_value
+
+    email = cleaned.get("email")
+    if email and CONTACT_EMAIL_PATTERN.fullmatch(email) is None:
+        errors["email"] = "Email must be a valid email address."
+
+    message = cleaned.get("message")
+    if message and len(message) < 20:
+        errors["message"] = "Message must be at least 20 characters."
+
+    # Prevent user-controlled line breaks from being used in mail headers.
+    for field in ("name", "email", "subject"):
+        value = cleaned.get(field)
+        if value and ("\r" in value or "\n" in value):
+            errors[field] = f"{field.capitalize()} must be a single line."
+
+    return cleaned, errors
+
+
+@api.post("/contact")
+def contact():
+    """Validate a contact enquiry and deliver it without database storage."""
+
+    values, errors = _validate_contact_payload(request.get_json(silent=True))
+    if errors:
+        return (
+            jsonify(
+                success=False,
+                message="Please correct the highlighted fields.",
+                errors=errors,
+            ),
+            400,
+        )
+
+    smtp_user = str(current_app.config.get("SMTP_USER", "")).strip()
+    smtp_password = str(current_app.config.get("SMTP_PASSWORD", ""))
+    contact_email = str(current_app.config.get("CONTACT_EMAIL", "")).strip()
+    if not smtp_user or not smtp_password or not contact_email:
+        current_app.logger.error(
+            "Contact email delivery is unavailable because SMTP configuration is incomplete."
+        )
+        return jsonify(success=False, message=CONTACT_FAILURE_MESSAGE), 500
+
+    email_message = EmailMessage()
+    email_message["Subject"] = (
+        f"Traditional Governance website contact: {values['subject']}"
+    )
+    email_message["From"] = smtp_user
+    email_message["To"] = contact_email
+    email_message["Reply-To"] = values["email"]
+    email_message.set_content(
+        "\n".join(
+            [
+                f"Visitor full name: {values['name']}",
+                f"Visitor email: {values['email']}",
+                f"Selected subject: {values['subject']}",
+                "",
+                "Visitor message:",
+                values["message"],
+                "",
+                "Source: Traditional Governance website",
+            ]
+        )
+    )
+
+    try:
+        with smtplib.SMTP_SSL(
+            "smtp.gmail.com",
+            465,
+            timeout=20,
+        ) as smtp_client:
+            smtp_client.login(smtp_user, smtp_password)
+            smtp_client.send_message(email_message)
+    except Exception as error:
+        # Record only the exception type so SMTP diagnostics and credentials cannot
+        # leak into application logs or the public response.
+        current_app.logger.error(
+            "Contact email delivery failed (%s).",
+            type(error).__name__,
+        )
+        return jsonify(success=False, message=CONTACT_FAILURE_MESSAGE), 500
+
+    return jsonify(success=True, message=CONTACT_SUCCESS_MESSAGE)
 
 
 @api.get("/health")

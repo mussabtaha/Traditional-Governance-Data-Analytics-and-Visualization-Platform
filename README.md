@@ -247,7 +247,7 @@ values to `No`.
 | [`statistics.html`](statistics.html) — Statistics | Live summary metrics and six Chart.js visualizations: leadership, functions, formal recognition, continent distribution, largest groups, and top ten countries. |
 | [`comparison.html`](comparison.html) — Comparison | Loads lightweight group options, fetches two selected records by ID, supports swapping selections, and renders geography, leadership, functions, structure, and recognition side by side. |
 | [`about.html`](about.html) — About | Explains project purpose, interface methodology, value handling, and supported data fields. |
-| [`contact.html`](contact.html) — Contact | Frontend-only project enquiry form with browser validation and user feedback. It does not send messages to a backend. |
+| [`contact.html`](contact.html) — Contact | Validated project enquiry form that sends messages through the Flask email endpoint without storing them in the database. |
 
 ## Screenshots and Visual Preview
 
@@ -312,6 +312,18 @@ Errors use a non-2xx HTTP status with:
 | `GET` | `/api/group-options` | Return lightweight ID/name/country rows for comparison selectors | None | [`/api/group-options`](https://traditional-governance-data-analytics.onrender.com/api/group-options) |
 | `GET` | `/api/groups` | Return one filtered, sorted, paginated group page | Query parameters below | [`/api/groups?page=1&limit=100`](https://traditional-governance-data-analytics.onrender.com/api/groups?page=1&limit=100) |
 | `GET` | `/api/groups/<id>` | Return one complete group record | Positive integer path ID | [`/api/groups/1`](https://traditional-governance-data-analytics.onrender.com/api/groups/1) |
+| `POST` | `/api/contact` | Validate and deliver a contact message by email | JSON: `name`, `email`, `subject`, `message` | No database write |
+
+### Contact email delivery
+
+Contact form messages are delivered through Gmail SMTP and are **not stored in
+MySQL or any other database**. The sending Google account must have 2-Step
+Verification enabled and use a Gmail App Password. Configure `SMTP_USER`,
+`SMTP_PASSWORD`, and `CONTACT_EMAIL` in the local backend `.env` file and as
+secret environment variables in the Render backend service.
+
+`SMTP_PASSWORD` is a secret: never place a real App Password in source code,
+README examples, screenshots, commits, or frontend JavaScript.
 
 ### `/api/groups` query parameters
 
@@ -462,7 +474,7 @@ Traditional-Governance-Data-Analytics-and-Visualization-Platform/
 ├── statistics.html                  # Summary cards and Chart.js visualizations
 ├── comparison.html                  # Side-by-side group comparison
 ├── about.html                       # Project purpose and field information
-├── contact.html                     # Frontend-only enquiry form
+├── contact.html                     # Email-backed project enquiry form
 ├── css/
 │   ├── home.css                     # Homepage-specific layout and map styling
 │   └── style.css                    # Shared components, themes, RTL, responsiveness
@@ -608,6 +620,9 @@ DB_USER=
 DB_PASSWORD=
 DB_NAME=tradgov_db
 PORT=3000
+SMTP_USER=your_gmail_address
+SMTP_PASSWORD=your_gmail_app_password
+CONTACT_EMAIL=destination_email_address
 ```
 
 | Variable | Purpose |
@@ -618,6 +633,9 @@ PORT=3000
 | `DB_PASSWORD` | MySQL password |
 | `DB_NAME` | Database name, normally `tradgov_db` |
 | `PORT` | Local Flask port |
+| `SMTP_USER` | Gmail address used to send contact messages |
+| `SMTP_PASSWORD` | Gmail App Password; never commit this secret |
+| `CONTACT_EMAIL` | Destination address that receives contact messages |
 
 > **Never commit `.env` to GitHub.** The project owner must share valid
 > database credentials securely and separately, never in Git, email screenshots,
@@ -773,14 +791,18 @@ exact new origin and redeploying the backend.
 
 ## Testing and Verification
 
-The repository contains six Flask contract tests covering:
+The repository contains ten Flask contract tests covering:
 
 - combined SQL filtering, sorting, and pagination;
 - missing recognition values;
 - out-of-range page totals;
 - invalid leadership rejection;
 - invalid sort-direction rejection;
-- the lightweight comparison-options endpoint.
+- the lightweight comparison-options endpoint;
+- valid contact email construction and one SMTP delivery;
+- contact input validation and maximum lengths;
+- missing SMTP configuration and safe SMTP failure responses;
+- confirmation that contact delivery performs no database operation.
 
 Run them from `backend-flask` after configuring the environment:
 
@@ -821,10 +843,13 @@ this README does not claim continuous integration.
 - Keep user-supplied values in parameterized SQL queries.
 - Keep sort and leadership fields restricted to server-side allowlists.
 - Store production secrets in Render and Railway environment settings.
+- Use a Gmail App Password for `SMTP_PASSWORD`; never commit it or expose it to
+  frontend code.
 - Rotate database credentials immediately if they are exposed.
 - Never place real credentials, private hosts, or secret URLs in README examples.
 - Keep local and production CORS origins explicit; add new domains only after review.
-- The current API is read-only and exposes only `GET` routes.
+- The dataset API remains read-only. The only `POST` route is `/api/contact`,
+  which sends an email and does not write to the database.
 
 ## Team Collaboration on GitHub
 

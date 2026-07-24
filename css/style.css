@@ -1380,6 +1380,21 @@ img {
 
 .form-status.is-visible { display: block; }
 
+.form-status.is-error {
+  color: #8c2d28;
+  background: #fbe8e6;
+}
+
+html[data-theme="dark"] .form-status {
+  color: #bce4ca;
+  background: rgba(54, 143, 91, 0.18);
+}
+
+html[data-theme="dark"] .form-status.is-error {
+  color: #ffc6c0;
+  background: rgba(177, 57, 48, 0.2);
+}
+
 /* Footer */
 .site-footer {
   color: rgba(255, 255, 255, 0.66);

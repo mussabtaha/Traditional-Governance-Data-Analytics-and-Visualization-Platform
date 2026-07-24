@@ -154,7 +154,11 @@
     "Message": "الرسالة",
     "Please provide at least 20 characters…": "يرجى كتابة 20 حرفاً على الأقل…",
     "Please enter a message of at least 20 characters.": "يرجى إدخال رسالة لا تقل عن 20 حرفاً.",
-    "Submit demonstration": "إرسال النموذج التجريبي",
+    "Send Message": "إرسال الرسالة",
+    "Sending...": "جارٍ الإرسال...",
+    "Please correct the highlighted fields.": "يرجى تصحيح الحقول المحددة.",
+    "Your message has been sent successfully.": "تم إرسال رسالتك بنجاح.",
+    "We could not send your message. Please try again later.": "تعذر إرسال رسالتك. يرجى المحاولة مرة أخرى لاحقاً.",
 
     "A university graduation project for exploring traditional governance systems worldwide.": "مشروع تخرج جامعي لاستكشاف أنظمة الحوكمة التقليدية حول العالم.",
     "Search traditional governance records, combine geographic and institutional filters, sort results, and open a complete field-level view of each group.": "ابحث في سجلات الحوكمة التقليدية، واجمع بين المرشحات الجغرافية والمؤسسية، ورتّب النتائج، وافتح عرضاً تفصيلياً كاملاً لكل مجموعة.",
@@ -211,8 +215,6 @@
     "View details for {group}": "عرض تفاصيل {group}",
     "No groups match the selected criteria.": "لا توجد مجموعات تطابق المعايير المحددة.",
     "Thank you. Your email was captured in this demonstration.": "شكراً لك. تم تسجيل بريدك الإلكتروني في هذا النموذج التجريبي.",
-    "Thank you. Your message has been captured in this frontend demonstration (nothing was sent).": "شكراً لك. تم تسجيل رسالتك في هذا النموذج التجريبي للواجهة الأمامية ولم يتم إرسال أي بيانات.",
-
     "Africa": "أفريقيا",
     "Asia": "آسيا",
     "Europe": "أوروبا",

@@ -26,7 +26,8 @@ def create_app() -> Flask:
     CORS(
         app,
         resources={r"/api/*": {"origins": ALLOWED_ORIGINS}},
-        methods=["GET"],
+        methods=["GET", "POST"],
+        allow_headers=["Content-Type"],
     )
     init_pool(app.config)
     app.register_blueprint(api)
@@ -58,4 +59,3 @@ if __name__ == "__main__":
         use_reloader=False,
         threaded=True,
     )
-
