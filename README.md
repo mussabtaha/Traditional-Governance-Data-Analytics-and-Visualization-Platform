@@ -1110,7 +1110,7 @@ must manually add each verified member's name, student ID, role, and GitHub
 profile.
 
 | Name | Student ID  | GitHub |
-|---|---|---|---|
+|---|---|---|
 | _Rashed Al-Bashir_ | _20-204_ | _RashidAlbashir_ |
 | _Malaz Ibrahim_ | _17-229_ | _malazibrahim203_ |
 | _Musab Taha_ | _20-312_ | _mussabtaha_ |
