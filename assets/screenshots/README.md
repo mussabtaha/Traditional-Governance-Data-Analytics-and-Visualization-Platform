@@ -7,7 +7,8 @@ Do not add generated mockups, edited data, browser-error pages, or images that
 could be mistaken for a working feature. Capture the real application after the
 frontend and API have loaded successfully.
 
-Use the deployed frontend:
+Use the deployed frontend or a verified local frontend connected to the live
+API:
 
 ```text
 https://traditional-governance-frontend.onrender.com
@@ -19,15 +20,18 @@ https://traditional-governance-frontend.onrender.com
 |---|---|---|
 | `home-dashboard.png` | Home dashboard | English, light mode; include the hero, summary cards, and main exploration cards. |
 | `groups-explorer.png` | Groups page | English, light mode; show search, filters, populated table, and pagination. |
+| `interactive-map.png` | Home map section | Show the recognizable world map and all five live continent totals. |
 | `statistics-dashboard.png` | Statistics page | Show representative charts with their headings and live data. |
 | `comparison-view.png` | Comparison page | Select two real groups and show both profiles plus part of the comparison table. |
+| `about-project.png` | About page | Show the project purpose and research workflow cards. |
 | `arabic-interface.png` | Representative Arabic page | Show Arabic text, correct RTL layout, and translated controls. |
 | `dark-mode.png` | Representative dark-mode page | Show the saved dark theme on a data-rich page. |
-| `contact-page.png` | Contact page | Capture only after deployed email delivery is verified; leave all visitor fields empty. |
+| `contact-page.png` | Contact page | Show the project contact information and leave all visitor fields empty. |
 
-Current status: all seven PNG files require manual capture. Browser inspection
-confirmed that the deployed homepage loads live data, but the screenshot command
-timed out during the documentation update. No substitute image was generated.
+Current status: all nine PNG files were captured at **1440 × 900** from the
+running application. The Flask backend and its MySQL connection were verified
+before capture, page loaders were allowed to finish, data-rich pages were
+checked for browser console errors, and no substitute images were generated.
 
 ## Recommended viewport sizes
 
@@ -54,7 +58,6 @@ the responsive layout remains correct before capturing the final desktop image.
 10. Save PNG files with the exact lowercase, URL-safe names listed above.
 11. Optimize large images before committing them to Git.
 
-After adding screenshots, replace the corresponding status rows in the root
-[`README.md`](../../README.md#project-preview) with responsive image elements
-and accurate captions. Include one large homepage preview followed by
-side-by-side feature images only when every referenced PNG exists.
+The root [`README.md`](../../README.md#project-preview) uses one large homepage
+preview followed by GitHub-compatible two-column feature tables with meaningful
+alt text and captions.

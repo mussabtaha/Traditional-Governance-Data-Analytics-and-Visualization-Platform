@@ -70,25 +70,23 @@
 
 ## Project Preview
 
-The deployed application and API were verified as reachable with HTTP `200`,
-and the homepage was inspected after its live dataset finished loading. The
-browser screenshot operation timed out during this documentation update, so no
-PNG was fabricated and no broken image reference is embedded below.
+The screenshots below were captured at `1440 × 900` from the running frontend
+after the API and real MySQL-backed dataset finished loading. They show the
+actual application—no generated mockups, substituted data, or browser-error
+pages are used.
 
-| Planned authentic capture | Required path | Current status |
-|---|---|---|
-| Home dashboard | `assets/screenshots/home-dashboard.png` | Manual capture required |
-| Groups explorer | `assets/screenshots/groups-explorer.png` | Manual capture required |
-| Statistics dashboard | `assets/screenshots/statistics-dashboard.png` | Manual capture required |
-| Comparison view | `assets/screenshots/comparison-view.png` | Manual capture required |
-| Arabic interface | `assets/screenshots/arabic-interface.png` | Manual capture required |
-| Dark mode | `assets/screenshots/dark-mode.png` | Manual capture required |
-| Contact page | `assets/screenshots/contact-page.png` | Capture after deployed email delivery is verified |
+<p align="center">
+  <img src="assets/screenshots/home-dashboard.png" width="96%" alt="Traditional Governments home dashboard with live summary cards, world map, and latest groups table">
+</p>
 
-The [screenshot capture guide](assets/screenshots/README.md) defines the exact
-viewport, filenames, loading checks, privacy checks, and language/theme states.
-When a verified PNG is added, replace the corresponding status row with the
-responsive image block documented in that guide.
+<p align="center">
+  <strong>Home Dashboard</strong><br>
+  <sub>Live project metrics, research tools, geographic distribution, and recently added records.</sub>
+</p>
+
+The [screenshot capture guide](assets/screenshots/README.md) records the
+viewport, loading checks, privacy checks, and language/theme states used for
+these authentic captures.
 
 ## Project Overview
 
@@ -303,19 +301,60 @@ values to `No`.
 
 ## Frontend Experience
 
-The interface is organized around focused research tasks. Authentic screenshots
-will be inserted only after verified captures exist; the paths below remain
-plain text so GitHub never displays a broken or fabricated image.
+The interface is organized around focused research tasks. Every image in this
+section comes from the live local application after its page-specific data,
+tables, charts, and controls were ready.
 
-| Experience | What it demonstrates | Planned screenshot |
-|---|---|---|
-| **Home Dashboard** | Live summary cards, latest groups, world distribution markers, and direct navigation to the main tools. | `assets/screenshots/home-dashboard.png` |
-| **Groups Explorer** | Search, geographic and institutional filters, sorting, server-side pagination, URL state, and the full details dialog. | `assets/screenshots/groups-explorer.png` |
-| **Statistics** | Leadership, functions, recognition, continent and country totals, largest groups, and top-country charts. | `assets/screenshots/statistics-dashboard.png` |
-| **Comparison** | Two record selectors and a side-by-side view of geography, leadership, functions, administrative structure, and recognition. | `assets/screenshots/comparison-view.png` |
-| **Arabic Interface** | Translated controls, RTL layout, Arabic-name fallback behavior, and a saved language preference. | `assets/screenshots/arabic-interface.png` |
-| **Dark Mode** | Saved theme preference and consistent contrast across cards, forms, tables, comparison panels, and charts. | `assets/screenshots/dark-mode.png` |
-| **Contact** | Validated submission to `POST /api/contact` with real success/error feedback and no database storage. | `assets/screenshots/contact-page.png` |
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="assets/screenshots/groups-explorer.png" width="100%" alt="Groups Explorer showing live record count, search, geographic filters, and populated results table"><br>
+      <strong>Groups Explorer</strong><br>
+      Search, geographic and institutional filters, sorting, server-side pagination, URL state, and detailed records.
+    </td>
+    <td width="50%" align="center">
+      <img src="assets/screenshots/interactive-map.png" width="100%" alt="Interactive world distribution map with live traditional group totals for the Americas, Europe, Africa, Asia, and Oceania"><br>
+      <strong>Interactive Map</strong><br>
+      A responsive world map with live continent totals and direct links into filtered group results.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="assets/screenshots/statistics-dashboard.png" width="100%" alt="Statistics dashboard with live summary metrics and rendered leadership and government-function charts"><br>
+      <strong>Statistics Dashboard</strong><br>
+      Leadership, functions, recognition, continent and country totals, largest groups, and top-country visualizations.
+    </td>
+    <td width="50%" align="center">
+      <img src="assets/screenshots/comparison-view.png" width="100%" alt="Comparison page showing Aborigines and Acehnese records side by side with populated profile cards and comparison fields"><br>
+      <strong>Comparison View</strong><br>
+      Two real records compared across geography, leadership, functions, administrative structure, and recognition.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="assets/screenshots/about-project.png" width="100%" alt="About the Project page explaining the academic research purpose and main discovery and analysis workflows"><br>
+      <strong>About Project</strong><br>
+      Project purpose, academic methodology, value handling, supported data fields, and research-oriented workflows.
+    </td>
+    <td width="50%" align="center">
+      <img src="assets/screenshots/contact-page.png" width="100%" alt="Contact page with project information and an empty validated enquiry form"><br>
+      <strong>Contact Form</strong><br>
+      An accessible enquiry form connected to <code>POST /api/contact</code> without storing messages in the database.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="assets/screenshots/arabic-interface.png" width="100%" alt="Arabic right-to-left home dashboard with translated navigation, live metrics, world map, and isolated English group names"><br>
+      <strong>Arabic RTL Interface</strong><br>
+      Translated controls, correct RTL layout, bidirectional group-name handling, and saved language preference.
+    </td>
+    <td width="50%" align="center">
+      <img src="assets/screenshots/dark-mode.png" width="100%" alt="Dark-mode home dashboard with live metrics, world map markers, latest groups, and high-contrast cards"><br>
+      <strong>Dark Mode</strong><br>
+      Saved theme preference with consistent contrast across navigation, cards, tables, maps, forms, and charts.
+    </td>
+  </tr>
+</table>
 
 ## Quick Start on Windows
 
