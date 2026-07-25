@@ -1055,48 +1055,6 @@ this README does not claim continuous integration.
 - The dataset API remains read-only. The only `POST` route is `/api/contact`,
   which sends an email and does not write to the database.
 
-## Team Collaboration on GitHub
-
-The repository owner can invite team members from the repository's
-**Settings → Collaborators** page. Each invitation must be accepted before that
-person receives collaborator access. A pending invitation is not an active
-collaborator.
-
-Collaborator access and the GitHub **Contributors** list are different:
-
-- accepting an invitation grants repository access;
-- a collaborator does not automatically appear under Contributors;
-- a person normally appears after commits authored by their Git identity are
-  pushed to the repository or merged through a pull request;
-- the repository can remain under the owner's username even when several
-  collaborators work on it;
-- a GitHub Organization is optional if the team wants the repository owner name
-  to represent the group rather than one person.
-
-Each member should use their own GitHub account and configure their own identity:
-
-```powershell
-git config --global user.name "Full Name"
-git config --global user.email "email@example.com"
-```
-
-Pull the latest shared work before editing or pushing:
-
-```powershell
-git pull
-```
-
-Standard collaboration workflow:
-
-```powershell
-git add .
-git commit -m "Describe the change"
-git pull
-git push
-```
-
-Resolve any pull conflicts carefully before pushing. Never share one GitHub
-account among all team members.
 
 ## Team Members
 
@@ -1146,9 +1104,6 @@ These are proposed extensions, not features claimed by the current system.
 This project uses open-source technologies including Python, Flask, MySQL
 Connector/Python, Flask-CORS, Bootstrap, Bootstrap Icons, and Chart.js.
 
-The project team should add the verified dataset citation, university,
-supervisor, academic reviewers, and any research collaborators before final
-submission.
 
 ## License and Academic Usage Notice
 
