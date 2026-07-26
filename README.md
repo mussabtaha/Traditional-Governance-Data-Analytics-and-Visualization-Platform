@@ -294,7 +294,7 @@ values to `No`.
 |---|---|
 | [`index.html`](index.html) — Home | Hero introduction, live summary cards, tool navigation, latest records, and an SVG world map with live continent counts. Selecting a marker opens the Groups page with that continent filter. |
 | [`groups.html`](groups.html) — Groups | Search, geographic and institutional filters, sortable table, server-side pagination, reset control, URL-synchronized state, and detailed group dialog. |
-| [`statistics.html`](statistics.html) — Statistics | Live summary metrics and six Chart.js visualizations: leadership, functions, formal recognition, continent distribution, largest groups, and top ten countries. |
+| [`statistics.html`](statistics.html) — Statistics | Interactive country, continent, and region analysis with live summary metrics and six Chart.js visualizations that update in place. |
 | [`comparison.html`](comparison.html) — Comparison | Loads lightweight group options, fetches two selected records by ID, supports swapping selections, and renders geography, leadership, functions, structure, and recognition side by side. |
 | [`about.html`](about.html) — About | Explains project purpose, interface methodology, value handling, and supported data fields. |
 | [`contact.html`](contact.html) — Contact | Validated project enquiry form that sends messages through the Flask email endpoint without storing them in the database. |
@@ -476,6 +476,7 @@ Errors use a non-2xx HTTP status with:
 |---|---|---|---|---|
 | `GET` | `/api/health` | Check Flask and database availability | None | [`/api/health`](https://traditional-governance-data-analytics.onrender.com/api/health) |
 | `GET` | `/api/stats` | Return overall counts, recognition, functions, and coverage totals | None | [`/api/stats`](https://traditional-governance-data-analytics.onrender.com/api/stats) |
+| `GET` | `/api/statistics` | Return one combined statistics payload for all data or one geographic scope | Optional `country`, `continent`, or `region` | `/api/statistics?continent=Africa` |
 | `GET` | `/api/countries` | Return country summary rows ordered by group total | None | [`/api/countries`](https://traditional-governance-data-analytics.onrender.com/api/countries) |
 | `GET` | `/api/continents` | Return group totals by continent | None | [`/api/continents`](https://traditional-governance-data-analytics.onrender.com/api/continents) |
 | `GET` | `/api/regions` | Return group totals by region | None | [`/api/regions`](https://traditional-governance-data-analytics.onrender.com/api/regions) |
@@ -486,6 +487,26 @@ Errors use a non-2xx HTTP status with:
 | `GET` | `/api/groups` | Return one filtered, sorted, paginated group page | Query parameters below | [`/api/groups?page=1&limit=100`](https://traditional-governance-data-analytics.onrender.com/api/groups?page=1&limit=100) |
 | `GET` | `/api/groups/<id>` | Return one complete group record | Positive integer path ID | [`/api/groups/1`](https://traditional-governance-data-analytics.onrender.com/api/groups/1) |
 | `POST` | `/api/contact` | Validate and deliver a contact message by email | JSON: `name`, `email`, `subject`, `message` | No database write |
+
+### `/api/statistics` geographic analysis
+
+The Statistics page uses one combined endpoint for summary counts, recognition,
+leadership, functions, context-aware geographic distribution, largest groups,
+and top countries. Supply at most one exact database value:
+
+```http
+GET /api/statistics
+GET /api/statistics?country=Kenya
+GET /api/statistics?continent=Africa
+GET /api/statistics?region=Sub-Saharan+Africa
+```
+
+The geographic chart adapts to the selected scope: all data shows continents, a
+continent shows regions, and a region shows countries. Country scope keeps the
+same chart layout and reports geographic distribution and top countries as not
+applicable. Unknown, empty, or conflicting scope parameters return the standard
+`400` error envelope. Values are validated against MySQL, filter values are
+parameterized, and query identifiers come only from a server-side whitelist.
 
 ### Contact email delivery
 

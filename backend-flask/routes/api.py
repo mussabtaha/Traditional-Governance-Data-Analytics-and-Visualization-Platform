@@ -33,6 +33,11 @@ SORT_COLUMNS = {
     "formackn": "formackn",
     "recognition": "formackn",
 }
+STATISTICS_SCOPE_COLUMNS = {
+    "country": "country",
+    "continent": "continent",
+    "region": "region",
+}
 CONTACT_SUCCESS_MESSAGE = "Your message has been sent successfully."
 CONTACT_FAILURE_MESSAGE = "We could not send your message. Please try again later."
 RESEND_EMAIL_API_URL = "https://api.resend.com/emails"
@@ -223,6 +228,156 @@ def stats():
         """
     )
     return jsonify(success=True, data=row)
+
+
+def _statistics_scope() -> tuple[str, str | None, str, list[object]]:
+    """Validate one optional geographic statistics scope."""
+
+    supplied_scopes = [
+        scope for scope in STATISTICS_SCOPE_COLUMNS if scope in request.args
+    ]
+    if len(supplied_scopes) > 1:
+        raise BadRequest(
+            description="Use only one statistics filter: country, continent, or region."
+        )
+
+    if not supplied_scopes:
+        return "all", None, "", []
+
+    scope_type = supplied_scopes[0]
+    scope_value = request.args.get(scope_type, "").strip()
+    if not scope_value:
+        raise BadRequest(description=f"{scope_type} cannot be empty.")
+
+    scope_column = STATISTICS_SCOPE_COLUMNS[scope_type]
+    existing_value = fetch_one(
+        (
+            f"SELECT {scope_column} AS value "
+            f"FROM tradgov_groups WHERE {scope_column} = %s LIMIT 1"
+        ),
+        [scope_value],
+    )
+    if existing_value is None:
+        raise BadRequest(description=f"Unknown {scope_type}: {scope_value}.")
+
+    return scope_type, scope_value, f" WHERE {scope_column} = %s", [scope_value]
+
+
+@api.get("/statistics")
+def filtered_statistics():
+    """Return all statistics required by the interactive statistics page."""
+
+    scope_type, scope_value, where_clause, query_parameters = _statistics_scope()
+    summary = fetch_one(
+        f"""
+        SELECT
+          COUNT(*) AS total_groups,
+          COUNT(DISTINCT country) AS total_countries,
+          COUNT(DISTINCT continent) AS total_continents,
+          COUNT(DISTINCT region) AS total_regions,
+          COALESCE(SUM(any_tpi = 1), 0) AS groups_with_tpi,
+          COALESCE(SUM(formackn = 1), 0) AS recognized,
+          COALESCE(SUM(formackn = 0), 0) AS not_recognized,
+          COALESCE(SUM(formackn IS NULL), 0) AS recognition_missing,
+          COALESCE(SUM(king = 1), 0) AS king,
+          COALESCE(SUM(chief = 1), 0) AS chief,
+          COALESCE(SUM(headman = 1), 0) AS headman,
+          COALESCE(SUM(func_land = 1), 0) AS land,
+          COALESCE(SUM(func_sec = 1), 0) AS security,
+          COALESCE(SUM(kingheal = 1), 0) AS healing
+        FROM tradgov_groups{where_clause}
+        """,
+        query_parameters,
+    ) or {}
+
+    distribution_field = {
+        "all": "continent",
+        "continent": "region",
+        "region": "country",
+    }.get(scope_type)
+    geographic_distribution: list[dict[str, object]] = []
+    if distribution_field:
+        distribution_conditions = list(query_parameters)
+        separator = " AND " if where_clause else " WHERE "
+        geographic_distribution = fetch_all(
+            (
+                f"SELECT {distribution_field} AS label, COUNT(*) AS total_groups "
+                f"FROM tradgov_groups{where_clause}{separator}"
+                f"{distribution_field} IS NOT NULL "
+                f"AND TRIM({distribution_field}) <> '' "
+                f"GROUP BY {distribution_field} "
+                f"ORDER BY total_groups DESC, {distribution_field} ASC"
+            ),
+            distribution_conditions,
+        )
+
+    largest_groups = fetch_all(
+        (
+            "SELECT id, group_name, group_name_ar, country, groupsize "
+            f"FROM tradgov_groups{where_clause}"
+            f"{' AND' if where_clause else ' WHERE'} groupsize IS NOT NULL "
+            "ORDER BY groupsize DESC, id ASC LIMIT 10"
+        ),
+        query_parameters,
+    )
+
+    top_countries: list[dict[str, object]] = []
+    if scope_type != "country":
+        top_countries = fetch_all(
+            (
+                "SELECT country, COUNT(*) AS total_groups "
+                f"FROM tradgov_groups{where_clause}"
+                f"{' AND' if where_clause else ' WHERE'} country IS NOT NULL "
+                "AND TRIM(country) <> '' "
+                "GROUP BY country "
+                "ORDER BY total_groups DESC, country ASC LIMIT 10"
+            ),
+            query_parameters,
+        )
+
+    scope_label = (
+        "All Data"
+        if scope_type == "all"
+        else f"{scope_type.title()}: {scope_value}"
+    )
+    return jsonify(
+        success=True,
+        data={
+            "scope": {
+                "type": scope_type,
+                "value": scope_value,
+                "label": scope_label,
+            },
+            "summary": {
+                "total_groups": summary.get("total_groups", 0),
+                "total_countries": summary.get("total_countries", 0),
+                "total_continents": summary.get("total_continents", 0),
+                "total_regions": summary.get("total_regions", 0),
+                "groups_with_tpi": summary.get("groups_with_tpi", 0),
+            },
+            "recognition": {
+                "recognized": summary.get("recognized", 0),
+                "not_recognized": summary.get("not_recognized", 0),
+                "missing": summary.get("recognition_missing", 0),
+            },
+            "leadership": {
+                "king": summary.get("king", 0),
+                "chief": summary.get("chief", 0),
+                "headman": summary.get("headman", 0),
+            },
+            "functions": {
+                "land": summary.get("land", 0),
+                "security": summary.get("security", 0),
+                "healing": summary.get("healing", 0),
+            },
+            "geographic_distribution": {
+                "type": distribution_field,
+                "items": geographic_distribution,
+            },
+            "largest_groups": largest_groups,
+            "top_countries": top_countries,
+        },
+    )
 
 
 @api.get("/countries")

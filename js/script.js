@@ -43,9 +43,6 @@
     filtered: [],
     stats: null,
     continents: [],
-    leadership: null,
-    largestGroups: [],
-    topCountries: [],
     page: 1,
     sortKey: "GroupName",
     sortDirection: "asc",
@@ -61,6 +58,13 @@
       continents: [],
       regions: []
     },
+    statistics: {
+      data: null,
+      scopeType: "all",
+      scopeValue: "",
+      requestController: null,
+      charts: new Map()
+    },
     explorerRequestController: null,
     groupDetailCache: new Map()
   };
@@ -71,9 +75,13 @@
   const isArabic = () => (window.SitePreferences?.getLanguage() || document.documentElement.lang) === "ar";
 
   function resolveApiBaseUrl() {
+    const localApiUrl = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+      ? `http://${window.location.hostname}:3000/api`
+      : null;
     const configuredUrl =
       window.TRADGOV_CONFIG?.apiBaseUrl ||
       window.TRADGOV_API_BASE_URL ||
+      localApiUrl ||
       PRODUCTION_API_BASE_URL;
 
     return String(configuredUrl).replace(/\/+$/, "");
@@ -137,21 +145,17 @@
       }
 
       if (page === "statistics") {
-        const [stats, continents, leadership, largestGroups, topCountries] = await Promise.all([
-          loadApiData("stats"),
+        const [countries, continents, regions] = await Promise.all([
+          loadApiData("countries"),
           loadApiData("continents"),
-          loadApiData("leadership"),
-          loadApiData("largest-groups"),
-          loadApiData("top-countries")
+          loadApiData("regions")
         ]);
-        state.stats = normalizeStats(stats);
-        state.continents = Array.isArray(continents) ? continents.map(normalizeContinentSummary) : [];
-        state.leadership = normalizeLeadershipSummary(leadership);
-        state.largestGroups = Array.isArray(largestGroups) ? largestGroups.map(normalizeLargestGroup) : [];
-        state.topCountries = Array.isArray(topCountries) ? topCountries.map(normalizeTopCountry) : [];
-        updateGlobalDataViews();
-        initStatisticsPage();
-        animateCounters();
+        state.filterOptions = {
+          countries: summaryValues(countries, "country"),
+          continents: summaryValues(continents, "continent"),
+          regions: summaryValues(regions, "region")
+        };
+        await initStatisticsPage();
       }
     } catch (error) {
       console.error("Could not load data from the backend API:", error);
@@ -301,16 +305,6 @@
     };
   }
 
-  function normalizeLeadershipSummary(data) {
-    const row = Array.isArray(data) ? data[0] : data;
-    if (!row) return null;
-    return {
-      King: toNumber(row.kings) ?? 0,
-      Chief: toNumber(row.chiefs) ?? 0,
-      Headman: toNumber(row.headmen) ?? 0
-    };
-  }
-
   function normalizeLargestGroup(row) {
     return {
       GroupName: cleanValue(row.group_name),
@@ -351,6 +345,58 @@
     return {
       Country: cleanValue(row.country),
       TotalGroups: toNumber(row.total_groups) ?? 0
+    };
+  }
+
+  function normalizeStatisticsResponse(data) {
+    const summary = data?.summary || {};
+    const recognition = data?.recognition || {};
+    const leadership = data?.leadership || {};
+    const functions = data?.functions || {};
+    const geographic = data?.geographic_distribution || {};
+    return {
+      scope: {
+        type: cleanValue(data?.scope?.type) || "all",
+        value: cleanValue(data?.scope?.value),
+        label: cleanValue(data?.scope?.label) || "All Data"
+      },
+      summary: {
+        totalGroups: toNumber(summary.total_groups) ?? 0,
+        totalCountries: toNumber(summary.total_countries) ?? 0,
+        totalContinents: toNumber(summary.total_continents) ?? 0,
+        totalRegions: toNumber(summary.total_regions) ?? 0,
+        groupsWithTpi: toNumber(summary.groups_with_tpi) ?? 0
+      },
+      recognition: {
+        recognized: toNumber(recognition.recognized) ?? 0,
+        notRecognized: toNumber(recognition.not_recognized) ?? 0,
+        missing: toNumber(recognition.missing) ?? 0
+      },
+      leadership: {
+        King: toNumber(leadership.king) ?? 0,
+        Chief: toNumber(leadership.chief) ?? 0,
+        Headman: toNumber(leadership.headman) ?? 0
+      },
+      functions: {
+        land: toNumber(functions.land) ?? 0,
+        security: toNumber(functions.security) ?? 0,
+        healing: toNumber(functions.healing) ?? 0
+      },
+      geographic: {
+        type: cleanValue(geographic.type),
+        items: Array.isArray(geographic.items)
+          ? geographic.items.map((item) => ({
+              label: cleanValue(item.label),
+              totalGroups: toNumber(item.total_groups) ?? 0
+            })).filter((item) => item.label)
+          : []
+      },
+      largestGroups: Array.isArray(data?.largest_groups)
+        ? data.largest_groups.map(normalizeLargestGroup)
+        : [],
+      topCountries: Array.isArray(data?.top_countries)
+        ? data.top_countries.map(normalizeTopCountry)
+        : []
     };
   }
 
@@ -1053,109 +1099,389 @@
     return escapeHtml(comparisonValue(field, value));
   }
 
-  function initStatisticsPage() {
+  async function initStatisticsPage() {
     if (!$("#leadershipChart")) return;
+
+    if (window.Chart) {
+      window.Chart.defaults.font.family = '"Inter", "Segoe UI", sans-serif';
+      window.Chart.defaults.color =
+        window.SitePreferences?.getTheme() === "dark" ? "#c5cec8" : "#66736b";
+    }
+
+    const scopeSelect = $("#statisticsScope");
+    const valueSelect = $("#statisticsValue");
+    const resetButton = $("#resetStatisticsFilters");
+    if (!scopeSelect || !valueSelect || !resetButton) return;
+
+    const initialSelection = statisticsSelectionFromUrl();
+    state.statistics.scopeType = initialSelection.scopeType;
+    state.statistics.scopeValue = initialSelection.scopeValue;
+    scopeSelect.value = initialSelection.scopeType;
+    updateStatisticsValueControl(initialSelection.scopeType, initialSelection.scopeValue);
+
+    scopeSelect.addEventListener("change", () => {
+      const scopeType = scopeSelect.value;
+      state.statistics.scopeType = scopeType;
+      state.statistics.scopeValue = "";
+      updateStatisticsValueControl(scopeType, "");
+      updateStatisticsUrl(scopeType, "");
+      if (scopeType === "all") {
+        loadStatisticsScope("all", "");
+      } else {
+        setStatisticsStatus(tr(`Select ${scopeType}`));
+        valueSelect.focus();
+      }
+    });
+
+    valueSelect.addEventListener("change", () => {
+      const scopeValue = valueSelect.value;
+      if (!scopeValue) return;
+      state.statistics.scopeValue = scopeValue;
+      updateStatisticsUrl(state.statistics.scopeType, scopeValue);
+      loadStatisticsScope(state.statistics.scopeType, scopeValue);
+    });
+
+    resetButton.addEventListener("click", () => {
+      scopeSelect.value = "all";
+      state.statistics.scopeType = "all";
+      state.statistics.scopeValue = "";
+      updateStatisticsValueControl("all", "");
+      updateStatisticsUrl("all", "");
+      loadStatisticsScope("all", "");
+    });
+
+    window.addEventListener("popstate", () => {
+      const selection = statisticsSelectionFromUrl();
+      scopeSelect.value = selection.scopeType;
+      state.statistics.scopeType = selection.scopeType;
+      state.statistics.scopeValue = selection.scopeValue;
+      updateStatisticsValueControl(selection.scopeType, selection.scopeValue);
+      loadStatisticsScope(selection.scopeType, selection.scopeValue);
+    });
+
+    await loadStatisticsScope(initialSelection.scopeType, initialSelection.scopeValue);
+  }
+
+  function statisticsOptionsFor(scopeType) {
+    if (scopeType === "country") return state.filterOptions.countries;
+    if (scopeType === "continent") return state.filterOptions.continents;
+    if (scopeType === "region") return state.filterOptions.regions;
+    return [];
+  }
+
+  function statisticsSelectionFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const scopeType = ["country", "continent", "region"].includes(params.get("scope"))
+      ? params.get("scope")
+      : "all";
+    if (scopeType === "all") return { scopeType: "all", scopeValue: "" };
+
+    const scopeValue = params.get("value") || "";
+    if (!statisticsOptionsFor(scopeType).includes(scopeValue)) {
+      updateStatisticsUrl("all", "");
+      return { scopeType: "all", scopeValue: "" };
+    }
+    return { scopeType, scopeValue };
+  }
+
+  function updateStatisticsValueControl(scopeType, selectedValue) {
+    const group = $("#statisticsValueGroup");
+    const select = $("#statisticsValue");
+    const label = $("#statisticsValueLabel");
+    if (!group || !select || !label) return;
+
+    if (scopeType === "all") {
+      group.hidden = true;
+      select.disabled = true;
+      select.innerHTML = "";
+      return;
+    }
+
+    const placeholder = tr(`Select ${scopeType}`);
+    label.textContent = placeholder;
+    select.setAttribute("aria-label", placeholder);
+    select.innerHTML = "";
+    const emptyOption = document.createElement("option");
+    emptyOption.value = "";
+    emptyOption.textContent = placeholder;
+    select.appendChild(emptyOption);
+    statisticsOptionsFor(scopeType).forEach((value) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = tr(value);
+      select.appendChild(option);
+    });
+    select.value = selectedValue;
+    select.disabled = false;
+    group.hidden = false;
+  }
+
+  function updateStatisticsUrl(scopeType, scopeValue) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("scope");
+    url.searchParams.delete("value");
+    if (scopeType !== "all" && scopeValue) {
+      url.searchParams.set("scope", scopeType);
+      url.searchParams.set("value", scopeValue);
+    }
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  }
+
+  async function loadStatisticsScope(scopeType, scopeValue) {
+    if (scopeType !== "all" && !scopeValue) return;
+
+    state.statistics.requestController?.abort();
+    const requestController = new AbortController();
+    state.statistics.requestController = requestController;
+    setStatisticsLoading(true);
+
+    const parameters = new URLSearchParams();
+    if (scopeType !== "all") parameters.set(scopeType, scopeValue);
+    const endpoint = `statistics${parameters.size ? `?${parameters.toString()}` : ""}`;
+
+    try {
+      const response = await loadApiData(endpoint, { signal: requestController.signal });
+      if (state.statistics.requestController !== requestController) return;
+      state.statistics.data = normalizeStatisticsResponse(response);
+      state.statistics.scopeType = scopeType;
+      state.statistics.scopeValue = scopeValue;
+      renderStatisticsData();
+      setStatisticsStatus("");
+    } catch (error) {
+      if (error.name === "AbortError") return;
+      console.error("Could not update statistics:", error);
+      setStatisticsStatus(tr("Statistics could not be loaded. Please try again."), true);
+    } finally {
+      if (state.statistics.requestController === requestController) {
+        setStatisticsLoading(false);
+      }
+    }
+  }
+
+  function setStatisticsLoading(isLoading) {
+    const panel = $("#statisticsFilters");
+    if (panel) panel.setAttribute("aria-busy", String(isLoading));
+    if (isLoading) setStatisticsStatus(tr("Loading statistics..."));
+  }
+
+  function setStatisticsStatus(message, isError = false) {
+    const status = $("#statisticsStatus");
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle("is-error", isError);
+  }
+
+  function statisticsScopeLabel(data) {
+    if (data.scope.type === "all") return tr("All Data");
+    const typeLabel = tr(
+      data.scope.type.charAt(0).toUpperCase() + data.scope.type.slice(1)
+    );
+    return `${typeLabel}: ${tr(data.scope.value)}`;
+  }
+
+  function updateStatisticsCounter(metric, value) {
+    $$(`[data-metric="${metric}"]`).forEach((element) => {
+      element.dataset.target = String(value);
+      element.dataset.animated = "true";
+      element.textContent = Number(value).toLocaleString(isArabic() ? "ar" : "en");
+    });
+  }
+
+  function updateStatisticsTitle(id, title, scopeLabel) {
+    const element = $(`#${id}`);
+    if (element) element.textContent = `${tr(title)} — ${scopeLabel}`;
+  }
+
+  function renderStatisticsData() {
+    const data = state.statistics.data;
+    if (!data) return;
+    const scopeLabel = statisticsScopeLabel(data);
+
+    const currentScope = $("#currentStatisticsScope");
+    if (currentScope) currentScope.textContent = scopeLabel;
+
+    updateStatisticsCounter("totalGroups", data.summary.totalGroups);
+    updateStatisticsCounter("totalCountries", data.summary.totalCountries);
+    updateStatisticsCounter("totalContinents", data.summary.totalContinents);
+    updateStatisticsCounter("totalRegions", data.summary.totalRegions);
+    updateStatisticsCounter("totalTraditional", data.summary.groupsWithTpi);
+    updateStatisticsCounter("totalRecognized", data.recognition.recognized);
+
+    updateStatisticsTitle("leadershipChartTitle", "Leadership Types", scopeLabel);
+    updateStatisticsTitle("functionsChartTitle", "Governance Functions", scopeLabel);
+    updateStatisticsTitle("recognitionChartTitle", "Recognition", scopeLabel);
+    updateStatisticsTitle("largestGroupsChartTitle", "Largest Groups", scopeLabel);
+    updateStatisticsTitle("topCountriesChartTitle", "Top Countries", scopeLabel);
+
+    const distributionTitle = {
+      continent: "Continent Distribution",
+      region: "Region Distribution",
+      country: "Country Distribution"
+    }[data.geographic.type] || "Geographic Distribution";
+    updateStatisticsTitle("geographicChartTitle", distributionTitle, scopeLabel);
+
     const leadershipData = {
-      [tr("King")]: state.leadership?.King ?? 0,
-      [tr("Chief")]: state.leadership?.Chief ?? 0,
-      [tr("Headman")]: state.leadership?.Headman ?? 0
+      [tr("King")]: data.leadership.King,
+      [tr("Chief")]: data.leadership.Chief,
+      [tr("Headman")]: data.leadership.Headman
     };
     const functionData = {
-      [tr("Land management")]: state.stats?.totalFuncLand ?? 0,
-      [tr("Security")]: state.stats?.totalFuncSec ?? 0,
-      [tr("Healing / healthcare")]: state.stats?.totalFuncHeal ?? 0
+      [tr("Land management")]: data.functions.land,
+      [tr("Security")]: data.functions.security,
+      [tr("Healing / healthcare")]: data.functions.healing
     };
     const recognitionData = {
-      [tr("Recognized")]: state.stats?.totalRecognized ?? 0,
-      [tr("Not recognized")]: state.stats?.totalNotRecognized ?? 0,
-      [tr("Not available")]: state.stats?.totalRecognitionMissing ?? 0
+      [tr("Recognized")]: data.recognition.recognized,
+      [tr("Not Recognized")]: data.recognition.notRecognized,
+      [tr("Missing")]: data.recognition.missing
     };
-    const continentData = Object.fromEntries(
-      state.continents.map((item) => [tr(item.continent), item.totalGroups])
+    const geographicData = Object.fromEntries(
+      data.geographic.items.map((item) => [tr(item.label), item.totalGroups])
     );
     const largestGroupsData = Object.fromEntries(
-      state.largestGroups.map((group) => [
+      data.largestGroups.map((group) => [
         `${isolatedGroupNameText(group)} · ${displayValue(group.Country)}`,
         group.Population ?? 0
       ])
     );
     const topCountriesData = Object.fromEntries(
-      state.topCountries.map((country) => [displayValue(country.Country), country.TotalGroups])
+      data.topCountries.map((country) => [
+        tr(displayValue(country.Country)),
+        country.TotalGroups
+      ])
     );
 
-    if (window.Chart) {
-      window.Chart.defaults.font.family = '"Inter", "Segoe UI", sans-serif';
-      window.Chart.defaults.color = window.SitePreferences?.getTheme() === "dark" ? "#c5cec8" : "#66736b";
-      renderChart("leadershipChart", "doughnut", leadershipData, ["#123524", "#c8a96a", "#6d8b78"]);
-      renderChart("functionsChart", "bar", functionData, ["#123524", "#2f6b4d", "#c8a96a", "#d7c69f"]);
-      renderChart("recognitionChart", "doughnut", recognitionData, ["#287a50", "#b74c45", "#b5bbb7"]);
-      renderChart("continentsChart", "doughnut", continentData, ["#123524", "#2f6b4d", "#6d8b78", "#c8a96a", "#d7c69f"]);
-      renderChart("largestGroupsChart", "bar", largestGroupsData, "#2f6b4d", { horizontal: true });
-      renderChart("topCountriesChart", "bar", topCountriesData, "#123524", {
+    renderStatisticsChart("leadershipChart", "doughnut", leadershipData, ["#123524", "#c8a96a", "#6d8b78"]);
+    renderStatisticsChart("functionsChart", "bar", functionData, ["#123524", "#2f6b4d", "#c8a96a"]);
+    renderStatisticsChart("recognitionChart", "doughnut", recognitionData, ["#287a50", "#b74c45", "#b5bbb7"]);
+    renderStatisticsChart(
+      "continentsChart",
+      "doughnut",
+      geographicData,
+      ["#123524", "#2f6b4d", "#6d8b78", "#c8a96a", "#d7c69f"],
+      {},
+      data.geographic.type ? tr("No data available") : tr("Not applicable for this scope")
+    );
+    renderStatisticsChart(
+      "largestGroupsChart",
+      "bar",
+      largestGroupsData,
+      "#2f6b4d",
+      { horizontal: true }
+    );
+    renderStatisticsChart(
+      "topCountriesChart",
+      "bar",
+      topCountriesData,
+      "#123524",
+      {
         horizontal: true,
         datasetLabel: tr("Number of traditional groups"),
         tooltipLabel: tr("Number of traditional groups")
-      });
-    } else {
-      renderChartFallback("leadershipChart", leadershipData);
-      renderChartFallback("functionsChart", functionData);
-      renderChartFallback("recognitionChart", recognitionData);
-      renderChartFallback("continentsChart", continentData);
-      renderChartFallback("largestGroupsChart", largestGroupsData);
-      renderChartFallback("topCountriesChart", topCountriesData);
+      },
+      data.scope.type === "country"
+        ? tr("Not applicable for this scope")
+        : tr("No data available")
+    );
+  }
+
+  function renderStatisticsChart(
+    id,
+    type,
+    values,
+    colors,
+    settings = {},
+    emptyMessage = tr("No data available")
+  ) {
+    const hasData =
+      Object.keys(values).length > 0 &&
+      Object.values(values).some((value) => Number(value) > 0);
+    setChartEmptyState(id, hasData ? "" : emptyMessage);
+    if (!hasData) return;
+
+    if (window.Chart) {
+      renderChart(id, type, values, colors, settings);
+    } else if (!state.statistics.charts.has(id)) {
+      renderChartFallback(id, values);
+      state.statistics.charts.set(id, null);
     }
+  }
+
+  function setChartEmptyState(id, message) {
+    const canvas = $(`#${id}`);
+    const wrapper = canvas?.closest(".chart-wrap");
+    if (!wrapper) return;
+    wrapper.querySelector(".chart-empty-state")?.remove();
+    wrapper.classList.toggle("has-empty-state", Boolean(message));
+    if (!message) return;
+    const emptyState = document.createElement("div");
+    emptyState.className = "chart-empty-state";
+    emptyState.textContent = message;
+    wrapper.appendChild(emptyState);
   }
 
   function renderChart(id, type, values, colors, settings = {}) {
     const canvas = $(`#${id}`);
     if (!canvas) return;
-    new window.Chart(canvas, {
-      type,
-      data: {
-        labels: Object.keys(values),
-        datasets: [{
-          label: settings.datasetLabel || "",
-          data: Object.values(values),
-          backgroundColor: colors,
-          borderColor: window.SitePreferences?.getTheme() === "dark" ? "#17231d" : "#ffffff",
-          borderWidth: 3,
-          borderRadius: type === "bar" ? 8 : 0
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        indexAxis: settings.horizontal ? "y" : "x",
-        cutout: type === "doughnut" ? "66%" : undefined,
-        plugins: {
-          legend: { display: type !== "bar", position: "bottom", labels: { usePointStyle: true, padding: 18, boxWidth: 8 } },
-          tooltip: {
-            backgroundColor: "#081c13",
-            padding: 11,
-            cornerRadius: 8,
-            callbacks: settings.tooltipLabel
-              ? {
-                  label(context) {
-                    const value = settings.horizontal ? context.parsed.x : context.parsed.y;
-                    return `${settings.tooltipLabel}: ${Number(value).toLocaleString(isArabic() ? "ar" : "en")}`;
-                  }
-                }
-              : undefined
-          }
+    const chartData = {
+      labels: Object.keys(values),
+      datasets: [{
+        label: settings.datasetLabel || "",
+        data: Object.values(values),
+        backgroundColor: colors,
+        borderColor: window.SitePreferences?.getTheme() === "dark" ? "#17231d" : "#ffffff",
+        borderWidth: 3,
+        borderRadius: type === "bar" ? 8 : 0
+      }]
+    };
+    const chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: settings.horizontal ? "y" : "x",
+      cutout: type === "doughnut" ? "66%" : undefined,
+      plugins: {
+        legend: {
+          display: type !== "bar",
+          position: "bottom",
+          labels: { usePointStyle: true, padding: 18, boxWidth: 8 }
         },
-        scales: type === "bar"
-          ? settings.horizontal
+        tooltip: {
+          backgroundColor: "#081c13",
+          padding: 11,
+          cornerRadius: 8,
+          callbacks: settings.tooltipLabel
             ? {
-                x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" } },
-                y: { grid: { display: false }, ticks: { autoSkip: false } }
+                label(context) {
+                  const value = settings.horizontal ? context.parsed.x : context.parsed.y;
+                  return `${settings.tooltipLabel}: ${Number(value).toLocaleString(isArabic() ? "ar" : "en")}`;
+                }
               }
-            : {
-                x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: false } },
-                y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" } }
-              }
-          : undefined
-      }
-    });
+            : undefined
+        }
+      },
+      scales: type === "bar"
+        ? settings.horizontal
+          ? {
+              x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" } },
+              y: { grid: { display: false }, ticks: { autoSkip: false } }
+            }
+          : {
+              x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: false } },
+              y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" } }
+            }
+        : undefined
+    };
+    const existingChart = state.statistics.charts.get(id);
+    if (existingChart) {
+      existingChart.data = chartData;
+      existingChart.options = chartOptions;
+      existingChart.update();
+      return;
+    }
+    state.statistics.charts.set(
+      id,
+      new window.Chart(canvas, { type, data: chartData, options: chartOptions })
+    );
   }
 
   function renderChartFallback(id, values) {
