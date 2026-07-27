@@ -1262,7 +1262,7 @@ This platform was developed as a university **Graduation Project** by:
 | Name | Student ID  | GitHub |
 |---|---|---|
 | Rashed Al-Bashir | 20-204 | [@RashidAlbashir](https://github.com/RashidAlbashir) |
-| Malaz Ibrahim | 17-229 | [@malazibrahim203](https://github.com/malazibrahim203) |
+| Malaz Ibrahim | 17-229 | [@malazibrahim203-design ](https://github.com/malazibrahim203-design) |
 | Musab Taha Ahmed | 20-312 | [@mussabtaha](https://github.com/mussabtaha) |
 
 Additional team details should be added only after the relevant member confirms
