@@ -4,7 +4,7 @@
 
   const AR = {
     "Skip to main content": "انتقل إلى المحتوى الرئيسي",
-    "Traditional Governments": "الحكومات المحلية",
+    "Traditional Governance Institutions": "مجموعات الحكم المحلي",
     "Database & Explorer": "قاعدة البيانات والمستكشف",
     "Home": "الرئيسية",
     "Groups": "المجموعات",
@@ -22,10 +22,10 @@
     "Project": "المشروع",
     "Data fields": "حقول البيانات",
     "University Graduation Project": "مشروع تخرج جامعي",
-    "© 2026 Traditional Governments Database & Explorer": "© 2026 قاعدة بيانات ومستكشف الحكومات التقليدية",
-    "© 2026 Traditional Governments Database & Explorer. All rights reserved.": "© 2026 قاعدة بيانات ومستكشف الحكومات التقليدية. جميع الحقوق محفوظة.",
+    "© 2026 Traditional Governance Institutions Database & Explorer": "© 2026 قاعدة بيانات ومستكشف المؤسسات الحكومية المحلية",
+    "© 2026 Traditional Governance Institutions Database & Explorer. All rights reserved.": "© 2026 قاعدة بيانات ومستكشف المؤسسات الحكومية المحلية. جميع الحقوق محفوظة.",
 
-    "Groups Explorer | Traditional Governments": "مستكشف المجموعات | الحكومات التقليدية",
+    "Groups Explorer | Traditional Governance Institutions": "مستكشف المجموعات | المؤسسات الحكومية المحلية",
     "Groups Explorer": "مستكشف المجموعات",
     "Search by group name…": "ابحث باسم المجموعة…",
     "Search by group name": "البحث باسم المجموعة",
@@ -60,7 +60,7 @@
     "Close details": "إغلاق التفاصيل",
     "World distribution map": "خريطة التوزيع العالمي",
 
-    "Statistics | Traditional Governments": "الإحصاءات | الحكومات التقليدية",
+    "Statistics | Traditional Governance Institutions": "الإحصاءات | المؤسسات الحكومية المحلية",
     "Dataset Statistics": "إحصاءات مجموعة البيانات",
     "Every total and chart is derived in the browser from": "يتم اشتقاق كل إجمالي ورسم بياني داخل المتصفح من",
     "Countries": "الدول",
@@ -105,7 +105,7 @@
     "Binary fields are displayed as “Yes” and “No”, while unknown or absent source values are displayed as “Not Available”. Multiple leadership types can be present in one record, so leadership totals may exceed the number of groups.": "تُعرض الحقول الثنائية بصيغة «نعم» و«لا»، بينما تُعرض القيم المجهولة أو الغائبة بصيغة «غير متاح». وقد يحتوي السجل الواحد على أكثر من نوع قيادة، لذلك قد تتجاوز إجماليات القيادة عدد المجموعات.",
     "Inspect underlying records": "استعرض السجلات الأساسية",
 
-    "Comparison | Traditional Governments": "المقارنة | الحكومات التقليدية",
+    "Comparison | Traditional Governance Institutions": "المقارنة | المؤسسات الحكومية المحلية",
     "Compare Groups": "مقارنة المجموعات",
     "Select any two records and examine their geography, leadership, functions, administrative structure, and formal recognition side by side.": "اختر سجلين وافحص الجغرافيا والقيادة والوظائف والهيكل الإداري والاعتراف الرسمي جنباً إلى جنب.",
     "Group A": "المجموعة أ",
