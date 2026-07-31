@@ -270,7 +270,7 @@ def filtered_statistics():
     scope_type, scope_value, where_clause, query_parameters = _statistics_scope()
     summary = fetch_one(
         f"""
-        SELECT
+              SELECT
           COUNT(*) AS total_groups,
           COUNT(DISTINCT country) AS total_countries,
           COUNT(DISTINCT continent) AS total_continents,
@@ -282,6 +282,20 @@ def filtered_statistics():
           COALESCE(SUM(king = 1), 0) AS king,
           COALESCE(SUM(chief = 1), 0) AS chief,
           COALESCE(SUM(headman = 1), 0) AS headman,
+
+          COALESCE(SUM(kinginher = 1), 0) AS hereditary,
+          COALESCE(SUM(kingelect = 1), 0) AS elected,
+          COALESCE(SUM(kingapp = 1), 0) AS appointed,
+          COALESCE(
+            SUM(
+              king = 1
+              AND kinginher IS NULL
+              AND kingelect IS NULL
+              AND kingapp IS NULL
+            ),
+            0
+          ) AS leadership_selection_missing,
+
           COALESCE(SUM(func_land = 1), 0) AS land,
           COALESCE(SUM(func_sec = 1), 0) AS security,
           COALESCE(SUM(kingheal = 1), 0) AS healing
@@ -364,6 +378,12 @@ def filtered_statistics():
                 "king": summary.get("king", 0),
                 "chief": summary.get("chief", 0),
                 "headman": summary.get("headman", 0),
+            },
+            "leadership_selection": {
+                "hereditary": summary.get("hereditary", 0),
+             "elected": summary.get("elected", 0),
+              "appointed": summary.get("appointed", 0),
+              "missing": summary.get("leadership_selection_missing", 0),
             },
             "functions": {
                 "land": summary.get("land", 0),

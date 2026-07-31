@@ -353,6 +353,7 @@
     const recognition = data?.recognition || {};
     const leadership = data?.leadership || {};
     const functions = data?.functions || {};
+    const leadershipSelection = data?.leadership_selection || {};
     const geographic = data?.geographic_distribution || {};
     return {
       scope: {
@@ -376,6 +377,12 @@
         King: toNumber(leadership.king) ?? 0,
         Chief: toNumber(leadership.chief) ?? 0,
         Headman: toNumber(leadership.headman) ?? 0
+      },
+      leadershipSelection: {
+       hereditary: toNumber(leadershipSelection.hereditary) ?? 0,
+       elected: toNumber(leadershipSelection.elected) ?? 0,
+        appointed: toNumber(leadershipSelection.appointed) ?? 0,
+        missing: toNumber(leadershipSelection.missing) ?? 0
       },
       functions: {
         land: toNumber(functions.land) ?? 0,
@@ -1308,6 +1315,11 @@
     updateStatisticsCounter("totalRecognized", data.recognition.recognized);
 
     updateStatisticsTitle("leadershipChartTitle", "Leadership Types", scopeLabel);
+    updateStatisticsTitle(
+    "leadershipSelectionChartTitle",
+    "Leadership Selection Methods",
+    scopeLabel
+    );
     updateStatisticsTitle("functionsChartTitle", "Governance Functions", scopeLabel);
     updateStatisticsTitle("recognitionChartTitle", "Recognition", scopeLabel);
     updateStatisticsTitle("largestGroupsChartTitle", "Largest Groups", scopeLabel);
@@ -1324,6 +1336,12 @@
       [tr("King")]: data.leadership.King,
       [tr("Chief")]: data.leadership.Chief,
       [tr("Headman")]: data.leadership.Headman
+    };
+    const leadershipSelectionData = {
+     [tr("Hereditary")]: data.leadershipSelection.hereditary,
+     [tr("Election")]: data.leadershipSelection.elected,
+      [tr("Appointment")]: data.leadershipSelection.appointed,
+     [tr("Missing")]: data.leadershipSelection.missing
     };
     const functionData = {
       [tr("Land management")]: data.functions.land,
@@ -1368,6 +1386,12 @@
       largestGroupsData,
       "#2f6b4d",
       { horizontal: true }
+    );
+    renderStatisticsChart(
+     "leadershipSelectionChart",
+     "bar",
+     leadershipSelectionData,
+     ["#123524", "#2f6b4d", "#c8a96a", "#b5bbb7"]
     );
     renderStatisticsChart(
       "topCountriesChart",

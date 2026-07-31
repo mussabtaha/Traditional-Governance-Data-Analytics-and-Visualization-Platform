@@ -4,7 +4,7 @@
 
   const AR = {
     "Skip to main content": "انتقل إلى المحتوى الرئيسي",
-    "Traditional Governments": "الحكومات التقليدية",
+    "Traditional Governments": "الحكومات المحلية",
     "Database & Explorer": "قاعدة البيانات والمستكشف",
     "Home": "الرئيسية",
     "Groups": "المجموعات",
@@ -81,6 +81,11 @@
     "Visual analysis": "تحليل مرئي",
     "Institutional patterns at a glance.": "الأنماط المؤسسية في لمحة.",
     "Leadership types": "أنواع القيادة",
+    "Leadership Selection Methods": "طرق اختيار القيادة",
+    "Hereditary": "وراثة",
+    "Election": "انتخاب",
+    "Appointment": "تعيين",
+    "Missing": "بيانات مفقودة",
     "Leadership type chart": "رسم بياني لأنواع القيادة",
     "Traditional government functions": "وظائف الحكومة التقليدية",
     "Government functions chart": "رسم بياني لوظائف الحكومة",
