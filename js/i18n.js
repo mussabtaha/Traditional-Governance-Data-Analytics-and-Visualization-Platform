@@ -193,7 +193,7 @@
     "Explore leadership structures, traditional government functions, geographic coverage, and formal recognition through clear statistical summaries.": "استكشف هياكل القيادة ووظائف الحكومات التقليدية والتغطية الجغرافية والاعتراف الرسمي من خلال ملخصات إحصائية واضحة.",
     "Charts summarize the current records and reflect the latest available values.": "تلخص الرسوم السجلات الحالية وتعكس أحدث القيم المتاحة.",
     "Totals for king, chief, and headman leadership.": "إجماليات القيادة الملكية وقيادة الشيوخ والزعماء المحليين.",
-    "Distribution of traditional leadership selection methods: hereditary succession, election, appointment, and missing data.": "توزيع طرق اختيار القيادة المحلية: الوراثة، الانتخاب، التعيين، والبيانات المفقودة.",
+    "leadershipSelectionDescription": "توزيع طرق اختيار القيادة المحلية: الوراثة، الانتخاب، التعيين، والبيانات المفقودة.",
     "Frequency of available functional responsibilities across all records.": "تكرار المسؤوليات الوظيفية المتاحة عبر جميع السجلات.",
     "Comparison of state-recognized and non-recognized database records.": "مقارنة سجلات قاعدة البيانات المعترف بها وغير المعترف بها من الدولة.",
     "Continent distribution": "التوزيع حسب القارات",
