@@ -1,0 +1,636 @@
+<!doctype html>
+<html class="preferences-pending" lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b3d2e">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/icons/favicon-32x32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="assets/icons/favicon-16x16.png" type="image/png" sizes="16x16">
+  <link rel="shortcut icon" href="assets/icons/favicon.ico">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" sizes="180x180">
+  <script src="js/preferences.js"></script>
+  <meta name="description" content="Inferential analysis of leadership, governance functions, population size, and formal state recognition in the traditional governance dataset.">
+  <title>Statistical Analysis | Traditional Governance Institutions</title>
+  <link href="assets/vendor/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body class="is-loading" data-page="statistics-analysis">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <div class="site-loader" id="siteLoader" aria-hidden="true"><div class="loader-mark"></div></div>
+
+  <header class="site-header">
+    <div class="container nav-shell">
+      <a class="brand" href="index.html"><span class="brand-mark"><i class="bi bi-bank2"></i></span><span class="brand-copy"><strong>Traditional Governance Institutions</strong><small>Database &amp; Explorer</small></span></a>
+      <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="navMenu" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
+      <nav aria-label="Primary navigation"><ul class="nav-menu" id="navMenu"><li><a class="nav-link" href="index.html">Home</a></li><li><a class="nav-link" href="groups.html">Groups</a></li><li><a class="nav-link" href="index.html#distribution-map">Interactive Map</a></li><li><a class="nav-link active" href="statistics.html">Statistics</a></li><li><a class="nav-link" href="comparison.html">Comparison</a></li><li><a class="nav-link" href="about.html">About</a></li><li><a class="nav-link" href="contact.html">Contact</a></li></ul></nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="page-hero">
+      <div class="container">
+        <div class="breadcrumb-premium"><a href="index.html">Home</a><span>/</span><a href="statistics.html">Statistics</a><span>/</span><span>Statistical Analysis</span></div>
+        <h1>Statistical Analysis</h1>
+        <p>Examine statistical relationships in the dataset using transparent methods, real database observations, and clear effect-size interpretation.</p>
+      </div>
+    </section>
+
+    <section class="section-space-sm">
+      <div class="container">
+        <section class="surface analysis-question-card" aria-labelledby="analysisQuestionTitle" data-reveal>
+          <div>
+            <span class="section-kicker">Research Question</span>
+            <h2 id="analysisQuestionTitle">Is leadership type associated with formal state recognition?</h2>
+            <p>The page performs three separate analyses: king versus recognition, chief versus recognition, and headman versus recognition.</p>
+          </div>
+          <div class="analysis-method-badge">
+            <i class="bi bi-calculator" aria-hidden="true"></i>
+            <span>Statistical Method</span>
+            <strong>Chi-Square Test of Independence</strong>
+          </div>
+        </section>
+
+        <p class="statistics-status analysis-status" id="analysisStatus" role="status" aria-live="polite">Loading statistical analysis...</p>
+
+        <div class="analysis-quality-grid" aria-label="Analysis data quality summary" data-reveal>
+          <article class="surface analysis-quality-card"><span>Total database rows</span><strong id="analysisTotalRows">—</strong></article>
+          <article class="surface analysis-quality-card"><span>Rows included by recognition</span><strong id="analysisRecognitionRows">—</strong></article>
+          <article class="surface analysis-quality-card"><span>Missing recognition excluded</span><strong id="analysisRecognitionMissing">—</strong></article>
+          <article class="surface analysis-quality-card"><span>Significance level</span><strong>α = 0.05</strong></article>
+        </div>
+
+        <section class="analysis-selector-section" aria-labelledby="analysisSelectorTitle" data-reveal>
+          <div class="section-heading-row">
+            <div>
+              <span class="section-kicker">Analysis Results</span>
+              <h2 class="section-title" id="analysisSelectorTitle">Select a leadership variable</h2>
+              <p class="section-intro">Choose one result to inspect its contingency table, expected frequencies, significance, and effect size.</p>
+            </div>
+          </div>
+          <div class="analysis-selector-grid" role="group" aria-label="Leadership analysis selection">
+            <button class="analysis-selector is-active" type="button" data-analysis-variable="king" aria-pressed="true"><i class="bi bi-crown" aria-hidden="true"></i><span>King</span></button>
+            <button class="analysis-selector" type="button" data-analysis-variable="chief" aria-pressed="false"><i class="bi bi-person-badge" aria-hidden="true"></i><span>Chief</span></button>
+            <button class="analysis-selector" type="button" data-analysis-variable="headman" aria-pressed="false"><i class="bi bi-person-circle" aria-hidden="true"></i><span>Headman</span></button>
+          </div>
+        </section>
+
+        <section class="surface analysis-detail-card" id="analysisDetail" aria-labelledby="selectedAnalysisTitle" aria-busy="true" data-reveal>
+          <div class="analysis-detail-heading">
+            <div>
+              <span class="section-kicker">Selected Analysis</span>
+              <h2 id="selectedAnalysisTitle">King vs Formal Recognition</h2>
+            </div>
+            <span class="analysis-effect-badge" id="analysisEffectBadge">—</span>
+          </div>
+
+          <div class="analysis-metric-grid">
+            <article class="analysis-metric"><span>Chi-Square</span><strong id="analysisChiSquare">—</strong></article>
+            <article class="analysis-metric"><span>p-value</span><strong id="analysisPValue">—</strong></article>
+            <article class="analysis-metric"><span>Degrees of Freedom</span><strong id="analysisDegreesFreedom">—</strong></article>
+            <article class="analysis-metric"><span>Cramer's V</span><strong id="analysisCramersV">—</strong></article>
+            <article class="analysis-metric"><span>Sample Size</span><strong id="analysisSampleSize">—</strong></article>
+          </div>
+
+          <div class="analysis-interpretation" id="analysisInterpretation" role="note"></div>
+          <p class="analysis-missing-note" id="analysisMissingDetails"></p>
+
+          <div class="analysis-table-grid">
+            <article>
+              <h3>Observed Frequencies</h3>
+              <div class="table-responsive"><table class="analysis-table"><thead><tr><th scope="col">Leadership Status</th><th scope="col">Recognized</th><th scope="col">Not Recognized</th></tr></thead><tbody id="observedFrequencyBody"></tbody></table></div>
+            </article>
+            <article>
+              <h3>Expected Frequencies</h3>
+              <div class="table-responsive"><table class="analysis-table"><thead><tr><th scope="col">Leadership Status</th><th scope="col">Recognized</th><th scope="col">Not Recognized</th></tr></thead><tbody id="expectedFrequencyBody"></tbody></table></div>
+            </article>
+          </div>
+        </section>
+
+        <div class="section-heading-row analysis-visual-heading" data-reveal>
+          <div>
+            <span class="section-kicker">Visual Evidence</span>
+            <h2 class="section-title">Recognition patterns across leadership types</h2>
+            <p class="section-intro">The stacked chart uses counts. The heatmap uses percentages among records with each leadership type and a known recognition value.</p>
+          </div>
+        </div>
+
+        <div class="analysis-chart-grid">
+          <article class="surface chart-card" data-reveal>
+            <h3>Recognition Counts by Leadership Type</h3>
+            <p>Recognized, not recognized, and missing recognition values for groups where each leadership indicator equals Yes.</p>
+            <div class="chart-wrap"><canvas id="leadershipRecognitionChart" aria-label="Stacked bar chart of recognition counts by leadership type" role="img"></canvas></div>
+          </article>
+          <article class="surface chart-card" data-reveal>
+            <h3>Recognition Percentage Heatmap</h3>
+            <p>Percentages exclude records with missing recognition values.</p>
+            <div class="recognition-heatmap" id="recognitionHeatmap" role="table" aria-label="Recognition percentage heatmap"></div>
+          </article>
+        </div>
+
+        <section class="surface analysis-method-note" data-reveal>
+          <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+          <div><h2>Method and Limitations</h2><p>Pearson's Chi-Square Test evaluates association, not causation. Each test uses a 2 × 2 table and excludes rows with missing formal recognition or a missing value in the tested leadership variable. Cramer's V summarizes association strength as weak, moderate, or strong.</p></div>
+        </section>
+
+        <section class="analysis-module" id="leadership-functions-analysis" aria-labelledby="functionAnalysisTitle">
+          <div class="section-heading-row analysis-module-heading" data-reveal>
+            <div>
+              <span class="section-kicker">Analysis #2</span>
+              <h2 class="section-title" id="functionAnalysisTitle">Leadership and Governance Functions</h2>
+              <p class="section-intro">Nine independent tests examine land administration, security, and healing responsibilities across king, chief, and headman leadership.</p>
+            </div>
+          </div>
+
+          <section class="surface analysis-question-card" aria-labelledby="functionResearchQuestion" data-reveal>
+            <div>
+              <span class="section-kicker">Research Question</span>
+              <h2 id="functionResearchQuestion">Is leadership type associated with traditional governance functions?</h2>
+              <p>Leadership variables: king, chief, and headman. Governance functions: land administration, security, and healing.</p>
+            </div>
+            <div class="analysis-method-badge">
+              <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+              <span>Statistical Method</span>
+              <strong>9 Chi-Square Tests of Independence</strong>
+            </div>
+          </section>
+
+          <p class="statistics-status analysis-status" id="functionAnalysisStatus" role="status" aria-live="polite">Loading leadership and function analysis...</p>
+
+          <div class="analysis-quality-grid" aria-label="Leadership and function analysis summary" data-reveal>
+            <article class="surface analysis-quality-card"><span>Total database rows</span><strong id="functionAnalysisTotalRows">—</strong></article>
+            <article class="surface analysis-quality-card"><span>Independent tests</span><strong>9</strong></article>
+            <article class="surface analysis-quality-card"><span>Leadership variables</span><strong>3</strong></article>
+            <article class="surface analysis-quality-card"><span>Governance functions</span><strong>3</strong></article>
+          </div>
+
+          <article class="surface analysis-summary-card" data-reveal>
+            <div class="analysis-summary-heading">
+              <div><span class="section-kicker">Summary</span><h3>Leadership–Function Test Results</h3></div>
+              <p>Significance is evaluated at α = 0.05.</p>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table analysis-summary-table">
+                <thead><tr><th scope="col">Leadership Type</th><th scope="col">Governance Function</th><th scope="col">Chi-Square</th><th scope="col">p-value</th><th scope="col">Cramer's V</th><th scope="col">Significant?</th><th scope="col">Strength</th></tr></thead>
+                <tbody id="functionAnalysisSummaryBody"><tr><td colspan="7" class="empty-state">Loading statistical analysis...</td></tr></tbody>
+              </table>
+            </div>
+          </article>
+
+          <div class="section-heading-row analysis-visual-heading" data-reveal>
+            <div><span class="section-kicker">Visual Evidence</span><h2 class="section-title">Leadership and function association patterns</h2><p class="section-intro">The heatmap compares effect sizes. The grouped chart shows function-present rates for statistically significant relationships.</p></div>
+          </div>
+
+          <div class="analysis-chart-grid">
+            <article class="surface chart-card" data-reveal>
+              <h3>Cramer's V Heatmap</h3>
+              <p>Rows show leadership types and columns show governance functions.</p>
+              <div class="function-effect-heatmap" id="functionEffectHeatmap" role="table" aria-label="Cramer's V heatmap for leadership and governance functions"></div>
+            </article>
+            <article class="surface chart-card" data-reveal>
+              <h3>Significant Relationship Function Rates</h3>
+              <p>Function-present percentages are compared between records where each leadership indicator is present or absent.</p>
+              <div class="chart-wrap chart-wrap-analysis-wide"><canvas id="significantFunctionChart" aria-label="Grouped bar chart of significant leadership and governance function relationships" role="img"></canvas></div>
+              <div class="chart-empty-state" id="significantFunctionChartEmpty" hidden>No statistically significant relationships were available to chart.</div>
+            </article>
+          </div>
+
+          <div class="section-heading-row analysis-results-heading" data-reveal>
+            <div><span class="section-kicker">Detailed Results</span><h2 class="section-title">Inspect all nine statistical tests</h2><p class="section-intro">Expand any result to view its interpretation, contingency table, expected frequencies, sample size, and missing-value exclusions.</p></div>
+          </div>
+          <div class="analysis-test-grid" id="functionAnalysisCards" aria-live="polite"></div>
+
+          <section class="surface analysis-method-note" data-reveal>
+            <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+            <div><h2>Analysis #2 Method and Limitations</h2><p>Each test uses a 2 × 2 table and excludes rows with a NULL value in either the leadership variable or governance-function variable used by that test. Cramer's V is classified as very weak, weak, moderate, strong, or very strong. Results describe association, not causation.</p></div>
+          </section>
+        </section>
+
+        <section class="analysis-module" id="groupsize-recognition-analysis" aria-labelledby="populationAnalysisTitle">
+          <div class="section-heading-row analysis-module-heading" data-reveal>
+            <div>
+              <span class="section-kicker">Analysis #3</span>
+              <h2 class="section-title" id="populationAnalysisTitle">Population Size and Formal Recognition</h2>
+              <p class="section-intro">A distribution-aware comparison tests whether group population size differs between formally recognized and non-recognized traditional institutions.</p>
+            </div>
+          </div>
+
+          <section class="surface analysis-question-card" aria-labelledby="populationResearchQuestion" data-reveal>
+            <div>
+              <span class="section-kicker">Research Question</span>
+              <h2 id="populationResearchQuestion">Is group population size associated with formal state recognition?</h2>
+              <p>Independent variable: groupsize. Dependent variable: formackn. Only valid, complete observations are analyzed.</p>
+            </div>
+            <div class="analysis-method-badge">
+              <i class="bi bi-distribute-vertical" aria-hidden="true"></i>
+              <span>Automatically Selected Method</span>
+              <strong id="populationSelectedMethod">Assessing normality…</strong>
+            </div>
+          </section>
+
+          <p class="statistics-status analysis-status" id="populationAnalysisStatus" role="status" aria-live="polite">Loading population-size analysis...</p>
+
+          <div class="analysis-quality-grid" aria-label="Population analysis data preparation summary" data-reveal>
+            <article class="surface analysis-quality-card"><span>Total observations</span><strong id="populationTotalObservations">—</strong></article>
+            <article class="surface analysis-quality-card"><span>Excluded observations</span><strong id="populationExcludedObservations">—</strong></article>
+            <article class="surface analysis-quality-card"><span>Final sample size</span><strong id="populationFinalSample">—</strong></article>
+            <article class="surface analysis-quality-card"><span>Significance level</span><strong>α = 0.05</strong></article>
+          </div>
+
+          <article class="surface analysis-summary-card" data-reveal>
+            <div class="analysis-summary-heading">
+              <div><span class="section-kicker">Descriptive Statistics</span><h3>Population by Recognition Status</h3></div>
+              <p>Standard deviation uses the sample estimate; IQR is Q3 − Q1.</p>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table analysis-summary-table population-description-table">
+                <thead><tr><th scope="col">Recognition Status</th><th scope="col">Count</th><th scope="col">Mean</th><th scope="col">Median</th><th scope="col">Minimum</th><th scope="col">Maximum</th><th scope="col">Standard Deviation</th><th scope="col">IQR</th></tr></thead>
+                <tbody id="populationDescriptionBody"><tr><td colspan="8" class="empty-state">Loading statistical analysis...</td></tr></tbody>
+              </table>
+            </div>
+          </article>
+
+          <div class="population-summary-grid" aria-label="Population descriptive summary cards" data-reveal>
+            <article class="surface population-summary-card"><span>Mean</span><div><small>Recognized</small><strong id="populationMeanRecognized">—</strong></div><div><small>Not Recognized</small><strong id="populationMeanNotRecognized">—</strong></div></article>
+            <article class="surface population-summary-card"><span>Median</span><div><small>Recognized</small><strong id="populationMedianRecognized">—</strong></div><div><small>Not Recognized</small><strong id="populationMedianNotRecognized">—</strong></div></article>
+            <article class="surface population-summary-card"><span>Maximum</span><div><small>Recognized</small><strong id="populationMaximumRecognized">—</strong></div><div><small>Not Recognized</small><strong id="populationMaximumNotRecognized">—</strong></div></article>
+            <article class="surface population-summary-card"><span>Minimum</span><div><small>Recognized</small><strong id="populationMinimumRecognized">—</strong></div><div><small>Not Recognized</small><strong id="populationMinimumNotRecognized">—</strong></div></article>
+          </div>
+
+          <div class="section-heading-row analysis-visual-heading" data-reveal>
+            <div><span class="section-kicker">Visual Evidence</span><h2 class="section-title">Population distributions by recognition</h2><p class="section-intro">The box plot compares five-number summaries. The histogram uses shared logarithmic population intervals to retain detail across highly unequal group sizes.</p></div>
+          </div>
+
+          <div class="analysis-chart-grid">
+            <article class="surface chart-card" data-reveal>
+              <h3>Population Box Plot</h3>
+              <p>Recognized versus not recognized groups on a logarithmic population scale.</p>
+              <div class="chart-wrap chart-wrap-population"><canvas id="populationBoxPlot" aria-label="Box plot comparing population sizes by formal recognition" role="img"></canvas></div>
+            </article>
+            <article class="surface chart-card" data-reveal>
+              <h3>Population Distribution Histogram</h3>
+              <p>Counts in shared logarithmic population intervals.</p>
+              <div class="chart-wrap chart-wrap-population"><canvas id="populationHistogram" aria-label="Histogram of population size by formal recognition" role="img"></canvas></div>
+            </article>
+          </div>
+
+          <article class="surface analysis-detail-card population-result-card" aria-labelledby="populationResultTitle" data-reveal>
+            <div class="analysis-detail-heading">
+              <div><span class="section-kicker">Statistical Result</span><h2 id="populationResultTitle">Population Difference Test</h2></div>
+              <span class="analysis-effect-badge" id="populationSignificanceBadge">—</span>
+            </div>
+            <div class="analysis-metric-grid">
+              <article class="analysis-metric"><span>Test Used</span><strong id="populationTestUsed">—</strong></article>
+              <article class="analysis-metric"><span>Test Statistic</span><strong id="populationTestStatistic">—</strong></article>
+              <article class="analysis-metric"><span>p-value</span><strong id="populationPValue">—</strong></article>
+              <article class="analysis-metric"><span>Effect Size</span><strong id="populationEffectSize">—</strong></article>
+              <article class="analysis-metric"><span>Sample Size</span><strong id="populationSampleSize">—</strong></article>
+            </div>
+            <div class="analysis-interpretation" id="populationInterpretation" role="note"></div>
+            <p class="analysis-missing-note" id="populationTestReason"></p>
+
+            <div class="analysis-table-grid population-normality-grid">
+              <article>
+                <h3>Normality Assessment</h3>
+                <div class="table-responsive"><table class="analysis-table"><thead><tr><th scope="col">Recognition Status</th><th scope="col">Shapiro-Wilk</th><th scope="col">p-value</th><th scope="col">Normal?</th></tr></thead><tbody id="populationNormalityBody"></tbody></table></div>
+              </article>
+              <article class="population-effect-explanation">
+                <h3>Effect Size Interpretation</h3>
+                <p id="populationEffectExplanation">—</p>
+              </article>
+            </div>
+          </article>
+
+          <section class="surface analysis-method-note" data-reveal>
+            <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+            <div><h2>Analysis #3 Method and Limitations</h2><p>Shapiro-Wilk assessments determine whether Welch's independent samples t-test or the Mann-Whitney U test is used. Missing, non-numeric, non-positive population values and non-binary recognition values are excluded. Results describe group-level differences and association, not causation.</p></div>
+          </section>
+        </section>
+        <section class="analysis-module" id="groupsize-functions-analysis" aria-labelledby="groupSizeFunctionsTitle">
+          <div class="section-heading-row analysis-module-heading" data-reveal>
+            <div>
+              <span class="section-kicker">Analysis #4</span>
+              <h2 class="section-title" id="groupSizeFunctionsTitle">Population Size and Governance Functions</h2>
+              <p class="section-intro">Three independent comparisons examine whether population size differs when land administration, security, or healing functions are present.</p>
+            </div>
+          </div>
+
+          <section class="surface analysis-question-card" aria-labelledby="groupSizeFunctionsQuestion" data-reveal>
+            <div>
+              <span class="section-kicker">Research Question</span>
+              <h2 id="groupSizeFunctionsQuestion">Is group population size associated with traditional governance functions?</h2>
+              <p>Independent variable: groupsize. Dependent variables: func_land, func_sec, and kingheal.</p>
+            </div>
+            <div class="analysis-method-badge">
+              <i class="bi bi-bar-chart-steps" aria-hidden="true"></i>
+              <span>Statistical Method</span>
+              <strong>3 Automatically Selected Two-Group Tests</strong>
+            </div>
+          </section>
+
+          <p class="statistics-status analysis-status" id="groupSizeFunctionsStatus" role="status" aria-live="polite">Loading group-size and function analysis...</p>
+
+          <div class="analysis-quality-grid" aria-label="Group-size and function analysis summary" data-reveal>
+            <article class="surface analysis-quality-card"><span>Total database rows</span><strong id="groupSizeFunctionsTotalRows">&mdash;</strong></article>
+            <article class="surface analysis-quality-card"><span>Independent tests</span><strong id="groupSizeFunctionsTests">&mdash;</strong></article>
+            <article class="surface analysis-quality-card"><span>Significant results</span><strong id="groupSizeFunctionsSignificant">&mdash;</strong></article>
+            <article class="surface analysis-quality-card"><span>Sample-size range</span><strong id="groupSizeFunctionsSampleRange">&mdash;</strong></article>
+          </div>
+
+          <article class="surface analysis-summary-card" data-reveal>
+            <div class="analysis-summary-heading">
+              <div><span class="section-kicker">Summary</span><h3>Population&ndash;Function Test Results</h3></div>
+              <p>Normality is assessed independently for every comparison.</p>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table analysis-summary-table">
+                <thead><tr><th scope="col">Governance Function</th><th scope="col">Test Used</th><th scope="col">Test Statistic</th><th scope="col">p-value</th><th scope="col">Effect Size</th><th scope="col">Sample Size</th><th scope="col">Significant?</th></tr></thead>
+                <tbody id="groupSizeFunctionsSummaryBody"><tr><td colspan="7" class="empty-state">Loading statistical analysis...</td></tr></tbody>
+              </table>
+            </div>
+          </article>
+
+          <div class="section-heading-row analysis-results-heading" data-reveal>
+            <div>
+              <span class="section-kicker">Detailed Results</span>
+              <h2 class="section-title">Population distributions for all three functions</h2>
+              <p class="section-intro">Each result includes data preparation, descriptive statistics, the automatically selected test, effect size, box plot, histogram, and interpretation.</p>
+            </div>
+          </div>
+          <div class="groupsize-function-results" id="groupSizeFunctionCards" aria-live="polite"></div>
+
+          <section class="surface analysis-method-note" data-reveal>
+            <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+            <div><h2>Analysis #4 Method and Limitations</h2><p>Each function is analyzed independently. Rows with missing or invalid population or function values are excluded only from that comparison. Shapiro-Wilk selects Welch's t-test when both groups are normal; otherwise Mann-Whitney U is used. Results describe association, not causation.</p></div>
+          </section>
+        </section>
+        <section class="analysis-module" id="continent-leadership-analysis" aria-labelledby="continentLeadershipTitle">
+          <div class="section-heading-row analysis-module-heading" data-reveal>
+            <div>
+              <span class="section-kicker">Analysis #5</span>
+              <h2 class="section-title" id="continentLeadershipTitle">Continental Leadership Distribution</h2>
+              <p class="section-intro">A continent-by-leadership comparison examines whether Kings, Chiefs, and Headmen are distributed differently across geographic regions.</p>
+            </div>
+          </div>
+
+          <section class="surface analysis-question-card" aria-labelledby="continentLeadershipQuestion" data-reveal>
+            <div>
+              <span class="section-kicker">Research Question</span>
+              <h2 id="continentLeadershipQuestion">Does the distribution of traditional leadership types differ across continents?</h2>
+              <p>Geographic variable: continent. Leadership variables: king, chief, and headman.</p>
+            </div>
+            <div class="analysis-method-badge">
+              <i class="bi bi-globe2" aria-hidden="true"></i>
+              <span>Statistical Method</span>
+              <strong>Chi-Square Test of Independence</strong>
+            </div>
+          </section>
+
+          <p class="statistics-status analysis-status" id="continentLeadershipStatus" role="status" aria-live="polite">Loading continent and leadership analysis...</p>
+
+          <div class="analysis-quality-grid" aria-label="Continent and leadership analysis summary" data-reveal>
+            <article class="surface analysis-quality-card"><span>Total Groups</span><strong id="continentLeadershipTotalGroups">&mdash;</strong></article>
+            <article class="surface analysis-quality-card"><span>Dominant Leadership Type</span><strong id="continentLeadershipDominant">&mdash;</strong></article>
+            <article class="surface analysis-quality-card"><span>Number of Continents</span><strong id="continentLeadershipContinents">&mdash;</strong></article>
+            <article class="surface analysis-quality-card"><span>Missing observations removed</span><strong id="continentLeadershipMissing">&mdash;</strong></article>
+          </div>
+
+          <article class="surface analysis-summary-card" data-reveal>
+            <div class="analysis-summary-heading">
+              <div><span class="section-kicker">Descriptive Statistics</span><h3>Leadership by Continent</h3></div>
+              <p>Percentages show leadership prevalence among groups within each continent.</p>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table analysis-summary-table continent-leadership-table">
+                <thead><tr><th scope="col">Continent</th><th scope="col">Total Groups</th><th scope="col">Kings</th><th scope="col">Kings %</th><th scope="col">Chiefs</th><th scope="col">Chiefs %</th><th scope="col">Headmen</th><th scope="col">Headmen %</th></tr></thead>
+                <tbody id="continentLeadershipDescriptionBody"><tr><td colspan="8" class="empty-state">Loading statistical analysis...</td></tr></tbody>
+              </table>
+            </div>
+          </article>
+
+          <div class="section-heading-row analysis-visual-heading" data-reveal>
+            <div><span class="section-kicker">Visual Evidence</span><h2 class="section-title">Leadership structures across continents</h2><p class="section-intro">The grouped chart compares counts. The 100% stacked chart compares each leadership type's share of recorded leadership occurrences.</p></div>
+          </div>
+          <div class="analysis-chart-grid">
+            <article class="surface chart-card" data-reveal>
+              <h3>Leadership Counts by Continent</h3>
+              <p>Kings, Chiefs, and Headmen recorded in each continent.</p>
+              <div class="chart-wrap chart-wrap-analysis-wide"><canvas id="continentLeadershipGroupedChart" aria-label="Grouped bar chart of leadership types by continent" role="img"></canvas></div>
+            </article>
+            <article class="surface chart-card" data-reveal>
+              <h3>Leadership Distribution by Continent</h3>
+              <p>Leadership occurrences normalized to 100% within each continent.</p>
+              <div class="chart-wrap chart-wrap-analysis-wide"><canvas id="continentLeadershipStackedChart" aria-label="One hundred percent stacked bar chart of leadership distribution by continent" role="img"></canvas></div>
+            </article>
+          </div>
+
+          <article class="surface analysis-detail-card continent-leadership-result" aria-labelledby="continentLeadershipResultTitle" data-reveal>
+            <div class="analysis-detail-heading">
+              <div><span class="section-kicker">Statistical Result</span><h2 id="continentLeadershipResultTitle">Continent and Leadership Association</h2></div>
+              <span class="analysis-effect-badge" id="continentLeadershipSignificance">&mdash;</span>
+            </div>
+            <div class="analysis-metric-grid">
+              <article class="analysis-metric"><span>Chi-Square</span><strong id="continentLeadershipChiSquare">&mdash;</strong></article>
+              <article class="analysis-metric"><span>Degrees of Freedom</span><strong id="continentLeadershipDf">&mdash;</strong></article>
+              <article class="analysis-metric"><span>p-value</span><strong id="continentLeadershipPValue">&mdash;</strong></article>
+              <article class="analysis-metric"><span>Cramer's V</span><strong id="continentLeadershipCramersV">&mdash;</strong></article>
+              <article class="analysis-metric"><span>Sample Size</span><strong id="continentLeadershipSample">&mdash;</strong></article>
+            </div>
+            <div class="analysis-interpretation" id="continentLeadershipInterpretation" role="note"></div>
+            <p class="analysis-missing-note" id="continentLeadershipMethodNote"></p>
+            <div class="analysis-table-grid">
+              <article>
+                <h3>Observed Frequencies</h3>
+                <div class="table-responsive"><table class="analysis-table"><thead><tr><th scope="col">Continent</th><th scope="col">King</th><th scope="col">Chief</th><th scope="col">Headman</th></tr></thead><tbody id="continentLeadershipObservedBody"></tbody></table></div>
+              </article>
+              <article>
+                <h3>Expected Frequencies</h3>
+                <div class="table-responsive"><table class="analysis-table"><thead><tr><th scope="col">Continent</th><th scope="col">King</th><th scope="col">Chief</th><th scope="col">Headman</th></tr></thead><tbody id="continentLeadershipExpectedBody"></tbody></table></div>
+              </article>
+            </div>
+          </article>
+
+          <section class="surface analysis-method-note" data-reveal>
+            <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+            <div><h2>Analysis #5 Method and Limitations</h2><p>Records with missing continent values are excluded. Leadership fields are independent binary indicators, so one group may contribute multiple leadership occurrences. Chi-Square sample size counts those occurrences; descriptive group totals remain distinct. Results describe association, not causation.</p></div>
+          </section>
+        <section class="analysis-module" id="continent-recognition-analysis" aria-labelledby="continentRecognitionTitle">
+          <div class="section-heading-row analysis-module-heading" data-reveal>
+            <div><span class="section-kicker">Analysis #6</span><h2 class="section-title" id="continentRecognitionTitle">Formal Recognition Across Continents</h2><p class="section-intro">This analysis tests whether formal state recognition of traditional institutions varies geographically.</p></div>
+          </div>
+
+          <section class="surface analysis-question-card" aria-labelledby="continentRecognitionQuestion" data-reveal>
+            <div><span class="section-kicker">Research Question</span><h2 id="continentRecognitionQuestion">Does formal state recognition differ across continents?</h2><p>Independent variable: continent. Dependent variable: formackn. Only complete binary observations are analyzed.</p></div>
+            <div class="analysis-method-badge"><i class="bi bi-patch-check-fill" aria-hidden="true"></i><span>Statistical Method</span><strong>Chi-Square Test of Independence</strong></div>
+          </section>
+
+          <p class="statistics-status analysis-status" id="continentRecognitionStatus" role="status" aria-live="polite">Loading continent and recognition analysis...</p>
+
+          <div class="analysis-quality-grid continent-recognition-summary" aria-label="Continent recognition analysis summary" data-reveal>
+            <article class="surface analysis-quality-card"><span>Total Continents</span><strong id="continentRecognitionContinents">&mdash;</strong></article>
+            <article class="surface analysis-quality-card"><span>Highest Recognition Rate</span><strong id="continentRecognitionHighest">&mdash;</strong></article>
+            <article class="surface analysis-quality-card"><span>Lowest Recognition Rate</span><strong id="continentRecognitionLowest">&mdash;</strong></article>
+            <article class="surface analysis-quality-card"><span>Final sample size</span><strong id="continentRecognitionSample">&mdash;</strong></article>
+          </div>
+
+          <article class="surface analysis-summary-card" data-reveal>
+            <div class="analysis-summary-heading"><div><span class="section-kicker">Descriptive Statistics</span><h3>Recognition by Continent</h3></div><p>Recognition percentage equals recognized groups divided by valid groups.</p></div>
+            <div class="table-responsive"><table class="data-table analysis-summary-table continent-recognition-table"><thead><tr><th scope="col">Continent</th><th scope="col">Total Groups</th><th scope="col">Recognized</th><th scope="col">Not Recognized</th><th scope="col">Recognition Percentage</th></tr></thead><tbody id="continentRecognitionDescriptionBody"><tr><td colspan="5" class="empty-state">Loading statistical analysis...</td></tr></tbody></table></div>
+          </article>
+
+          <div class="section-heading-row analysis-visual-heading" data-reveal><div><span class="section-kicker">Visual Evidence</span><h2 class="section-title">Recognition patterns across continents</h2><p class="section-intro">The stacked chart compares recognized and not recognized shares; the heatmap highlights recognition rates.</p></div></div>
+          <div class="analysis-chart-grid">
+            <article class="surface chart-card" data-reveal><h3>Recognition Distribution by Continent</h3><p>Each continent is normalized to 100%.</p><div class="chart-wrap chart-wrap-analysis-wide"><canvas id="continentRecognitionStackedChart" aria-label="One hundred percent stacked bar chart of formal recognition by continent" role="img"></canvas></div></article>
+            <article class="surface chart-card" data-reveal><h3>Recognition Percentage Heatmap</h3><p>Darker bars indicate higher formal recognition rates.</p><div class="continent-recognition-heatmap" id="continentRecognitionHeatmap" role="table" aria-label="Recognition percentages by continent"></div></article>
+          </div>
+
+          <article class="surface analysis-detail-card continent-recognition-result" aria-labelledby="continentRecognitionResultTitle" data-reveal>
+            <div class="analysis-detail-heading"><div><span class="section-kicker">Statistical Result</span><h2 id="continentRecognitionResultTitle">Continent and Recognition Association</h2></div><span class="analysis-effect-badge" id="continentRecognitionSignificance">&mdash;</span></div>
+            <div class="analysis-metric-grid">
+              <article class="analysis-metric"><span>Chi-Square</span><strong id="continentRecognitionChiSquare">&mdash;</strong></article>
+              <article class="analysis-metric"><span>Degrees of Freedom</span><strong id="continentRecognitionDf">&mdash;</strong></article>
+              <article class="analysis-metric"><span>p-value</span><strong id="continentRecognitionPValue">&mdash;</strong></article>
+              <article class="analysis-metric"><span>Cramer's V</span><strong id="continentRecognitionCramersV">&mdash;</strong></article>
+              <article class="analysis-metric"><span>Sample Size</span><strong id="continentRecognitionTestSample">&mdash;</strong></article>
+            </div>
+            <div class="analysis-interpretation" id="continentRecognitionInterpretation" role="note"></div>
+            <div class="analysis-table-grid">
+              <article><h3>Observed Frequencies</h3><div class="table-responsive"><table class="analysis-table"><thead><tr><th scope="col">Continent</th><th scope="col">Recognized</th><th scope="col">Not Recognized</th></tr></thead><tbody id="continentRecognitionObservedBody"></tbody></table></div></article>
+              <article><h3>Expected Frequencies</h3><div class="table-responsive"><table class="analysis-table"><thead><tr><th scope="col">Continent</th><th scope="col">Recognized</th><th scope="col">Not Recognized</th></tr></thead><tbody id="continentRecognitionExpectedBody"></tbody></table></div></article>
+            </div>
+          </article>
+
+          <section class="surface analysis-method-note" data-reveal><i class="bi bi-info-circle-fill" aria-hidden="true"></i><div><h2>Analysis #6 Method and Limitations</h2><p>Rows with missing or blank continent values and missing or non-binary recognition values are excluded. Chi-Square tests association between continent and recognition status. Results describe association, not causation.</p></div></section>
+        </section>
+
+        <section class="analysis-module" id="region-recognition-analysis" aria-labelledby="regionRecognitionTitle">
+          <div class="section-heading-row analysis-module-heading" data-reveal>
+            <div><span class="section-kicker">Analysis #7</span><h2 class="section-title" id="regionRecognitionTitle">Formal Recognition Across Regions</h2><p class="section-intro">This analysis tests whether formal state recognition of traditional institutions varies across geographic regions.</p></div>
+          </div>
+          <section class="surface analysis-question-card" aria-labelledby="regionRecognitionQuestion" data-reveal>
+            <div><span class="section-kicker">Research Question</span><h2 id="regionRecognitionQuestion">Does formal state recognition differ across geographic regions?</h2><p>Independent variable: region. Dependent variable: formackn. The statistical test uses complete binary observations.</p></div>
+            <div class="analysis-method-badge"><i class="bi bi-patch-check-fill" aria-hidden="true"></i><span>Statistical Method</span><strong>Chi-Square Test of Independence</strong></div>
+          </section>
+          <p class="statistics-status analysis-status" id="regionRecognitionStatus" role="status" aria-live="polite">Loading region and recognition analysis...</p>
+          <div class="analysis-quality-grid region-recognition-summary" aria-label="Region recognition analysis summary" data-reveal>
+            <article class="surface analysis-quality-card"><span>Total Regions</span><strong id="regionRecognitionRegions">&mdash;</strong></article>
+            <article class="surface analysis-quality-card"><span>Highest Recognition Rate</span><strong id="regionRecognitionHighest">&mdash;</strong></article>
+            <article class="surface analysis-quality-card"><span>Lowest Recognition Rate</span><strong id="regionRecognitionLowest">&mdash;</strong></article>
+            <article class="surface analysis-quality-card"><span>Average Recognition Rate</span><strong id="regionRecognitionAverage">&mdash;</strong></article>
+          </div>
+          <article class="surface analysis-summary-card" data-reveal>
+            <div class="analysis-summary-heading"><div><span class="section-kicker">Descriptive Statistics</span><h3>Recognition by Region</h3></div><p>Recognition percentage uses records with a known binary recognition value; missing recognition remains visible as a data-quality count.</p></div>
+            <div class="table-responsive"><table class="data-table analysis-summary-table region-recognition-table"><thead><tr><th scope="col">Region</th><th scope="col">Total Groups</th><th scope="col">Recognized</th><th scope="col">Not Recognized</th><th scope="col">Missing Recognition</th><th scope="col">Recognition Percentage</th></tr></thead><tbody id="regionRecognitionDescriptionBody"><tr><td colspan="6" class="empty-state">Loading statistical analysis...</td></tr></tbody></table></div>
+          </article>
+          <div class="section-heading-row analysis-visual-heading" data-reveal><div><span class="section-kicker">Visual Evidence</span><h2 class="section-title">Recognition patterns across regions</h2><p class="section-intro">The stacked chart shows recognized, not-recognized, and missing shares; the heatmap highlights recognition rates.</p></div></div>
+          <div class="analysis-chart-grid">
+            <article class="surface chart-card" data-reveal><h3>Recognition Distribution by Region</h3><p>Each region is normalized to 100%, including missing recognition values.</p><div class="chart-wrap chart-wrap-analysis-wide"><canvas id="regionRecognitionStackedChart" aria-label="One hundred percent stacked bar chart of formal recognition by region" role="img"></canvas></div></article>
+            <article class="surface chart-card" data-reveal><h3>Recognition Percentage Heatmap</h3><p>Darker bars indicate higher formal recognition rates.</p><div class="continent-recognition-heatmap" id="regionRecognitionHeatmap" role="table" aria-label="Recognition percentages by region"></div></article>
+          </div>
+          <article class="surface analysis-detail-card region-recognition-result" aria-labelledby="regionRecognitionResultTitle" data-reveal>
+            <div class="analysis-detail-heading"><div><span class="section-kicker">Statistical Result</span><h2 id="regionRecognitionResultTitle">Region and Recognition Association</h2></div><span class="analysis-effect-badge" id="regionRecognitionSignificance">&mdash;</span></div>
+            <div class="analysis-metric-grid">
+              <article class="analysis-metric"><span>Chi-Square</span><strong id="regionRecognitionChiSquare">&mdash;</strong></article>
+              <article class="analysis-metric"><span>Degrees of Freedom</span><strong id="regionRecognitionDf">&mdash;</strong></article>
+              <article class="analysis-metric"><span>p-value</span><strong id="regionRecognitionPValue">&mdash;</strong></article>
+              <article class="analysis-metric"><span>Cramer's V</span><strong id="regionRecognitionCramersV">&mdash;</strong></article>
+              <article class="analysis-metric"><span>Sample Size</span><strong id="regionRecognitionTestSample">&mdash;</strong></article>
+            </div>
+            <div class="analysis-interpretation" id="regionRecognitionInterpretation" role="note"></div>
+            <div class="analysis-table-grid">
+              <article><h3>Observed Frequencies</h3><div class="table-responsive"><table class="analysis-table"><thead><tr><th scope="col">Region</th><th scope="col">Recognized</th><th scope="col">Not Recognized</th></tr></thead><tbody id="regionRecognitionObservedBody"></tbody></table></div></article>
+              <article><h3>Expected Frequencies</h3><div class="table-responsive"><table class="analysis-table"><thead><tr><th scope="col">Region</th><th scope="col">Recognized</th><th scope="col">Not Recognized</th></tr></thead><tbody id="regionRecognitionExpectedBody"></tbody></table></div></article>
+            </div>
+          </article>
+          <section class="surface analysis-method-note" data-reveal><i class="bi bi-info-circle-fill" aria-hidden="true"></i><div><h2>Analysis #7 Method and Limitations</h2><p>Rows with missing or blank regions and missing or non-binary recognition values are excluded from the Chi-Square test. Missing recognition is retained only in regional descriptive counts and the stacked chart. Results describe association, not causation.</p></div></section>
+        </section>
+
+        <section class="analysis-module" id="dynamic-analysis-engine" aria-labelledby="dynamicAnalysisTitle">
+          <div class="section-heading-row analysis-module-heading" data-reveal>
+            <div><span class="section-kicker">Analysis #8</span><h2 class="section-title" id="dynamicAnalysisTitle">Interactive Statistical Analysis Engine</h2><p class="section-intro">Select any two compatible dataset variables. The system prepares complete cases, selects the statistical method, and generates an appropriate visualization automatically.</p></div>
+          </div>
+
+          <section class="surface dynamic-analysis-controls" id="dynamicEngineControls" aria-labelledby="dynamicControlsTitle" data-reveal>
+            <div class="analysis-summary-heading"><div><span class="section-kicker">Research Controls</span><h3 id="dynamicControlsTitle">Build a Custom Analysis</h3></div><p>The statistical test is selected automatically. Researchers never choose the method manually.</p></div>
+            <form id="dynamicAnalysisForm" class="dynamic-analysis-form" novalidate>
+              <div class="form-field">
+                <label for="dynamicVariableX">Variable X</label>
+                <select id="dynamicVariableX" class="form-select" required>
+                  <optgroup label="Categorical / Binary">
+                    <option value="king">King</option><option value="chief">Chief</option><option value="headman">Headman</option><option value="formackn">Formal Recognition</option><option value="func_land">Land Administration</option><option value="func_sec">Security Function</option><option value="kingheal">Healing Function</option><option value="kinginher">King by Inheritance</option><option value="kingelect">King by Election</option><option value="kingapp">King by Appointment</option><option value="continent">Continent</option><option value="region">Region</option><option value="country">Country</option>
+                  </optgroup>
+                  <optgroup label="Numeric"><option value="groupsize">Group Population Size</option></optgroup>
+                </select>
+              </div>
+              <div class="dynamic-analysis-swap" aria-hidden="true"><i class="bi bi-arrow-left-right"></i></div>
+              <div class="form-field">
+                <label for="dynamicVariableY">Variable Y</label>
+                <select id="dynamicVariableY" class="form-select" required>
+                  <optgroup label="Categorical / Binary">
+                    <option value="king">King</option><option value="chief">Chief</option><option value="headman">Headman</option><option value="formackn" selected>Formal Recognition</option><option value="func_land">Land Administration</option><option value="func_sec">Security Function</option><option value="kingheal">Healing Function</option><option value="kinginher">King by Inheritance</option><option value="kingelect">King by Election</option><option value="kingapp">King by Appointment</option><option value="continent">Continent</option><option value="region">Region</option><option value="country">Country</option>
+                  </optgroup>
+                  <optgroup label="Numeric"><option value="groupsize">Group Population Size</option></optgroup>
+                </select>
+              </div>
+              <button class="btn btn-primary dynamic-analyze-button" id="dynamicAnalyzeButton" type="submit"><span class="spinner-border spinner-border-sm d-none" id="dynamicAnalyzeSpinner" aria-hidden="true"></span><span id="dynamicAnalyzeLabel">Analyze Variables</span><i class="bi bi-graph-up-arrow" aria-hidden="true"></i></button>
+            </form>
+            <p class="statistics-status analysis-status" id="dynamicAnalysisStatus" role="status" aria-live="polite"></p>
+          </section>
+
+          <section id="dynamicAnalysisResult" class="dynamic-analysis-result" aria-labelledby="dynamicResultTitle" hidden>
+            <div class="analysis-detail-heading" data-reveal>
+              <div><span class="section-kicker">Generated Result</span><h2 id="dynamicResultTitle">Dynamic Analysis Result</h2></div>
+              <div class="dynamic-export-actions"><button class="btn btn-outline-primary btn-sm" id="dynamicExportCsv" type="button" disabled><i class="bi bi-filetype-csv" aria-hidden="true"></i> Export CSV</button><button class="btn btn-outline-primary btn-sm" id="dynamicExportPdf" type="button" disabled><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Export PDF</button></div>
+            </div>
+
+            <div class="analysis-quality-grid dynamic-analysis-summary" aria-label="Dynamic analysis summary" data-reveal>
+              <article class="surface analysis-quality-card"><span>Selected Variables</span><strong id="dynamicSelectedVariables">&mdash;</strong></article>
+              <article class="surface analysis-quality-card"><span>Selected Statistical Test</span><strong id="dynamicSelectedTest">&mdash;</strong></article>
+              <article class="surface analysis-quality-card"><span>Sample Size</span><strong id="dynamicSampleSize">&mdash;</strong></article>
+              <article class="surface analysis-quality-card"><span>Missing Values Excluded</span><strong id="dynamicMissingExcluded">&mdash;</strong></article>
+            </div>
+
+            <article class="surface analysis-detail-card dynamic-analysis-statistics" data-reveal>
+              <div class="analysis-detail-heading"><div><span class="section-kicker">Statistical Result</span><h2>Automatically Selected Method</h2></div><span class="analysis-effect-badge" id="dynamicSignificanceBadge">&mdash;</span></div>
+              <div class="analysis-metric-grid">
+                <article class="analysis-metric"><span>Test Statistic</span><strong id="dynamicTestStatistic">&mdash;</strong></article>
+                <article class="analysis-metric"><span>Degrees of Freedom</span><strong id="dynamicDegreesFreedom">&mdash;</strong></article>
+                <article class="analysis-metric"><span>p-value</span><strong id="dynamicPValue">&mdash;</strong></article>
+                <article class="analysis-metric"><span>Effect Size</span><strong id="dynamicEffectSize">&mdash;</strong></article>
+                <article class="analysis-metric"><span>Strength</span><strong id="dynamicEffectStrength">&mdash;</strong></article>
+              </div>
+              <div class="analysis-interpretation" id="dynamicInterpretation" role="note"></div>
+              <p class="analysis-missing-note" id="dynamicTestReason"></p>
+            </article>
+
+            <div class="section-heading-row analysis-visual-heading" data-reveal><div><span class="section-kicker">Automatic Visualization</span><h2 class="section-title">Charts Selected for These Variables</h2><p class="section-intro" id="dynamicChartDescription"></p></div></div>
+            <div class="analysis-chart-grid dynamic-chart-grid">
+              <article class="surface chart-card" id="dynamicPrimaryChartCard" data-reveal><h3 id="dynamicPrimaryChartTitle">Primary Chart</h3><div class="chart-wrap chart-wrap-analysis-wide"><canvas id="dynamicPrimaryChart" aria-label="Primary chart for the dynamic statistical analysis" role="img"></canvas></div></article>
+              <article class="surface chart-card" id="dynamicSecondaryChartCard" data-reveal><h3 id="dynamicSecondaryChartTitle">Supporting Chart</h3><div class="chart-wrap chart-wrap-analysis-wide" id="dynamicSecondaryCanvasWrap"><canvas id="dynamicSecondaryChart" aria-label="Supporting chart for the dynamic statistical analysis" role="img"></canvas></div><div class="dynamic-analysis-heatmap" id="dynamicAnalysisHeatmap" role="table" hidden></div></article>
+            </div>
+
+            <article class="surface analysis-summary-card dynamic-details-card" data-reveal>
+              <div class="analysis-summary-heading"><div><span class="section-kicker">Analysis Details</span><h3>Prepared Data and Statistical Output</h3></div><p>Only complete compatible observations are analyzed.</p></div>
+              <div class="table-responsive" id="dynamicAnalysisDetails"></div>
+            </article>
+          </section>
+
+          <section class="surface analysis-method-note" data-reveal><i class="bi bi-info-circle-fill" aria-hidden="true"></i><div><h2>Analysis #8 Method and Limitations</h2><p>The engine uses complete-case analysis, automatically selects a compatible inferential method, and never makes causal claims. Results depend on dataset quality, category sizes, distribution assumptions, and the completeness of the selected variables.</p></div></section>
+        </section>
+
+        </section>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="footer-main"><div class="container"><div class="row g-5"><div class="col-lg-6"><a class="brand" href="index.html"><span class="brand-mark"><i class="bi bi-bank2"></i></span><span class="brand-copy"><strong>Traditional Governance Institutions</strong><small>Database &amp; Explorer</small></span></a><p class="footer-copy">A university graduation project for exploring traditional governance systems worldwide.</p></div><div class="col-6 col-lg-3"><h2 class="footer-title">Explore</h2><ul class="footer-links"><li><a href="groups.html">Groups</a></li><li><a href="statistics.html">Statistics</a></li><li><a href="statistics-analysis.html">Statistical Analysis</a></li><li><a href="comparison.html">Comparison</a></li></ul></div><div class="col-6 col-lg-3"><h2 class="footer-title">Project</h2><ul class="footer-links"><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li><li><a href="about.html#data-fields">Data fields</a></li></ul></div></div></div></div><div class="footer-bottom"><div class="container"><span>© 2026 Traditional Governance Institutions Database &amp; Explorer</span><span>University Graduation Project</span></div></div></footer>
+  <a class="back-to-top" id="backToTop" href="#main-content" aria-label="Back to top"><i class="bi bi-arrow-up"></i></a>
+
+  <script src="assets/vendor/chart.umd.min.js" defer></script>
+  <script src="assets/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="js/i18n.js?v=statistical-analysis-12" defer></script>
+  <script src="js/script.js?v=statistical-analysis-12" defer></script>
+</body>
+</html>

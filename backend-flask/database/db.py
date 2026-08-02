@@ -28,6 +28,9 @@ def init_pool(config: dict[str, Any]) -> None:
         "password": config["DB_PASSWORD"],
         "database": config["DB_NAME"],
         "autocommit": True,
+        "charset": "utf8mb4",
+        "collation": "utf8mb4_unicode_ci",
+        "use_unicode": True,
     }
 
 

@@ -65,6 +65,43 @@
       requestController: null,
       charts: new Map()
     },
+    statisticalAnalysis: {
+      data: null,
+      currentVariable: "king",
+      chart: null
+    },
+    leadershipFunctionsAnalysis: {
+      data: null,
+      chart: null
+    },
+    groupSizeRecognitionAnalysis: {
+      data: null,
+      boxPlot: null,
+      histogram: null
+    },
+    groupSizeFunctionsAnalysis: {
+      data: null,
+      charts: new Map()
+    },
+    continentLeadershipAnalysis: {
+      data: null,
+      groupedChart: null,
+      stackedChart: null
+    },
+    continentRecognitionAnalysis: {
+      data: null,
+      stackedChart: null
+    },
+    regionRecognitionAnalysis: {
+      data: null,
+      stackedChart: null
+    },
+    dynamicAnalysisEngine: {
+      data: null,
+      primaryChart: null,
+      secondaryChart: null,
+      requestController: null
+    },
     explorerRequestController: null,
     groupDetailCache: new Map()
   };
@@ -156,6 +193,11 @@
           regions: summaryValues(regions, "region")
         };
         await initStatisticsPage();
+        return;
+      }
+
+      if (page === "statistics-analysis") {
+        await initStatisticalAnalysisPage();
       }
     } catch (error) {
       console.error("Could not load data from the backend API:", error);
@@ -1519,6 +1561,2245 @@
     canvas.replaceWith(fallback);
   }
 
+  async function initStatisticalAnalysisPage() {
+    const detail = $("#analysisDetail");
+    if (!detail) return;
+
+    setStatisticalAnalysisStatus(tr("Loading statistical analysis..."));
+    detail.setAttribute("aria-busy", "true");
+    const data = await loadApiData("statistical-analysis/leadership-recognition");
+    if (!Array.isArray(data?.analyses) || data.analyses.length !== 3) {
+      throw new Error("statistical-analysis: unexpected API response format");
+    }
+
+    state.statisticalAnalysis.data = data;
+    renderStatisticalAnalysisSummary();
+    renderStatisticalAnalysisResult(state.statisticalAnalysis.currentVariable);
+    renderLeadershipRecognitionChart();
+    renderRecognitionHeatmap();
+
+    $$(".analysis-selector[data-analysis-variable]").forEach((button) => {
+      button.addEventListener("click", () => {
+        renderStatisticalAnalysisResult(button.dataset.analysisVariable);
+      });
+    });
+
+    detail.setAttribute("aria-busy", "false");
+    setStatisticalAnalysisStatus("");
+
+    try {
+      await initLeadershipFunctionsAnalysis();
+    } catch (error) {
+      console.error("Could not load leadership and governance-function analysis:", error);
+      setLeadershipFunctionsStatus(tr("Could not load data. Please try again later."), true);
+    }
+
+    try {
+      await initGroupSizeRecognitionAnalysis();
+    } catch (error) {
+      console.error("Could not load group-size and recognition analysis:", error);
+      setPopulationAnalysisStatus(tr("Could not load data. Please try again later."), true);
+    }
+
+    try {
+      await initGroupSizeFunctionsAnalysis();
+    } catch (error) {
+      console.error("Could not load group-size and governance-function analysis:", error);
+      setGroupSizeFunctionsStatus(tr("Could not load data. Please try again later."), true);
+    }
+
+    try {
+      await initContinentLeadershipAnalysis();
+    } catch (error) {
+      console.error("Could not load continent and leadership analysis:", error);
+      setContinentLeadershipStatus(tr("Could not load data. Please try again later."), true);
+    }
+
+    try {
+      await initContinentRecognitionAnalysis();
+    } catch (error) {
+      console.error("Could not load continent and recognition analysis:", error);
+      setContinentRecognitionStatus(tr("Could not load data. Please try again later."), true);
+    }
+
+    try {
+      await initRegionRecognitionAnalysis();
+    } catch (error) {
+      console.error("Could not load region and recognition analysis:", error);
+      setRegionRecognitionStatus(tr("Could not load data. Please try again later."), true);
+    }
+
+    initDynamicAnalysisEngine();
+  }
+
+  function setStatisticalAnalysisStatus(message, isError = false) {
+    const status = $("#analysisStatus");
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle("is-error", isError);
+  }
+
+  function analysisNumber(value, maximumFractionDigits = 3) {
+    if (value === null || value === undefined || !Number.isFinite(Number(value))) {
+      return tr("Not Available");
+    }
+    return Number(value).toLocaleString(isArabic() ? "ar" : "en", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits
+    });
+  }
+
+  function analysisPValue(value) {
+    if (value === null || value === undefined || !Number.isFinite(Number(value))) {
+      return tr("Not Available");
+    }
+    const numeric = Number(value);
+    if (numeric < 0.001) return tr("< 0.001");
+    return numeric.toLocaleString(isArabic() ? "ar" : "en", {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3
+    });
+  }
+
+  function renderStatisticalAnalysisSummary() {
+    const data = state.statisticalAnalysis.data;
+    if (!data) return;
+    const quality = data.data_quality || {};
+    const values = {
+      analysisTotalRows: quality.total_rows,
+      analysisRecognitionRows: quality.rows_with_recognition,
+      analysisRecognitionMissing: quality.formal_recognition_missing
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = $(`#${id}`);
+      if (element) element.textContent = analysisNumber(value, 0);
+    });
+  }
+
+  function currentStatisticalAnalysis(variable) {
+    return state.statisticalAnalysis.data?.analyses.find(
+      (analysis) => analysis.variable === variable
+    );
+  }
+
+  function renderStatisticalAnalysisResult(variable) {
+    const analysis = currentStatisticalAnalysis(variable);
+    if (!analysis) return;
+    state.statisticalAnalysis.currentVariable = variable;
+
+    $$(".analysis-selector[data-analysis-variable]").forEach((button) => {
+      const active = button.dataset.analysisVariable === variable;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+
+    const title = $("#selectedAnalysisTitle");
+    if (title) title.textContent = tr("{leadership} vs Formal Recognition", {
+      leadership: tr(analysis.label)
+    });
+
+    const metricValues = {
+      analysisChiSquare: analysisNumber(analysis.chi_square),
+      analysisPValue: analysisPValue(analysis.p_value),
+      analysisDegreesFreedom: analysisNumber(analysis.degrees_of_freedom, 0),
+      analysisCramersV: analysisNumber(analysis.cramers_v),
+      analysisSampleSize: analysisNumber(analysis.sample_size, 0)
+    };
+    Object.entries(metricValues).forEach(([id, value]) => {
+      const element = $(`#${id}`);
+      if (element) element.textContent = value;
+    });
+
+    const strength = analysis.effect_strength
+      ? tr(analysis.effect_strength.charAt(0).toUpperCase() + analysis.effect_strength.slice(1))
+      : tr("Not Available");
+    const effectBadge = $("#analysisEffectBadge");
+    if (effectBadge) {
+      effectBadge.textContent = tr("{strength} effect", { strength });
+      effectBadge.dataset.strength = analysis.effect_strength || "unavailable";
+    }
+
+    const interpretation = $("#analysisInterpretation");
+    if (interpretation) interpretation.textContent = localizedAnalysisInterpretation(analysis);
+
+    const missing = analysis.missing_values_excluded || {};
+    const missingDetails = $("#analysisMissingDetails");
+    if (missingDetails) {
+      missingDetails.textContent = tr(
+        "Formal recognition missing: {recognition}. Leadership variable missing: {leadership}. Total excluded from this test: {total}.",
+        {
+          recognition: analysisNumber(missing.formal_recognition, 0),
+          leadership: analysisNumber(missing.leadership_variable, 0),
+          total: analysisNumber(missing.total_excluded, 0)
+        }
+      );
+    }
+
+    renderFrequencyTable(
+      "#observedFrequencyBody",
+      analysis.contingency_table?.row_labels,
+      analysis.contingency_table?.observed,
+      false
+    );
+    renderFrequencyTable(
+      "#expectedFrequencyBody",
+      analysis.contingency_table?.row_labels,
+      analysis.contingency_table?.expected,
+      true
+    );
+  }
+
+  function localizedAnalysisInterpretation(analysis) {
+    if (analysis.p_value === null || analysis.cramers_v === null) {
+      return tr(
+        "The association could not be calculated because the valid observations do not contain enough variation."
+      );
+    }
+    const leadership = tr(`${analysis.label} leadership`).toLowerCase();
+    const significance = analysis.significant
+      ? tr("There is a statistically significant association between {leadership} and formal state recognition (p < 0.05).", { leadership })
+      : tr("There is no statistically significant association between {leadership} and formal state recognition (p ≥ 0.05).", { leadership });
+    const strength = tr(
+      analysis.effect_strength.charAt(0).toUpperCase() + analysis.effect_strength.slice(1)
+    ).toLowerCase();
+    return `${significance} ${tr("The effect size is {strength} (Cramer's V = {value}).", {
+      strength,
+      value: analysisNumber(analysis.cramers_v)
+    })}`;
+  }
+
+  function renderFrequencyTable(selector, rowLabels, values, expected) {
+    const body = $(selector);
+    if (!body) return;
+    body.innerHTML = "";
+    if (!Array.isArray(rowLabels) || !Array.isArray(values) || values.length === 0) {
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+      cell.colSpan = 3;
+      cell.className = "empty-state";
+      cell.textContent = tr("Not Available");
+      row.appendChild(cell);
+      body.appendChild(row);
+      return;
+    }
+
+    values.forEach((rowValues, index) => {
+      const row = document.createElement("tr");
+      const labelCell = document.createElement("th");
+      labelCell.scope = "row";
+      labelCell.textContent = tr(rowLabels[index]);
+      row.appendChild(labelCell);
+      rowValues.forEach((value) => {
+        const cell = document.createElement("td");
+        cell.textContent = analysisNumber(value, expected ? 2 : 0);
+        row.appendChild(cell);
+      });
+      body.appendChild(row);
+    });
+  }
+
+  function renderLeadershipRecognitionChart() {
+    const canvas = $("#leadershipRecognitionChart");
+    const items = state.statisticalAnalysis.data?.charts?.stacked_bar?.items;
+    if (!canvas || !Array.isArray(items) || !window.Chart) return;
+    const chartData = {
+      labels: items.map((item) => tr(item.label)),
+      datasets: [
+        { label: tr("Recognized"), data: items.map((item) => item.recognized), backgroundColor: "#287a50" },
+        { label: tr("Not Recognized"), data: items.map((item) => item.not_recognized), backgroundColor: "#b74c45" },
+        { label: tr("Missing"), data: items.map((item) => item.missing), backgroundColor: "#c8a96a" }
+      ]
+    };
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom", labels: { usePointStyle: true, padding: 18, boxWidth: 8 } },
+        tooltip: { backgroundColor: "#081c13", padding: 11, cornerRadius: 8 }
+      },
+      scales: {
+        x: { stacked: true, grid: { display: false } },
+        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 }, grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" } }
+      }
+    };
+    if (state.statisticalAnalysis.chart) {
+      state.statisticalAnalysis.chart.data = chartData;
+      state.statisticalAnalysis.chart.options = options;
+      state.statisticalAnalysis.chart.update();
+      return;
+    }
+    state.statisticalAnalysis.chart = new window.Chart(canvas, {
+      type: "bar",
+      data: chartData,
+      options
+    });
+  }
+
+  function renderRecognitionHeatmap() {
+    const container = $("#recognitionHeatmap");
+    const heatmap = state.statisticalAnalysis.data?.charts?.heatmap;
+    if (!container || !Array.isArray(heatmap?.rows)) return;
+    container.innerHTML = "";
+    const cells = [
+      { text: "", className: "heatmap-heading" },
+      { text: tr("Recognized"), className: "heatmap-heading" },
+      { text: tr("Not Recognized"), className: "heatmap-heading" }
+    ];
+    cells.forEach((item) => {
+      const cell = document.createElement("div");
+      cell.className = item.className;
+      cell.textContent = item.text;
+      cell.setAttribute("role", "columnheader");
+      container.appendChild(cell);
+    });
+
+    heatmap.rows.forEach((row) => {
+      const label = document.createElement("div");
+      label.className = "heatmap-row-label";
+      label.setAttribute("role", "rowheader");
+      label.textContent = tr(row.label);
+      container.appendChild(label);
+      [
+        [row.recognized_percentage, "recognized"],
+        [row.not_recognized_percentage, "not-recognized"]
+      ].forEach(([rawValue, type]) => {
+        const value = Number(rawValue) || 0;
+        const cell = document.createElement("div");
+        cell.className = `heatmap-value ${value >= 50 ? "is-strong" : ""}`;
+        cell.setAttribute("role", "cell");
+        cell.style.backgroundColor = type === "recognized"
+          ? `rgba(40, 122, 80, ${0.12 + value / 125})`
+          : `rgba(183, 76, 69, ${0.12 + value / 125})`;
+        cell.textContent = `${analysisNumber(value, 1)}%`;
+        cell.setAttribute("aria-label", `${tr(row.label)}: ${type === "recognized" ? tr("Recognized") : tr("Not Recognized")} ${analysisNumber(value, 1)}%`);
+        container.appendChild(cell);
+      });
+    });
+  }
+
+  async function initLeadershipFunctionsAnalysis() {
+    const cards = $("#functionAnalysisCards");
+    if (!cards) return;
+
+    setLeadershipFunctionsStatus(tr("Loading leadership and function analysis..."));
+    const data = await loadApiData("statistical-analysis/leadership-functions");
+    if (!Array.isArray(data?.analyses) || data.analyses.length !== 9) {
+      throw new Error("leadership-functions: unexpected API response format");
+    }
+
+    state.leadershipFunctionsAnalysis.data = data;
+    const totalRows = $("#functionAnalysisTotalRows");
+    if (totalRows) totalRows.textContent = analysisNumber(data.data_quality?.total_rows, 0);
+    renderLeadershipFunctionsSummary();
+    renderFunctionEffectHeatmap();
+    renderSignificantFunctionChart();
+    renderLeadershipFunctionCards();
+    setLeadershipFunctionsStatus("");
+  }
+
+  function setLeadershipFunctionsStatus(message, isError = false) {
+    const status = $("#functionAnalysisStatus");
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle("is-error", isError);
+  }
+
+  function analysisStrengthLabel(strength) {
+    if (!strength) return tr("Not Available");
+    const key = strength.replace(/\b\w/g, (character) => character.toUpperCase());
+    return tr(key);
+  }
+
+  function renderLeadershipFunctionsSummary() {
+    const body = $("#functionAnalysisSummaryBody");
+    const summary = state.leadershipFunctionsAnalysis.data?.summary;
+    if (!body || !Array.isArray(summary)) return;
+
+    body.innerHTML = summary.map((result) => `
+      <tr>
+        <td><strong>${escapeHtml(tr(result.leadership_label))}</strong></td>
+        <td>${escapeHtml(tr(result.function_label))}</td>
+        <td><bdi dir="ltr">${escapeHtml(analysisNumber(result.chi_square))}</bdi></td>
+        <td><bdi dir="ltr">${escapeHtml(analysisPValue(result.p_value))}</bdi></td>
+        <td><bdi dir="ltr">${escapeHtml(analysisNumber(result.cramers_v))}</bdi></td>
+        <td>${binaryBadge(result.significant ? 1 : 0)}</td>
+        <td><span class="analysis-strength-text" data-strength="${escapeHtml((result.effect_strength || "unavailable").replaceAll(" ", "-"))}">${escapeHtml(analysisStrengthLabel(result.effect_strength))}</span></td>
+      </tr>`).join("");
+  }
+
+  function renderFunctionEffectHeatmap() {
+    const container = $("#functionEffectHeatmap");
+    const heatmap = state.leadershipFunctionsAnalysis.data?.charts?.cramers_v_heatmap;
+    if (!container || !Array.isArray(heatmap?.values)) return;
+    container.innerHTML = "";
+
+    const corner = document.createElement("div");
+    corner.className = "function-heatmap-heading";
+    corner.setAttribute("role", "columnheader");
+    container.appendChild(corner);
+    heatmap.columns.forEach((column) => {
+      const heading = document.createElement("div");
+      heading.className = "function-heatmap-heading";
+      heading.setAttribute("role", "columnheader");
+      heading.textContent = tr(column);
+      container.appendChild(heading);
+    });
+
+    heatmap.rows.forEach((leadership) => {
+      const rowHeading = document.createElement("div");
+      rowHeading.className = "function-heatmap-row";
+      rowHeading.setAttribute("role", "rowheader");
+      rowHeading.textContent = tr(leadership);
+      container.appendChild(rowHeading);
+
+      heatmap.columns.forEach((functionLabel) => {
+        const valueItem = heatmap.values.find(
+          (item) => item.leadership === leadership && item.function === functionLabel
+        );
+        const rawValue = valueItem?.cramers_v;
+        const value = Number(rawValue);
+        const validValue = rawValue !== null
+          && rawValue !== undefined
+          && Number.isFinite(value);
+        const cell = document.createElement("div");
+        cell.className = `function-heatmap-value ${valueItem?.significant ? "is-significant" : ""}`;
+        cell.setAttribute("role", "cell");
+        cell.style.backgroundColor = validValue
+          ? `rgba(18, 53, 36, ${Math.min(0.92, 0.12 + value)})`
+          : "transparent";
+        cell.classList.toggle("is-strong", validValue && value >= 0.42);
+        cell.textContent = validValue ? analysisNumber(value) : tr("Not Available");
+        cell.title = valueItem?.significant
+          ? tr("Statistically significant")
+          : tr("Not statistically significant");
+        cell.setAttribute(
+          "aria-label",
+          `${tr(leadership)}, ${tr(functionLabel)}: ${tr("Cramer's V")} ${validValue ? analysisNumber(value) : tr("Not Available")}. ${cell.title}`
+        );
+        container.appendChild(cell);
+      });
+    });
+  }
+
+  function renderSignificantFunctionChart() {
+    const canvas = $("#significantFunctionChart");
+    const empty = $("#significantFunctionChartEmpty");
+    const items = state.leadershipFunctionsAnalysis.data?.charts?.significant_relationships?.items;
+    if (!canvas || !empty || !Array.isArray(items)) return;
+
+    const hasItems = items.length > 0;
+    canvas.parentElement.hidden = !hasItems;
+    empty.hidden = hasItems;
+    if (!hasItems || !window.Chart) return;
+
+    const chartData = {
+      labels: items.map((item) => tr("{leadership} — {function}", {
+        leadership: tr(item.leadership_label),
+        function: tr(item.function_label)
+      })),
+      datasets: [
+        {
+          label: tr("Leadership present"),
+          data: items.map((item) => item.leadership_present_percentage),
+          backgroundColor: "#287a50",
+          borderRadius: 7
+        },
+        {
+          label: tr("Leadership absent"),
+          data: items.map((item) => item.leadership_absent_percentage),
+          backgroundColor: "#c8a96a",
+          borderRadius: 7
+        }
+      ]
+    };
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom", labels: { usePointStyle: true, padding: 18, boxWidth: 8 } },
+        tooltip: {
+          backgroundColor: "#081c13",
+          padding: 11,
+          cornerRadius: 8,
+          callbacks: { label: (context) => `${context.dataset.label}: ${analysisNumber(context.raw, 1)}%` }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxRotation: 35, minRotation: 0 } },
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { callback: (value) => `${value}%` },
+          grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" }
+        }
+      }
+    };
+
+    if (state.leadershipFunctionsAnalysis.chart) {
+      state.leadershipFunctionsAnalysis.chart.data = chartData;
+      state.leadershipFunctionsAnalysis.chart.options = options;
+      state.leadershipFunctionsAnalysis.chart.update();
+      return;
+    }
+    state.leadershipFunctionsAnalysis.chart = new window.Chart(canvas, {
+      type: "bar",
+      data: chartData,
+      options
+    });
+  }
+
+  function localizedLeadershipFunctionInterpretation(analysis) {
+    const leadership = tr(`${analysis.leadership_label} leadership`).toLowerCase();
+    const functionLabel = tr(analysis.function_label).toLowerCase();
+    if (analysis.p_value === null || analysis.cramers_v === null) {
+      return tr(
+        "The relationship between {leadership} and {function} could not be calculated because the valid observations do not contain enough variation.",
+        { leadership, function: functionLabel }
+      );
+    }
+    const significance = analysis.significant
+      ? tr("There is a statistically significant relationship between {leadership} and {function} (p < 0.05).", { leadership, function: functionLabel })
+      : tr("No statistically significant association was detected between {leadership} and {function} (p ≥ 0.05).", { leadership, function: functionLabel });
+    return `${significance} ${tr("The association strength is {strength} (Cramer's V = {value}).", {
+      strength: analysisStrengthLabel(analysis.effect_strength).toLowerCase(),
+      value: analysisNumber(analysis.cramers_v)
+    })}`;
+  }
+
+  function functionFrequencyTable(title, analysis, values, expected) {
+    const tableRows = Array.isArray(values) && values.length
+      ? values.map((rowValues, index) => `
+          <tr><th scope="row">${escapeHtml(tr(analysis.contingency_table.row_labels[index]))}</th>${rowValues.map((value) => `<td>${escapeHtml(analysisNumber(value, expected ? 2 : 0))}</td>`).join("")}</tr>`).join("")
+      : `<tr><td colspan="3" class="empty-state">${escapeHtml(tr("Not Available"))}</td></tr>`;
+    return `
+      <article>
+        <h4>${escapeHtml(tr(title))}</h4>
+        <div class="table-responsive"><table class="analysis-table"><thead><tr><th scope="col">${escapeHtml(tr("Leadership Status"))}</th><th scope="col">${escapeHtml(tr("Function present"))}</th><th scope="col">${escapeHtml(tr("Function absent"))}</th></tr></thead><tbody>${tableRows}</tbody></table></div>
+      </article>`;
+  }
+
+  function renderLeadershipFunctionCards() {
+    const container = $("#functionAnalysisCards");
+    const analyses = state.leadershipFunctionsAnalysis.data?.analyses;
+    if (!container || !Array.isArray(analyses)) return;
+
+    container.innerHTML = analyses.map((analysis) => {
+      const strength = analysisStrengthLabel(analysis.effect_strength);
+      const missing = analysis.missing_values_excluded || {};
+      return `
+        <details class="surface analysis-test-card" data-analysis-id="${escapeHtml(analysis.analysis_id)}">
+          <summary>
+            <span><small>${escapeHtml(tr(analysis.leadership_label))}</small><strong>${escapeHtml(tr(analysis.function_label))}</strong></span>
+            <span class="analysis-test-summary-metrics"><span>${escapeHtml(tr("p-value"))}: <bdi dir="ltr">${escapeHtml(analysisPValue(analysis.p_value))}</bdi></span><span>${escapeHtml(tr("Cramer's V"))}: <bdi dir="ltr">${escapeHtml(analysisNumber(analysis.cramers_v))}</bdi></span>${binaryBadge(analysis.significant ? 1 : 0)}<i class="bi bi-chevron-down" aria-hidden="true"></i></span>
+          </summary>
+          <div class="analysis-test-body">
+            <div class="analysis-metric-grid">
+              <article class="analysis-metric"><span>${escapeHtml(tr("Chi-Square"))}</span><strong><bdi dir="ltr">${escapeHtml(analysisNumber(analysis.chi_square))}</bdi></strong></article>
+              <article class="analysis-metric"><span>${escapeHtml(tr("p-value"))}</span><strong><bdi dir="ltr">${escapeHtml(analysisPValue(analysis.p_value))}</bdi></strong></article>
+              <article class="analysis-metric"><span>${escapeHtml(tr("Degrees of Freedom"))}</span><strong><bdi dir="ltr">${escapeHtml(analysisNumber(analysis.degrees_of_freedom, 0))}</bdi></strong></article>
+              <article class="analysis-metric"><span>${escapeHtml(tr("Cramer's V"))}</span><strong><bdi dir="ltr">${escapeHtml(analysisNumber(analysis.cramers_v))}</bdi></strong></article>
+              <article class="analysis-metric"><span>${escapeHtml(tr("Sample Size"))}</span><strong><bdi dir="ltr">${escapeHtml(analysisNumber(analysis.sample_size, 0))}</bdi></strong></article>
+            </div>
+            <div class="analysis-interpretation">${escapeHtml(localizedLeadershipFunctionInterpretation(analysis))}</div>
+            <p class="analysis-missing-note">${escapeHtml(tr("Leadership variable missing: {leadership}. Governance function missing: {function}. Total excluded from this test: {total}.", {
+              leadership: analysisNumber(missing.leadership_variable, 0),
+              function: analysisNumber(missing.governance_function, 0),
+              total: analysisNumber(missing.total_excluded, 0)
+            }))} <strong>${escapeHtml(tr("Strength"))}: ${escapeHtml(strength)}.</strong></p>
+            <div class="analysis-table-grid">${functionFrequencyTable("Observed Frequencies", analysis, analysis.contingency_table?.observed, false)}${functionFrequencyTable("Expected Frequencies", analysis, analysis.contingency_table?.expected, true)}</div>
+          </div>
+        </details>`;
+    }).join("");
+  }
+
+  async function initGroupSizeRecognitionAnalysis() {
+    const section = $("#groupsize-recognition-analysis");
+    if (!section) return;
+
+    setPopulationAnalysisStatus(tr("Loading population-size analysis..."));
+    const data = await loadApiData("statistical-analysis/groupsize-recognition");
+    if (!data?.descriptive_statistics || !data?.statistical_test || !data?.charts) {
+      throw new Error("groupsize-recognition: unexpected API response format");
+    }
+
+    state.groupSizeRecognitionAnalysis.data = data;
+    renderPopulationDataPreparation();
+    renderPopulationDescriptiveStatistics();
+    renderPopulationNormalityAndTest();
+    renderPopulationBoxPlot();
+    renderPopulationHistogram();
+    setPopulationAnalysisStatus("");
+  }
+
+  function setPopulationAnalysisStatus(message, isError = false) {
+    const status = $("#populationAnalysisStatus");
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle("is-error", isError);
+  }
+
+  function populationValue(value, maximumFractionDigits = 1) {
+    if (value === null || value === undefined || !Number.isFinite(Number(value))) {
+      return tr("Not Available");
+    }
+    return Number(value).toLocaleString(isArabic() ? "ar" : "en", {
+      maximumFractionDigits
+    });
+  }
+
+  function renderPopulationDataPreparation() {
+    const data = state.groupSizeRecognitionAnalysis.data;
+    if (!data) return;
+    const preparation = data.data_preparation || {};
+    const values = {
+      populationTotalObservations: preparation.total_observations,
+      populationExcludedObservations: preparation.excluded_observations,
+      populationFinalSample: preparation.final_sample_size
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = $(`#${id}`);
+      if (element) element.textContent = analysisNumber(value, 0);
+    });
+
+    const method = $("#populationSelectedMethod");
+    if (method) method.textContent = tr(data.statistical_test?.name || "Not Available");
+  }
+
+  function renderPopulationDescriptiveStatistics() {
+    const statistics = state.groupSizeRecognitionAnalysis.data?.descriptive_statistics;
+    const body = $("#populationDescriptionBody");
+    if (!statistics || !body) return;
+
+    const groups = [
+      { key: "recognized", label: "Recognized" },
+      { key: "not_recognized", label: "Not Recognized" }
+    ];
+    body.innerHTML = groups.map(({ key, label }) => {
+      const group = statistics[key] || {};
+      return `<tr>
+        <td><strong>${escapeHtml(tr(label))}</strong></td>
+        <td>${escapeHtml(analysisNumber(group.count, 0))}</td>
+        <td>${escapeHtml(populationValue(group.mean))}</td>
+        <td>${escapeHtml(populationValue(group.median))}</td>
+        <td>${escapeHtml(populationValue(group.minimum, 0))}</td>
+        <td>${escapeHtml(populationValue(group.maximum, 0))}</td>
+        <td>${escapeHtml(populationValue(group.standard_deviation))}</td>
+        <td>${escapeHtml(populationValue(group.interquartile_range))}</td>
+      </tr>`;
+    }).join("");
+
+    const cardValues = {
+      populationMeanRecognized: statistics.recognized?.mean,
+      populationMeanNotRecognized: statistics.not_recognized?.mean,
+      populationMedianRecognized: statistics.recognized?.median,
+      populationMedianNotRecognized: statistics.not_recognized?.median,
+      populationMaximumRecognized: statistics.recognized?.maximum,
+      populationMaximumNotRecognized: statistics.not_recognized?.maximum,
+      populationMinimumRecognized: statistics.recognized?.minimum,
+      populationMinimumNotRecognized: statistics.not_recognized?.minimum
+    };
+    Object.entries(cardValues).forEach(([id, value]) => {
+      const element = $(`#${id}`);
+      if (element) element.textContent = populationValue(value);
+    });
+  }
+
+  function populationEffectStrengthLabel(strength) {
+    if (!strength) return tr("Not Available");
+    return tr(strength.charAt(0).toUpperCase() + strength.slice(1));
+  }
+
+  function localizedPopulationInterpretation(test) {
+    const significance = test.significant
+      ? tr("There is a statistically significant difference in group population size between formally recognized and non-recognized traditional institutions.")
+      : tr("No statistically significant difference in group population size was detected between formally recognized and non-recognized traditional institutions.");
+    const effect = test.effect_size || {};
+    const direction = effect.value > 0
+      ? tr("recognized groups tend to have larger populations")
+      : effect.value < 0
+        ? tr("not recognized groups tend to have larger populations")
+        : tr("neither recognition group tends to have larger populations");
+    return `${significance} ${tr("The {effect} indicates a {strength} effect; {direction}.", {
+      effect: tr(effect.name || "Effect Size").toLowerCase(),
+      strength: populationEffectStrengthLabel(effect.strength).toLowerCase(),
+      direction
+    })}`;
+  }
+
+  function renderPopulationNormalityAndTest() {
+    const data = state.groupSizeRecognitionAnalysis.data;
+    if (!data) return;
+    const test = data.statistical_test || {};
+    const normality = data.normality_assessment || {};
+    const effect = test.effect_size || {};
+    const values = {
+      populationTestUsed: tr(test.name || "Not Available"),
+      populationTestStatistic: analysisNumber(test.statistic),
+      populationPValue: analysisPValue(test.p_value),
+      populationEffectSize: analysisNumber(effect.value),
+      populationSampleSize: analysisNumber(test.sample_size, 0)
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = $(`#${id}`);
+      if (element) element.textContent = value;
+    });
+
+    const badge = $("#populationSignificanceBadge");
+    if (badge) {
+      badge.textContent = test.significant
+        ? tr("Statistically significant")
+        : tr("Not statistically significant");
+      badge.dataset.strength = test.significant ? "strong" : "unavailable";
+    }
+    const interpretation = $("#populationInterpretation");
+    if (interpretation) interpretation.textContent = localizedPopulationInterpretation(test);
+    const reason = $("#populationTestReason");
+    if (reason) {
+      reason.textContent = normality.distributions_normal
+        ? tr("Both recognition groups satisfied the Shapiro-Wilk normality assessment at alpha = 0.05, so Welch's independent samples t-test was selected.")
+        : tr("At least one recognition group did not satisfy the Shapiro-Wilk normality assessment at alpha = 0.05, so the Mann-Whitney U test was selected.");
+    }
+    const explanation = $("#populationEffectExplanation");
+    if (explanation) {
+      explanation.textContent = tr("{effect} = {value}. This is a {strength} effect and {direction}.", {
+        effect: tr(effect.name || "Effect Size"),
+        value: analysisNumber(effect.value),
+        strength: populationEffectStrengthLabel(effect.strength).toLowerCase(),
+        direction: effect.value > 0
+          ? tr("recognized groups tend to have larger populations")
+          : effect.value < 0
+            ? tr("not recognized groups tend to have larger populations")
+            : tr("neither recognition group tends to have larger populations")
+      });
+    }
+
+    const body = $("#populationNormalityBody");
+    if (!body) return;
+    const groups = normality.groups || {};
+    body.innerHTML = [
+      ["recognized", "Recognized"],
+      ["not_recognized", "Not Recognized"]
+    ].map(([key, label]) => {
+      const result = groups[key] || {};
+      const normalLabel = result.assessable
+        ? binaryBadge(result.normal ? 1 : 0)
+        : escapeHtml(tr("Not Available"));
+      return `<tr><th scope="row">${escapeHtml(tr(label))}</th><td><bdi dir="ltr">${escapeHtml(analysisNumber(result.statistic))}</bdi></td><td><bdi dir="ltr">${escapeHtml(analysisPValue(result.p_value))}</bdi></td><td>${normalLabel}</td></tr>`;
+    }).join("");
+  }
+
+  function populationCompact(value) {
+    if (!Number.isFinite(Number(value))) return tr("Not Available");
+    return new Intl.NumberFormat(isArabic() ? "ar" : "en", {
+      notation: "compact",
+      maximumFractionDigits: 1
+    }).format(Number(value));
+  }
+
+  function renderPopulationBoxPlot() {
+    const canvas = $("#populationBoxPlot");
+    const items = state.groupSizeRecognitionAnalysis.data?.charts?.box_plot?.items;
+    if (!canvas || !Array.isArray(items) || !window.Chart) return;
+
+    const boxWhiskerPlugin = {
+      id: "populationBoxWhiskers",
+      afterDatasetsDraw(chart) {
+        const { ctx, scales } = chart;
+        const meta = chart.getDatasetMeta(0);
+        ctx.save();
+        ctx.strokeStyle = window.SitePreferences?.getTheme() === "dark" ? "#f3ead5" : "#123524";
+        ctx.lineWidth = 2;
+        items.forEach((item, index) => {
+          const element = meta.data[index];
+          if (!element) return;
+          const y = element.y;
+          const halfCap = Math.min(12, (element.height || 24) * 0.42);
+          const minimum = scales.x.getPixelForValue(item.minimum);
+          const maximum = scales.x.getPixelForValue(item.maximum);
+          const median = scales.x.getPixelForValue(item.median);
+          ctx.beginPath();
+          ctx.moveTo(minimum, y);
+          ctx.lineTo(maximum, y);
+          ctx.moveTo(minimum, y - halfCap);
+          ctx.lineTo(minimum, y + halfCap);
+          ctx.moveTo(maximum, y - halfCap);
+          ctx.lineTo(maximum, y + halfCap);
+          ctx.moveTo(median, y - halfCap);
+          ctx.lineTo(median, y + halfCap);
+          ctx.stroke();
+        });
+        ctx.restore();
+      }
+    };
+    const chartData = {
+      labels: items.map((item) => tr(item.label)),
+      datasets: [{
+        label: tr("Interquartile Range"),
+        data: items.map((item) => [item.first_quartile, item.third_quartile]),
+        backgroundColor: ["rgba(40, 122, 80, .72)", "rgba(200, 169, 106, .76)"],
+        borderColor: ["#123524", "#9a6b1f"],
+        borderWidth: 1,
+        borderRadius: 7,
+        barPercentage: 0.48
+      }]
+    };
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: "y",
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#081c13",
+          padding: 11,
+          cornerRadius: 8,
+          callbacks: {
+            label(context) {
+              const item = items[context.dataIndex];
+              return [
+                `${tr("Minimum")}: ${populationValue(item.minimum)}`,
+                `${tr("Q1")}: ${populationValue(item.first_quartile)}`,
+                `${tr("Median")}: ${populationValue(item.median)}`,
+                `${tr("Q3")}: ${populationValue(item.third_quartile)}`,
+                `${tr("Maximum")}: ${populationValue(item.maximum)}`
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: "logarithmic",
+          min: Math.min(...items.map((item) => Number(item.minimum))),
+          max: Math.max(...items.map((item) => Number(item.maximum))),
+          grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" },
+          ticks: { callback: (value) => populationCompact(value) },
+          title: { display: true, text: tr("Population (logarithmic scale)") }
+        },
+        y: { grid: { display: false } }
+      }
+    };
+
+    if (state.groupSizeRecognitionAnalysis.boxPlot) {
+      state.groupSizeRecognitionAnalysis.boxPlot.destroy();
+    }
+    state.groupSizeRecognitionAnalysis.boxPlot = new window.Chart(canvas, {
+      type: "bar",
+      data: chartData,
+      options,
+      plugins: [boxWhiskerPlugin]
+    });
+  }
+
+  function renderPopulationHistogram() {
+    const canvas = $("#populationHistogram");
+    const histogram = state.groupSizeRecognitionAnalysis.data?.charts?.histogram;
+    if (!canvas || !Array.isArray(histogram?.bin_edges) || !window.Chart) return;
+    const labels = histogram.bin_edges.slice(0, -1).map((edge, index) =>
+      `${populationCompact(edge)}–${populationCompact(histogram.bin_edges[index + 1])}`
+    );
+    const colors = ["rgba(40, 122, 80, .72)", "rgba(200, 169, 106, .7)"];
+    const chartData = {
+      labels,
+      datasets: (histogram.datasets || []).map((dataset, index) => ({
+        label: tr(dataset.label),
+        data: dataset.counts,
+        backgroundColor: colors[index] || colors[0],
+        borderRadius: 4,
+        borderSkipped: false
+      }))
+    };
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom", labels: { usePointStyle: true, padding: 18, boxWidth: 8 } },
+        tooltip: { backgroundColor: "#081c13", padding: 11, cornerRadius: 8 }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          stacked: false,
+          ticks: { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 8 },
+          title: { display: true, text: tr("Population interval") }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0 },
+          grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" },
+          title: { display: true, text: tr("Number of groups") }
+        }
+      }
+    };
+    if (state.groupSizeRecognitionAnalysis.histogram) {
+      state.groupSizeRecognitionAnalysis.histogram.data = chartData;
+      state.groupSizeRecognitionAnalysis.histogram.options = options;
+      state.groupSizeRecognitionAnalysis.histogram.update();
+      return;
+    }
+    state.groupSizeRecognitionAnalysis.histogram = new window.Chart(canvas, {
+      type: "bar",
+      data: chartData,
+      options
+    });
+  }
+
+  async function initGroupSizeFunctionsAnalysis() {
+    const container = $("#groupSizeFunctionCards");
+    if (!container) return;
+
+    setGroupSizeFunctionsStatus(tr("Loading group-size and function analysis..."));
+    const data = await loadApiData("statistical-analysis/groupsize-functions");
+    if (!Array.isArray(data?.analyses) || data.analyses.length !== 3) {
+      throw new Error("groupsize-functions: unexpected API response format");
+    }
+    state.groupSizeFunctionsAnalysis.data = data;
+    renderGroupSizeFunctionsSummary();
+    renderGroupSizeFunctionCards();
+    data.analyses.forEach((analysis) => {
+      renderGroupSizeFunctionBoxPlot(analysis);
+      renderGroupSizeFunctionHistogram(analysis);
+    });
+    setGroupSizeFunctionsStatus("");
+  }
+
+  function setGroupSizeFunctionsStatus(message, isError = false) {
+    const status = $("#groupSizeFunctionsStatus");
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle("is-error", isError);
+  }
+
+  function renderGroupSizeFunctionsSummary() {
+    const data = state.groupSizeFunctionsAnalysis.data;
+    if (!data) return;
+    const analyses = data.analyses || [];
+    const finalSamples = analyses.map((item) => Number(item.data_preparation?.final_sample_size) || 0);
+    const values = {
+      groupSizeFunctionsTotalRows: data.data_quality?.total_rows,
+      groupSizeFunctionsTests: analyses.length,
+      groupSizeFunctionsSignificant: analyses.filter((item) => item.statistical_test?.significant).length,
+      groupSizeFunctionsSampleRange: finalSamples.length
+        ? Math.min(...finalSamples).toLocaleString(isArabic() ? "ar" : "en") + "-" + Math.max(...finalSamples).toLocaleString(isArabic() ? "ar" : "en")
+        : tr("Not Available")
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = $("#" + id);
+      if (element) element.textContent = value;
+    });
+
+    const body = $("#groupSizeFunctionsSummaryBody");
+    if (!body) return;
+    body.innerHTML = (data.summary || []).map((result) =>
+      "<tr>" +
+        "<td><strong>" + escapeHtml(tr(result.function_label)) + "</strong></td>" +
+        "<td>" + escapeHtml(tr(result.test_used)) + "</td>" +
+        "<td><bdi dir=\"ltr\">" + escapeHtml(analysisNumber(result.test_statistic)) + "</bdi></td>" +
+        "<td><bdi dir=\"ltr\">" + escapeHtml(analysisPValue(result.p_value)) + "</bdi></td>" +
+        "<td><bdi dir=\"ltr\">" + escapeHtml(analysisNumber(result.effect_size)) + "</bdi></td>" +
+        "<td>" + escapeHtml(analysisNumber(result.sample_size, 0)) + "</td>" +
+        "<td>" + binaryBadge(result.significant ? 1 : 0) + "</td>" +
+      "</tr>"
+    ).join("");
+  }
+
+  function localizedGroupSizeFunctionInterpretation(analysis) {
+    const test = analysis.statistical_test || {};
+    const effect = test.effect_size || {};
+    const functionLabel = tr(analysis.function_label).toLowerCase();
+    if (test.p_value === null || test.p_value === undefined) {
+      return tr(
+        "The population-size difference for {function} could not be calculated because both comparison groups were not available.",
+        { function: functionLabel }
+      );
+    }
+    const effectText = tr("The {effect} indicates a {strength} effect.", {
+      effect: tr(effect.name || "Effect Size").toLowerCase(),
+      strength: populationEffectStrengthLabel(effect.strength).toLowerCase()
+    });
+    if (test.significant && Number(effect.value) > 0) {
+      return tr("Larger traditional groups are significantly more likely to perform {function}.", {
+        function: functionLabel
+      }) + " " + effectText;
+    }
+    if (test.significant) {
+      return tr("Groups performing {function} have significantly smaller population sizes.", {
+        function: functionLabel
+      }) + " " + effectText;
+    }
+    return tr("No statistically significant difference in population size was found for {function}.", {
+      function: functionLabel
+    }) + " " + effectText;
+  }
+
+  function groupSizeFunctionReason(analysis) {
+    if (analysis.statistical_test?.name === "Not computable") {
+      return tr("Both function-present and function-absent records require valid population values before a two-group test can be calculated.");
+    }
+    return analysis.normality_assessment?.distributions_normal
+      ? tr("Both function groups satisfied the Shapiro-Wilk normality assessment at alpha = 0.05, so Welch's independent samples t-test was selected.")
+      : tr("At least one function group did not satisfy the Shapiro-Wilk normality assessment at alpha = 0.05, so the Mann-Whitney U test was selected.");
+  }
+
+  function groupSizeFunctionDescriptionRows(analysis) {
+    const descriptions = analysis.descriptive_statistics || {};
+    return [
+      ["function_present", "Function Present"],
+      ["function_absent", "Function Absent"]
+    ].map(([key, label]) => {
+      const item = descriptions[key] || {};
+      return "<tr>" +
+        "<th scope=\"row\">" + escapeHtml(tr(label)) + "</th>" +
+        "<td>" + escapeHtml(analysisNumber(item.count, 0)) + "</td>" +
+        "<td>" + escapeHtml(populationValue(item.mean)) + "</td>" +
+        "<td>" + escapeHtml(populationValue(item.median)) + "</td>" +
+        "<td>" + escapeHtml(populationValue(item.minimum, 0)) + "</td>" +
+        "<td>" + escapeHtml(populationValue(item.maximum, 0)) + "</td>" +
+        "<td>" + escapeHtml(populationValue(item.standard_deviation)) + "</td>" +
+        "<td>" + escapeHtml(populationValue(item.interquartile_range)) + "</td>" +
+      "</tr>";
+    }).join("");
+  }
+
+  function renderGroupSizeFunctionCards() {
+    const container = $("#groupSizeFunctionCards");
+    const analyses = state.groupSizeFunctionsAnalysis.data?.analyses;
+    if (!container || !Array.isArray(analyses)) return;
+
+    container.innerHTML = analyses.map((analysis) => {
+      const test = analysis.statistical_test || {};
+      const effect = test.effect_size || {};
+      const preparation = analysis.data_preparation || {};
+      const id = escapeHtml(analysis.analysis_id);
+      const badge = test.significant
+        ? tr("Statistically significant")
+        : test.p_value === null
+          ? tr("Not Available")
+          : tr("Not statistically significant");
+      return "<article class=\"surface analysis-detail-card groupsize-function-result\" data-function-analysis=\"" + id + "\">" +
+        "<div class=\"analysis-detail-heading\"><div><span class=\"section-kicker\">" + escapeHtml(tr("Governance Function")) + "</span><h3>" + escapeHtml(tr(analysis.function_label)) + "</h3></div><span class=\"analysis-effect-badge\" data-strength=\"" + (test.significant ? "strong" : "unavailable") + "\">" + escapeHtml(badge) + "</span></div>" +
+        "<div class=\"analysis-quality-grid compact-quality-grid\">" +
+          "<article class=\"analysis-quality-card\"><span>" + escapeHtml(tr("Total observations")) + "</span><strong>" + escapeHtml(analysisNumber(preparation.total_observations, 0)) + "</strong></article>" +
+          "<article class=\"analysis-quality-card\"><span>" + escapeHtml(tr("Missing observations removed")) + "</span><strong>" + escapeHtml(analysisNumber(preparation.missing_observations_removed, 0)) + "</strong></article>" +
+          "<article class=\"analysis-quality-card\"><span>" + escapeHtml(tr("Final sample size")) + "</span><strong>" + escapeHtml(analysisNumber(preparation.final_sample_size, 0)) + "</strong></article>" +
+        "</div>" +
+        "<div class=\"analysis-metric-grid\">" +
+          "<article class=\"analysis-metric\"><span>" + escapeHtml(tr("Test Used")) + "</span><strong>" + escapeHtml(tr(test.name || "Not Available")) + "</strong></article>" +
+          "<article class=\"analysis-metric\"><span>" + escapeHtml(tr("Test Statistic")) + "</span><strong><bdi dir=\"ltr\">" + escapeHtml(analysisNumber(test.statistic)) + "</bdi></strong></article>" +
+          "<article class=\"analysis-metric\"><span>" + escapeHtml(tr("p-value")) + "</span><strong><bdi dir=\"ltr\">" + escapeHtml(analysisPValue(test.p_value)) + "</bdi></strong></article>" +
+          "<article class=\"analysis-metric\"><span>" + escapeHtml(tr("Effect Size")) + "</span><strong><bdi dir=\"ltr\">" + escapeHtml(analysisNumber(effect.value)) + "</bdi></strong></article>" +
+          "<article class=\"analysis-metric\"><span>" + escapeHtml(tr("Strength")) + "</span><strong>" + escapeHtml(populationEffectStrengthLabel(effect.strength)) + "</strong></article>" +
+        "</div>" +
+        "<div class=\"analysis-interpretation\">" + escapeHtml(localizedGroupSizeFunctionInterpretation(analysis)) + "</div>" +
+        "<p class=\"analysis-missing-note\">" + escapeHtml(groupSizeFunctionReason(analysis)) + "</p>" +
+        "<div class=\"table-responsive\"><table class=\"analysis-table population-function-description\"><thead><tr><th scope=\"col\">" + escapeHtml(tr("Function Status")) + "</th><th scope=\"col\">" + escapeHtml(tr("Count")) + "</th><th scope=\"col\">" + escapeHtml(tr("Mean")) + "</th><th scope=\"col\">" + escapeHtml(tr("Median")) + "</th><th scope=\"col\">" + escapeHtml(tr("Minimum")) + "</th><th scope=\"col\">" + escapeHtml(tr("Maximum")) + "</th><th scope=\"col\">" + escapeHtml(tr("Standard Deviation")) + "</th><th scope=\"col\">" + escapeHtml(tr("IQR")) + "</th></tr></thead><tbody>" + groupSizeFunctionDescriptionRows(analysis) + "</tbody></table></div>" +
+        "<div class=\"analysis-chart-grid groupsize-function-chart-grid\">" +
+          "<article class=\"function-chart-panel\"><h4>" + escapeHtml(tr("{function} Box Plot", { function: tr(analysis.function_label) })) + "</h4><div class=\"chart-wrap chart-wrap-population\"><canvas id=\"" + id + "PopulationBoxPlot\" role=\"img\" aria-label=\"" + escapeHtml(tr("{function} population box plot", { function: tr(analysis.function_label) })) + "\"></canvas></div></article>" +
+          "<article class=\"function-chart-panel\"><h4>" + escapeHtml(tr("{function} Histogram", { function: tr(analysis.function_label) })) + "</h4><div class=\"chart-wrap chart-wrap-population\"><canvas id=\"" + id + "PopulationHistogram\" role=\"img\" aria-label=\"" + escapeHtml(tr("{function} population histogram", { function: tr(analysis.function_label) })) + "\"></canvas></div></article>" +
+        "</div>" +
+      "</article>";
+    }).join("");
+  }
+
+  function renderGroupSizeFunctionBoxPlot(analysis) {
+    const canvas = $("#" + analysis.analysis_id + "PopulationBoxPlot");
+    const items = analysis.charts?.box_plot?.items;
+    if (!canvas || !Array.isArray(items) || !window.Chart || items.some((item) => item.minimum === null)) return;
+    const plugin = {
+      id: "functionBoxWhiskers" + analysis.analysis_id,
+      afterDatasetsDraw(chart) {
+        const { ctx, scales } = chart;
+        const meta = chart.getDatasetMeta(0);
+        ctx.save();
+        ctx.strokeStyle = window.SitePreferences?.getTheme() === "dark" ? "#f3ead5" : "#123524";
+        ctx.lineWidth = 2;
+        items.forEach((item, index) => {
+          const element = meta.data[index];
+          if (!element) return;
+          const y = element.y;
+          const cap = Math.min(12, (element.height || 24) * 0.42);
+          const minimum = scales.x.getPixelForValue(item.minimum);
+          const maximum = scales.x.getPixelForValue(item.maximum);
+          const median = scales.x.getPixelForValue(item.median);
+          ctx.beginPath();
+          ctx.moveTo(minimum, y); ctx.lineTo(maximum, y);
+          ctx.moveTo(minimum, y - cap); ctx.lineTo(minimum, y + cap);
+          ctx.moveTo(maximum, y - cap); ctx.lineTo(maximum, y + cap);
+          ctx.moveTo(median, y - cap); ctx.lineTo(median, y + cap);
+          ctx.stroke();
+        });
+        ctx.restore();
+      }
+    };
+    const chart = new window.Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: items.map((item) => tr(item.label)),
+        datasets: [{
+          data: items.map((item) => [item.first_quartile, item.third_quartile]),
+          backgroundColor: ["rgba(40, 122, 80, .72)", "rgba(200, 169, 106, .76)"],
+          borderColor: ["#123524", "#9a6b1f"],
+          borderWidth: 1,
+          borderRadius: 7,
+          barPercentage: 0.48
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: "y",
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: "#081c13", padding: 11, cornerRadius: 8 } },
+        scales: {
+          x: {
+            type: "logarithmic",
+            min: Math.min(...items.map((item) => Number(item.minimum))),
+            max: Math.max(...items.map((item) => Number(item.maximum))),
+            grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" },
+            ticks: { callback: (value) => populationCompact(value) },
+            title: { display: true, text: tr("Population (logarithmic scale)") }
+          },
+          y: { grid: { display: false } }
+        }
+      },
+      plugins: [plugin]
+    });
+    state.groupSizeFunctionsAnalysis.charts.set("box-" + analysis.analysis_id, chart);
+  }
+
+  function renderGroupSizeFunctionHistogram(analysis) {
+    const canvas = $("#" + analysis.analysis_id + "PopulationHistogram");
+    const histogram = analysis.charts?.histogram;
+    if (!canvas || !Array.isArray(histogram?.bin_edges) || histogram.bin_edges.length < 2 || !window.Chart) return;
+    const labels = histogram.bin_edges.slice(0, -1).map((edge, index) =>
+      populationCompact(edge) + "-" + populationCompact(histogram.bin_edges[index + 1])
+    );
+    const chart = new window.Chart(canvas, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: (histogram.datasets || []).map((dataset, index) => ({
+          label: tr(dataset.label),
+          data: dataset.counts,
+          backgroundColor: index === 0 ? "rgba(40, 122, 80, .72)" : "rgba(200, 169, 106, .7)",
+          borderRadius: 4,
+          borderSkipped: false
+        }))
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom", labels: { usePointStyle: true, padding: 18, boxWidth: 8 } }, tooltip: { backgroundColor: "#081c13", padding: 11, cornerRadius: 8 } },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxRotation: 45, autoSkip: true, maxTicksLimit: 8 }, title: { display: true, text: tr("Population interval") } },
+          y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" }, title: { display: true, text: tr("Number of groups") } }
+        }
+      }
+    });
+    state.groupSizeFunctionsAnalysis.charts.set("histogram-" + analysis.analysis_id, chart);
+  }
+
+  async function initContinentLeadershipAnalysis() {
+    const section = $("#continent-leadership-analysis");
+    if (!section) return;
+
+    setContinentLeadershipStatus(tr("Loading continent and leadership analysis..."));
+    const data = await loadApiData("statistical-analysis/continent-leadership");
+    if (!Array.isArray(data?.descriptive_statistics) || !data?.statistical_test || !data?.charts) {
+      throw new Error("continent-leadership: unexpected API response format");
+    }
+    state.continentLeadershipAnalysis.data = data;
+    renderContinentLeadershipSummary();
+    renderContinentLeadershipDescription();
+    renderContinentLeadershipResult();
+    renderContinentLeadershipGroupedChart();
+    renderContinentLeadershipStackedChart();
+    setContinentLeadershipStatus("");
+  }
+
+  function setContinentLeadershipStatus(message, isError = false) {
+    const status = $("#continentLeadershipStatus");
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle("is-error", isError);
+  }
+
+  function analysisPercent(value) {
+    if (value === null || value === undefined || !Number.isFinite(Number(value))) {
+      return tr("Not Available");
+    }
+    return Number(value).toLocaleString(isArabic() ? "ar" : "en", {
+      maximumFractionDigits: 1
+    }) + "%";
+  }
+
+  function renderContinentLeadershipSummary() {
+    const data = state.continentLeadershipAnalysis.data;
+    if (!data) return;
+    const summary = data.summary || {};
+    const preparation = data.data_preparation || {};
+    const values = {
+      continentLeadershipTotalGroups: analysisNumber(summary.total_groups, 0),
+      continentLeadershipDominant: tr(summary.dominant_leadership_type || "Not Available"),
+      continentLeadershipContinents: analysisNumber(summary.number_of_continents, 0),
+      continentLeadershipMissing: analysisNumber(preparation.missing_observations_removed, 0)
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = $("#" + id);
+      if (element) element.textContent = value;
+    });
+  }
+
+  function renderContinentLeadershipDescription() {
+    const body = $("#continentLeadershipDescriptionBody");
+    const rows = state.continentLeadershipAnalysis.data?.descriptive_statistics;
+    if (!body || !Array.isArray(rows)) return;
+    body.innerHTML = rows.map((item) => {
+      const counts = item.counts || {};
+      const percentages = item.percentages || {};
+      return "<tr>" +
+        "<th scope=\"row\">" + escapeHtml(tr(item.continent)) + "</th>" +
+        "<td>" + escapeHtml(analysisNumber(item.total_groups, 0)) + "</td>" +
+        "<td>" + escapeHtml(analysisNumber(counts.king, 0)) + "</td>" +
+        "<td>" + escapeHtml(analysisPercent(percentages.king)) + "</td>" +
+        "<td>" + escapeHtml(analysisNumber(counts.chief, 0)) + "</td>" +
+        "<td>" + escapeHtml(analysisPercent(percentages.chief)) + "</td>" +
+        "<td>" + escapeHtml(analysisNumber(counts.headman, 0)) + "</td>" +
+        "<td>" + escapeHtml(analysisPercent(percentages.headman)) + "</td>" +
+      "</tr>";
+    }).join("");
+  }
+
+  function localizedContinentLeadershipInterpretation() {
+    const test = state.continentLeadershipAnalysis.data?.statistical_test || {};
+    const strength = tr(test.effect_strength || "Not Available").toLowerCase();
+    if (test.p_value === null || test.p_value === undefined) {
+      return tr("The association between continent and leadership structure could not be calculated because the contingency table lacked sufficient variation.");
+    }
+    if (test.significant) {
+      return tr("There is a statistically significant association between continent and leadership structure (p < 0.05). Cramer's V indicates a {strength} association.", { strength });
+    }
+    return tr("No statistically significant association was detected between continent and leadership structure (p >= 0.05). Cramer's V indicates a {strength} association.", { strength });
+  }
+
+  function renderContinentLeadershipFrequencyTable(bodyId, values, labels, decimals) {
+    const body = $("#" + bodyId);
+    if (!body) return;
+    body.innerHTML = labels.map((label, index) => {
+      const row = Array.isArray(values?.[index]) ? values[index] : [];
+      return "<tr><th scope=\"row\">" + escapeHtml(tr(label)) + "</th>" +
+        [0, 1, 2].map((column) =>
+          "<td><bdi dir=\"ltr\">" + escapeHtml(analysisNumber(row[column], decimals)) + "</bdi></td>"
+        ).join("") + "</tr>";
+    }).join("");
+  }
+
+  function renderContinentLeadershipResult() {
+    const data = state.continentLeadershipAnalysis.data;
+    if (!data) return;
+    const test = data.statistical_test || {};
+    const values = {
+      continentLeadershipChiSquare: analysisNumber(test.chi_square),
+      continentLeadershipDf: analysisNumber(test.degrees_of_freedom, 0),
+      continentLeadershipPValue: analysisPValue(test.p_value),
+      continentLeadershipCramersV: analysisNumber(test.cramers_v),
+      continentLeadershipSample: analysisNumber(test.sample_size, 0)
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = $("#" + id);
+      if (element) element.textContent = value;
+    });
+
+    const badge = $("#continentLeadershipSignificance");
+    if (badge) {
+      badge.textContent = test.p_value === null
+        ? tr("Not Available")
+        : test.significant
+          ? tr("Statistically significant")
+          : tr("Not statistically significant");
+      badge.dataset.strength = test.significant ? "strong" : "unavailable";
+    }
+    const interpretation = $("#continentLeadershipInterpretation");
+    if (interpretation) interpretation.textContent = localizedContinentLeadershipInterpretation();
+    const note = $("#continentLeadershipMethodNote");
+    if (note) note.textContent = tr(data.method_note || test.reason || "");
+
+    const table = test.contingency_table || {};
+    renderContinentLeadershipFrequencyTable(
+      "continentLeadershipObservedBody",
+      table.observed,
+      table.row_labels || [],
+      0
+    );
+    renderContinentLeadershipFrequencyTable(
+      "continentLeadershipExpectedBody",
+      table.expected,
+      table.row_labels || [],
+      2
+    );
+  }
+
+  function continentLeadershipDatasets(source, percentages = false) {
+    const colors = [
+      ["rgba(18, 53, 36, .84)", "#123524"],
+      ["rgba(200, 169, 106, .82)", "#9a6b1f"],
+      ["rgba(40, 122, 80, .72)", "#287a50"]
+    ];
+    return (source.datasets || []).map((dataset, index) => ({
+      label: tr(dataset.label),
+      data: dataset.values,
+      backgroundColor: colors[index][0],
+      borderColor: colors[index][1],
+      borderWidth: percentages ? 1 : 0,
+      borderRadius: percentages ? 0 : 5,
+      borderSkipped: false
+    }));
+  }
+
+  function renderContinentLeadershipGroupedChart() {
+    const canvas = $("#continentLeadershipGroupedChart");
+    const source = state.continentLeadershipAnalysis.data?.charts?.grouped_bar;
+    if (!canvas || !source || !window.Chart) return;
+    state.continentLeadershipAnalysis.groupedChart = new window.Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: source.labels.map((label) => tr(label)),
+        datasets: continentLeadershipDatasets(source)
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom", labels: { usePointStyle: true, padding: 18, boxWidth: 8 } },
+          tooltip: { backgroundColor: "#081c13", padding: 11, cornerRadius: 8 }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 },
+            grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" },
+            title: { display: true, text: tr("Number of leadership occurrences") }
+          }
+        }
+      }
+    });
+  }
+
+  function renderContinentLeadershipStackedChart() {
+    const canvas = $("#continentLeadershipStackedChart");
+    const source = state.continentLeadershipAnalysis.data?.charts?.percentage_stacked;
+    if (!canvas || !source || !window.Chart) return;
+    state.continentLeadershipAnalysis.stackedChart = new window.Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: source.labels.map((label) => tr(label)),
+        datasets: continentLeadershipDatasets(source, true)
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom", labels: { usePointStyle: true, padding: 18, boxWidth: 8 } },
+          tooltip: {
+            backgroundColor: "#081c13",
+            padding: 11,
+            cornerRadius: 8,
+            callbacks: { label: (context) => context.dataset.label + ": " + analysisPercent(context.raw) }
+          }
+        },
+        scales: {
+          x: { stacked: true, grid: { display: false } },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            max: 100,
+            ticks: { callback: (value) => value + "%" },
+            grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" },
+            title: { display: true, text: tr("Leadership distribution") }
+          }
+        }
+      }
+    });
+  }
+
+  async function initContinentRecognitionAnalysis() {
+    const section = $("#continent-recognition-analysis");
+    if (!section) return;
+    setContinentRecognitionStatus(tr("Loading continent and recognition analysis..."));
+    const data = await loadApiData("statistical-analysis/continent-recognition");
+    if (!Array.isArray(data?.descriptive_statistics) || !data?.statistical_test || !data?.charts) {
+      throw new Error("continent-recognition: unexpected API response format");
+    }
+    state.continentRecognitionAnalysis.data = data;
+    renderContinentRecognitionSummary();
+    renderContinentRecognitionDescription();
+    renderContinentRecognitionHeatmap();
+    renderContinentRecognitionResult();
+    renderContinentRecognitionStackedChart();
+    setContinentRecognitionStatus("");
+  }
+
+  function setContinentRecognitionStatus(message, isError = false) {
+    const status = $("#continentRecognitionStatus");
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle("is-error", isError);
+  }
+
+  function recognitionRateSummary(item) {
+    if (!item) return tr("Not Available");
+    return tr(item.continent) + " - " + analysisPercent(item.recognition_percentage);
+  }
+
+  function renderContinentRecognitionSummary() {
+    const data = state.continentRecognitionAnalysis.data;
+    if (!data) return;
+    const summary = data.summary || {};
+    const preparation = data.data_preparation || {};
+    const values = {
+      continentRecognitionContinents: analysisNumber(summary.total_continents, 0),
+      continentRecognitionHighest: recognitionRateSummary(summary.highest_recognition_rate),
+      continentRecognitionLowest: recognitionRateSummary(summary.lowest_recognition_rate),
+      continentRecognitionSample: analysisNumber(preparation.final_sample_size, 0)
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = $("#" + id);
+      if (element) element.textContent = value;
+    });
+  }
+
+  function renderContinentRecognitionDescription() {
+    const body = $("#continentRecognitionDescriptionBody");
+    const rows = state.continentRecognitionAnalysis.data?.descriptive_statistics;
+    if (!body || !Array.isArray(rows)) return;
+    body.innerHTML = rows.map((item) => "<tr>" +
+      "<th scope=\"row\">" + escapeHtml(tr(item.continent)) + "</th>" +
+      "<td>" + escapeHtml(analysisNumber(item.total_groups, 0)) + "</td>" +
+      "<td>" + escapeHtml(analysisNumber(item.recognized, 0)) + "</td>" +
+      "<td>" + escapeHtml(analysisNumber(item.not_recognized, 0)) + "</td>" +
+      "<td>" + escapeHtml(analysisPercent(item.recognition_percentage)) + "</td>" +
+    "</tr>").join("");
+  }
+
+  function renderContinentRecognitionHeatmap() {
+    const container = $("#continentRecognitionHeatmap");
+    const items = state.continentRecognitionAnalysis.data?.charts?.recognition_heatmap?.items;
+    if (!container || !Array.isArray(items)) return;
+    container.innerHTML = items.map((item) => {
+      const rate = Math.max(0, Math.min(100, Number(item.recognition_percentage) || 0));
+      return "<div class=\"continent-recognition-heatmap-row\" role=\"row\">" +
+        "<strong role=\"rowheader\">" + escapeHtml(tr(item.continent)) + "</strong>" +
+        "<span class=\"continent-recognition-heatmap-track\" style=\"--recognition-rate:" + rate + "%\" aria-hidden=\"true\"><span></span></span>" +
+        "<bdi dir=\"ltr\" role=\"cell\">" + escapeHtml(analysisPercent(rate)) + "</bdi>" +
+      "</div>";
+    }).join("");
+  }
+
+  function localizedContinentRecognitionInterpretation() {
+    const test = state.continentRecognitionAnalysis.data?.statistical_test || {};
+    const strength = tr(test.effect_strength || "Not Available").toLowerCase();
+    if (test.p_value === null || test.p_value === undefined) {
+      return tr("The association between continent and formal recognition could not be calculated because the contingency table lacked sufficient variation.");
+    }
+    if (test.significant) {
+      return tr("There is a statistically significant association between continent and formal recognition (p < 0.05). Cramer's V indicates a {strength} association.", { strength });
+    }
+    return tr("No statistically significant association was detected between continent and formal recognition (p >= 0.05). Cramer's V indicates a {strength} association.", { strength });
+  }
+
+  function renderContinentRecognitionFrequencyTable(bodyId, rows, labels, decimals) {
+    const body = $("#" + bodyId);
+    if (!body) return;
+    body.innerHTML = labels.map((label, index) => {
+      const row = Array.isArray(rows?.[index]) ? rows[index] : [];
+      return "<tr><th scope=\"row\">" + escapeHtml(tr(label)) + "</th>" +
+        [0, 1].map((column) =>
+          "<td><bdi dir=\"ltr\">" + escapeHtml(analysisNumber(row[column], decimals)) + "</bdi></td>"
+        ).join("") + "</tr>";
+    }).join("");
+  }
+
+  function renderContinentRecognitionResult() {
+    const data = state.continentRecognitionAnalysis.data;
+    if (!data) return;
+    const test = data.statistical_test || {};
+    const values = {
+      continentRecognitionChiSquare: analysisNumber(test.chi_square),
+      continentRecognitionDf: analysisNumber(test.degrees_of_freedom, 0),
+      continentRecognitionPValue: analysisPValue(test.p_value),
+      continentRecognitionCramersV: analysisNumber(test.cramers_v),
+      continentRecognitionTestSample: analysisNumber(test.sample_size, 0)
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = $("#" + id);
+      if (element) element.textContent = value;
+    });
+    const badge = $("#continentRecognitionSignificance");
+    if (badge) {
+      badge.textContent = test.p_value === null
+        ? tr("Not Available")
+        : test.significant ? tr("Statistically significant") : tr("Not statistically significant");
+      badge.dataset.strength = test.significant ? "strong" : "unavailable";
+    }
+    const interpretation = $("#continentRecognitionInterpretation");
+    if (interpretation) interpretation.textContent = localizedContinentRecognitionInterpretation();
+    const table = test.contingency_table || {};
+    renderContinentRecognitionFrequencyTable("continentRecognitionObservedBody", table.observed, table.row_labels || [], 0);
+    renderContinentRecognitionFrequencyTable("continentRecognitionExpectedBody", table.expected, table.row_labels || [], 2);
+  }
+
+  function renderContinentRecognitionStackedChart() {
+    const canvas = $("#continentRecognitionStackedChart");
+    const source = state.continentRecognitionAnalysis.data?.charts?.percentage_stacked;
+    if (!canvas || !source || !window.Chart) return;
+    const colors = [
+      ["rgba(40, 122, 80, .84)", "#287a50"],
+      ["rgba(200, 169, 106, .82)", "#9a6b1f"]
+    ];
+    state.continentRecognitionAnalysis.stackedChart = new window.Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: source.labels.map((label) => tr(label)),
+        datasets: source.datasets.map((dataset, index) => ({
+          label: tr(dataset.label),
+          data: dataset.values,
+          backgroundColor: colors[index][0],
+          borderColor: colors[index][1],
+          borderWidth: 1,
+          borderSkipped: false
+        }))
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom", labels: { usePointStyle: true, padding: 18, boxWidth: 8 } },
+          tooltip: {
+            backgroundColor: "#081c13",
+            padding: 11,
+            cornerRadius: 8,
+            callbacks: { label: (context) => context.dataset.label + ": " + analysisPercent(context.raw) }
+          }
+        },
+        scales: {
+          x: { stacked: true, grid: { display: false } },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            max: 100,
+            ticks: { callback: (value) => value + "%" },
+            grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" },
+            title: { display: true, text: tr("Recognition percentage") }
+          }
+        }
+      }
+    });
+  }
+
+  async function initRegionRecognitionAnalysis() {
+    const section = $("#region-recognition-analysis");
+    if (!section) return;
+    setRegionRecognitionStatus(tr("Loading region and recognition analysis..."));
+    const data = await loadApiData("statistical-analysis/region-recognition");
+    if (!Array.isArray(data?.descriptive_statistics) || !data?.statistical_test || !data?.charts) {
+      throw new Error("region-recognition: unexpected API response format");
+    }
+    state.regionRecognitionAnalysis.data = data;
+    renderRegionRecognitionSummary();
+    renderRegionRecognitionDescription();
+    renderRegionRecognitionHeatmap();
+    renderRegionRecognitionResult();
+    renderRegionRecognitionStackedChart();
+    setRegionRecognitionStatus("");
+  }
+
+  function setRegionRecognitionStatus(message, isError = false) {
+    const status = $("#regionRecognitionStatus");
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle("is-error", isError);
+  }
+
+  function regionRecognitionRateSummary(item) {
+    if (!item) return tr("Not Available");
+    return tr(item.region) + " - " + analysisPercent(item.recognition_percentage);
+  }
+
+  function renderRegionRecognitionSummary() {
+    const data = state.regionRecognitionAnalysis.data;
+    if (!data) return;
+    const summary = data.summary || {};
+    const values = {
+      regionRecognitionRegions: analysisNumber(summary.total_regions, 0),
+      regionRecognitionHighest: regionRecognitionRateSummary(summary.highest_recognition_rate),
+      regionRecognitionLowest: regionRecognitionRateSummary(summary.lowest_recognition_rate),
+      regionRecognitionAverage: analysisPercent(summary.average_recognition_rate)
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = $("#" + id);
+      if (element) element.textContent = value;
+    });
+  }
+
+  function renderRegionRecognitionDescription() {
+    const body = $("#regionRecognitionDescriptionBody");
+    const rows = state.regionRecognitionAnalysis.data?.descriptive_statistics;
+    if (!body || !Array.isArray(rows)) return;
+    body.innerHTML = rows.map((item) => "<tr>" +
+      '<th scope="row">' + escapeHtml(tr(item.region)) + "</th>" +
+      "<td>" + escapeHtml(analysisNumber(item.total_groups, 0)) + "</td>" +
+      "<td>" + escapeHtml(analysisNumber(item.recognized, 0)) + "</td>" +
+      "<td>" + escapeHtml(analysisNumber(item.not_recognized, 0)) + "</td>" +
+      "<td>" + escapeHtml(analysisNumber(item.missing_recognition, 0)) + "</td>" +
+      "<td>" + escapeHtml(analysisPercent(item.recognition_percentage)) + "</td>" +
+    "</tr>").join("");
+  }
+
+  function renderRegionRecognitionHeatmap() {
+    const container = $("#regionRecognitionHeatmap");
+    const items = state.regionRecognitionAnalysis.data?.charts?.recognition_heatmap?.items;
+    if (!container || !Array.isArray(items)) return;
+    container.innerHTML = items.map((item) => {
+      const rate = Math.max(0, Math.min(100, Number(item.recognition_percentage) || 0));
+      return '<div class="continent-recognition-heatmap-row" role="row">' +
+        '<strong role="rowheader">' + escapeHtml(tr(item.region)) + "</strong>" +
+        '<span class="continent-recognition-heatmap-track" style="--recognition-rate:' + rate + '%" aria-hidden="true"><span></span></span>' +
+        '<bdi dir="ltr" role="cell">' + escapeHtml(analysisPercent(rate)) + "</bdi>" +
+      "</div>";
+    }).join("");
+  }
+
+  function localizedRegionRecognitionInterpretation() {
+    const test = state.regionRecognitionAnalysis.data?.statistical_test || {};
+    const strength = tr(test.effect_strength || "Not Available").toLowerCase();
+    if (test.p_value === null || test.p_value === undefined) {
+      return tr("The association between region and formal recognition could not be calculated because the contingency table lacked sufficient variation.");
+    }
+    if (test.significant) {
+      return tr("There is a statistically significant association between region and formal recognition (p < 0.05). Cramer's V indicates a {strength} association.", { strength });
+    }
+    return tr("No statistically significant association was detected between region and formal recognition (p >= 0.05). Cramer's V indicates a {strength} association.", { strength });
+  }
+
+  function renderRegionRecognitionFrequencyTable(bodyId, rows, labels, decimals) {
+    const body = $("#" + bodyId);
+    if (!body) return;
+    body.innerHTML = labels.map((label, index) => {
+      const row = Array.isArray(rows?.[index]) ? rows[index] : [];
+      return '<tr><th scope="row">' + escapeHtml(tr(label)) + "</th>" +
+        [0, 1].map((column) =>
+          '<td><bdi dir="ltr">' + escapeHtml(analysisNumber(row[column], decimals)) + "</bdi></td>"
+        ).join("") + "</tr>";
+    }).join("");
+  }
+
+  function renderRegionRecognitionResult() {
+    const data = state.regionRecognitionAnalysis.data;
+    if (!data) return;
+    const test = data.statistical_test || {};
+    const values = {
+      regionRecognitionChiSquare: analysisNumber(test.chi_square),
+      regionRecognitionDf: analysisNumber(test.degrees_of_freedom, 0),
+      regionRecognitionPValue: analysisPValue(test.p_value),
+      regionRecognitionCramersV: analysisNumber(test.cramers_v),
+      regionRecognitionTestSample: analysisNumber(test.sample_size, 0)
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = $("#" + id);
+      if (element) element.textContent = value;
+    });
+    const badge = $("#regionRecognitionSignificance");
+    if (badge) {
+      badge.textContent = test.p_value === null
+        ? tr("Not Available")
+        : test.significant ? tr("Statistically significant") : tr("Not statistically significant");
+      badge.dataset.strength = test.significant ? "strong" : "unavailable";
+    }
+    const interpretation = $("#regionRecognitionInterpretation");
+    if (interpretation) interpretation.textContent = localizedRegionRecognitionInterpretation();
+    const table = test.contingency_table || {};
+    renderRegionRecognitionFrequencyTable("regionRecognitionObservedBody", table.observed, table.row_labels || [], 0);
+    renderRegionRecognitionFrequencyTable("regionRecognitionExpectedBody", table.expected, table.row_labels || [], 2);
+  }
+
+  function renderRegionRecognitionStackedChart() {
+    const canvas = $("#regionRecognitionStackedChart");
+    const source = state.regionRecognitionAnalysis.data?.charts?.percentage_stacked;
+    if (!canvas || !source || !window.Chart) return;
+    const colors = [
+      ["rgba(40, 122, 80, .84)", "#287a50"],
+      ["rgba(200, 169, 106, .82)", "#9a6b1f"],
+      ["rgba(137, 145, 141, .72)", "#65716b"]
+    ];
+    state.regionRecognitionAnalysis.stackedChart = new window.Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: source.labels.map((label) => tr(label)),
+        datasets: source.datasets.map((dataset, index) => ({
+          label: tr(dataset.label),
+          data: dataset.values,
+          backgroundColor: colors[index][0],
+          borderColor: colors[index][1],
+          borderWidth: 1,
+          borderSkipped: false
+        }))
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom", labels: { usePointStyle: true, padding: 18, boxWidth: 8 } },
+          tooltip: {
+            backgroundColor: "#081c13",
+            padding: 11,
+            cornerRadius: 8,
+            callbacks: { label: (context) => context.dataset.label + ": " + analysisPercent(context.raw) }
+          }
+        },
+        scales: {
+          x: { stacked: true, grid: { display: false } },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            max: 100,
+            ticks: { callback: (value) => value + "%" },
+            grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" },
+            title: { display: true, text: tr("Recognition percentage") }
+          }
+        }
+      }
+    });
+  }
+
+
+
+  function initDynamicAnalysisEngine() {
+    const form = $("#dynamicAnalysisForm");
+    if (!form) return;
+    const variableX = $("#dynamicVariableX");
+    const variableY = $("#dynamicVariableY");
+    const exportCsv = $("#dynamicExportCsv");
+    const exportPdf = $("#dynamicExportPdf");
+
+    const keepVariablesDistinct = (changedSelect) => {
+      if (!variableX || !variableY || variableX.value !== variableY.value) return;
+      const target = changedSelect === variableX ? variableY : variableX;
+      const alternative = Array.from(target.options).find(
+        (option) => option.value && option.value !== changedSelect.value
+      );
+      if (alternative) target.value = alternative.value;
+    };
+
+    variableX?.addEventListener("change", () => keepVariablesDistinct(variableX));
+    variableY?.addEventListener("change", () => keepVariablesDistinct(variableY));
+    form.addEventListener("submit", runDynamicAnalysis);
+    exportCsv?.addEventListener("click", exportDynamicAnalysisCsv);
+    exportPdf?.addEventListener("click", exportDynamicAnalysisPdf);
+    window.addEventListener("afterprint", () => {
+      document.body.classList.remove("dynamic-analysis-print");
+    });
+  }
+
+  function setDynamicAnalysisStatus(message, isError = false) {
+    const status = $("#dynamicAnalysisStatus");
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle("is-error", isError);
+  }
+
+  function setDynamicAnalysisLoading(isLoading) {
+    const button = $("#dynamicAnalyzeButton");
+    const spinner = $("#dynamicAnalyzeSpinner");
+    const label = $("#dynamicAnalyzeLabel");
+    if (button) button.disabled = isLoading;
+    spinner?.classList.toggle("d-none", !isLoading);
+    if (label) label.textContent = tr(isLoading ? "Analyzing..." : "Analyze Variables");
+  }
+
+  async function runDynamicAnalysis(event) {
+    event.preventDefault();
+    const variableX = $("#dynamicVariableX")?.value;
+    const variableY = $("#dynamicVariableY")?.value;
+    if (!variableX || !variableY || variableX === variableY) {
+      setDynamicAnalysisStatus(tr("Select two different variables."), true);
+      return;
+    }
+
+    state.dynamicAnalysisEngine.requestController?.abort();
+    const controller = new AbortController();
+    state.dynamicAnalysisEngine.requestController = controller;
+    setDynamicAnalysisLoading(true);
+    setDynamicAnalysisStatus(tr("Analyzing the selected variables..."));
+
+    try {
+      const parameters = new URLSearchParams({
+        variable_x: variableX,
+        variable_y: variableY
+      });
+      const data = await loadApiData(
+        "statistical-analysis/run?" + parameters.toString(),
+        { signal: controller.signal }
+      );
+      if (!data?.variables || !data?.statistical_test || !data?.charts) {
+        throw new Error("dynamic analysis: unexpected API response format");
+      }
+      state.dynamicAnalysisEngine.data = data;
+      renderDynamicAnalysisResult();
+      setDynamicAnalysisStatus("");
+    } catch (error) {
+      if (error.name === "AbortError") return;
+      console.error("Could not run dynamic statistical analysis:", error);
+      setDynamicAnalysisStatus(
+        tr(error.message || "Could not load data. Please try again later."),
+        true
+      );
+    } finally {
+      if (state.dynamicAnalysisEngine.requestController === controller) {
+        state.dynamicAnalysisEngine.requestController = null;
+        setDynamicAnalysisLoading(false);
+      }
+    }
+  }
+
+  function dynamicVariableLabel(variable) {
+    return tr(variable?.label || variable?.key || "Not Available");
+  }
+
+  function localizedDynamicInterpretation(data) {
+    const test = data.statistical_test || {};
+    if (test.p_value === null || test.p_value === undefined) {
+      return tr("The selected relationship could not be calculated because the data lacked sufficient variation. No causal conclusion can be made.");
+    }
+    if (data.analysis_type === "categorical_categorical") {
+      return test.significant
+        ? tr("There is a statistically significant association between the selected variables. The result describes association, not causation.")
+        : tr("No statistically significant association was detected between the selected variables. The result describes association, not causation.");
+    }
+    if (data.analysis_type === "numeric_numeric") {
+      return test.significant
+        ? tr("There is a statistically significant relationship between the selected numeric variables. The result describes association, not causation.")
+        : tr("No statistically significant relationship was detected between the selected numeric variables. The result describes association, not causation.");
+    }
+    return test.significant
+      ? tr("There is a statistically significant difference in the numeric variable across the selected categories. The result does not establish causation.")
+      : tr("No statistically significant difference was detected in the numeric variable across the selected categories. The result does not establish causation.");
+  }
+
+  function renderDynamicAnalysisResult() {
+    const data = state.dynamicAnalysisEngine.data;
+    const result = $("#dynamicAnalysisResult");
+    if (!data || !result) return;
+    const test = data.statistical_test || {};
+    const preparation = data.data_preparation || {};
+    const effect = test.effect_size || {};
+    const variableX = dynamicVariableLabel(data.variables.variable_x);
+    const variableY = dynamicVariableLabel(data.variables.variable_y);
+    const values = {
+      dynamicSelectedVariables: variableX + " × " + variableY,
+      dynamicSelectedTest: tr(test.name || "Not Available"),
+      dynamicSampleSize: analysisNumber(preparation.final_sample_size, 0),
+      dynamicMissingExcluded: analysisNumber(preparation.missing_values_excluded, 0),
+      dynamicTestStatistic: analysisNumber(test.statistic),
+      dynamicDegreesFreedom: analysisNumber(test.degrees_of_freedom),
+      dynamicPValue: analysisPValue(test.p_value),
+      dynamicEffectSize: effect.value === null || effect.value === undefined
+        ? tr("Not Available")
+        : tr(effect.name || "Effect Size") + ": " + analysisNumber(effect.value),
+      dynamicEffectStrength: tr(effect.strength || "Not Available")
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = $("#" + id);
+      if (element) element.textContent = value;
+    });
+
+    const badge = $("#dynamicSignificanceBadge");
+    if (badge) {
+      badge.textContent = test.p_value === null || test.p_value === undefined
+        ? tr("Not Available")
+        : test.significant
+          ? tr("Statistically significant")
+          : tr("Not statistically significant");
+      badge.dataset.strength = test.significant ? "strong" : "unavailable";
+    }
+    const interpretation = $("#dynamicInterpretation");
+    if (interpretation) interpretation.textContent = localizedDynamicInterpretation(data);
+    const reason = $("#dynamicTestReason");
+    if (reason) reason.textContent = tr(test.reason || "");
+
+    renderDynamicAnalysisDetails();
+    renderDynamicAnalysisCharts();
+    result.hidden = false;
+    $("#dynamicExportCsv")?.removeAttribute("disabled");
+    $("#dynamicExportPdf")?.removeAttribute("disabled");
+    result.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function dynamicTable(headers, rows) {
+    return '<table class="data-table analysis-summary-table dynamic-details-table"><thead><tr>' +
+      headers.map((header) => "<th scope=\"col\">" + escapeHtml(tr(header)) + "</th>").join("") +
+      "</tr></thead><tbody>" +
+      rows.map((row) => "<tr>" + row.map((value, index) =>
+        (index === 0 ? "<th scope=\"row\">" : "<td>") +
+        escapeHtml(value) + (index === 0 ? "</th>" : "</td>")
+      ).join("") + "</tr>").join("") +
+      "</tbody></table>";
+  }
+
+  function renderDynamicAnalysisDetails() {
+    const container = $("#dynamicAnalysisDetails");
+    const data = state.dynamicAnalysisEngine.data;
+    if (!container || !data) return;
+    const descriptive = data.descriptive_statistics || {};
+    if (data.analysis_type === "categorical_categorical") {
+      const table = descriptive.contingency_table || {};
+      const rows = (table.row_labels || []).map((label, rowIndex) => [
+        tr(label),
+        ...(table.observed?.[rowIndex] || []).map((value) => analysisNumber(value, 0))
+      ]);
+      container.innerHTML = dynamicTable(
+        [dynamicVariableLabel(data.variables.variable_x), ...(table.column_labels || [])],
+        rows
+      );
+      return;
+    }
+
+    const rows = Object.entries(descriptive).map(([label, summary]) => [
+      tr(label === "variable_x"
+        ? dynamicVariableLabel(data.variables.variable_x)
+        : label === "variable_y"
+          ? dynamicVariableLabel(data.variables.variable_y)
+          : label),
+      analysisNumber(summary?.count, 0),
+      populationValue(summary?.mean),
+      populationValue(summary?.median),
+      populationValue(summary?.minimum),
+      populationValue(summary?.maximum),
+      populationValue(summary?.standard_deviation)
+    ]);
+    container.innerHTML = dynamicTable(
+      ["Group / Variable", "Count", "Mean", "Median", "Minimum", "Maximum", "Standard Deviation"],
+      rows
+    );
+  }
+
+  function destroyDynamicCharts() {
+    state.dynamicAnalysisEngine.primaryChart?.destroy();
+    state.dynamicAnalysisEngine.secondaryChart?.destroy();
+    state.dynamicAnalysisEngine.primaryChart = null;
+    state.dynamicAnalysisEngine.secondaryChart = null;
+  }
+
+  function prepareDynamicChartSurfaces() {
+    destroyDynamicCharts();
+    $("#dynamicSecondaryCanvasWrap")?.removeAttribute("hidden");
+    const heatmap = $("#dynamicAnalysisHeatmap");
+    ["dynamicPrimaryChart", "dynamicSecondaryChart"].forEach((id) => {
+      const wrap = $("#" + id)?.closest(".chart-wrap");
+      if (wrap) wrap.style.removeProperty("height");
+    });
+    if (heatmap) {
+      heatmap.hidden = true;
+      heatmap.innerHTML = "";
+    }
+  }
+
+  function renderDynamicAnalysisCharts() {
+    const data = state.dynamicAnalysisEngine.data;
+    if (!data || !window.Chart) return;
+    prepareDynamicChartSurfaces();
+    const recommended = data.charts?.recommended;
+    if (recommended === "categorical") {
+      renderDynamicCategoricalCharts(data);
+    } else if (recommended === "correlation") {
+      renderDynamicCorrelationCharts(data);
+    } else {
+      renderDynamicNumericCategoryCharts(data);
+    }
+  }
+
+  function renderDynamicCategoricalCharts(data) {
+    const source = data.charts.stacked_bar || {};
+    const primary = $("#dynamicPrimaryChart");
+    if (!primary) return;
+    $("#dynamicPrimaryChartTitle").textContent = tr("Stacked Bar Chart");
+    $("#dynamicSecondaryChartTitle").textContent = tr("Frequency Heatmap");
+    $("#dynamicChartDescription").textContent = tr("Counts and contingency-table intensity are generated from complete observations.");
+    const palette = [
+      "rgba(40, 122, 80, .82)",
+      "rgba(200, 169, 106, .82)",
+      "rgba(70, 106, 88, .72)",
+      "rgba(171, 118, 67, .72)",
+      "rgba(102, 126, 115, .72)"
+    ];
+    state.dynamicAnalysisEngine.primaryChart = new window.Chart(primary, {
+      type: "bar",
+      data: {
+        labels: (source.labels || []).map((label) => tr(label)),
+        datasets: (source.datasets || []).map((dataset, index) => ({
+          label: tr(dataset.label),
+          data: dataset.values,
+          backgroundColor: palette[index % palette.length],
+          borderRadius: 4,
+          borderSkipped: false
+        }))
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8 } },
+          tooltip: { backgroundColor: "#081c13", padding: 11, cornerRadius: 8 }
+        },
+        scales: {
+          x: { stacked: true, grid: { display: false } },
+          y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
+        }
+      }
+    });
+    $("#dynamicSecondaryCanvasWrap")?.setAttribute("hidden", "");
+    renderDynamicHeatmap(data.charts.heatmap);
+  }
+
+  function renderDynamicHeatmap(source) {
+    const container = $("#dynamicAnalysisHeatmap");
+    if (!container || !source) return;
+    const flatValues = (source.values || []).flat().map(Number);
+    const maximum = Math.max(1, ...flatValues);
+    const header = "<tr><th></th>" + (source.columns || []).map(
+      (label) => "<th scope=\"col\">" + escapeHtml(tr(label)) + "</th>"
+    ).join("") + "</tr>";
+    const rows = (source.rows || []).map((label, rowIndex) =>
+      "<tr><th scope=\"row\">" + escapeHtml(tr(label)) + "</th>" +
+      (source.values?.[rowIndex] || []).map((value) =>
+        "<td style=\"--heat-strength:" + Math.round(Number(value) / maximum * 88) +
+        "\" title=\"" + escapeHtml(tr("Frequency") + ": " + analysisNumber(value, 0)) +
+        "\"><bdi dir=\"ltr\">" + escapeHtml(analysisNumber(value, 0)) + "</bdi></td>"
+      ).join("") + "</tr>"
+    ).join("");
+    container.innerHTML = '<table class="dynamic-heatmap-table"><thead>' +
+      header + "</thead><tbody>" + rows + "</tbody></table>";
+    container.hidden = false;
+  }
+
+  function renderDynamicNumericCategoryCharts(data) {
+    const items = data.charts?.box_plot?.items || [];
+    const primary = $("#dynamicPrimaryChart");
+    const secondary = $("#dynamicSecondaryChart");
+    if (!primary || !secondary) return;
+    $("#dynamicPrimaryChartTitle").textContent = tr("Box Plot");
+    const primaryWrap = primary?.closest(".chart-wrap");
+    if (primaryWrap && items.length > 10) {
+      primaryWrap.style.height = Math.min(1500, items.length * 27) + "px";
+    }
+    $("#dynamicChartDescription").textContent = tr("Population distributions are summarized automatically for each observed category.");
+    state.dynamicAnalysisEngine.primaryChart = new window.Chart(primary, {
+      type: "bar",
+      data: {
+        labels: items.map((item) => tr(item.label)),
+        datasets: [{
+          label: tr("Interquartile Range"),
+          data: items.map((item) => [item.first_quartile, item.third_quartile]),
+          backgroundColor: "rgba(40, 122, 80, .72)",
+          borderColor: "#123524",
+          borderWidth: 1,
+          borderRadius: 6,
+          barPercentage: .55
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: "y",
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "#081c13",
+            callbacks: {
+              label(context) {
+                const item = items[context.dataIndex];
+                return [
+                  tr("Minimum") + ": " + populationValue(item.minimum),
+                  tr("Median") + ": " + populationValue(item.median),
+                  tr("Maximum") + ": " + populationValue(item.maximum)
+                ];
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: "logarithmic",
+            grid: { color: window.SitePreferences?.getTheme() === "dark" ? "#334139" : "#edf0ec" },
+            ticks: { callback: (value) => populationCompact(value) }
+          },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+
+    const histogram = data.charts?.histogram;
+    if (histogram?.bin_edges?.length > 1) {
+      $("#dynamicSecondaryChartTitle").textContent = tr("Histogram");
+      const labels = histogram.bin_edges.slice(0, -1).map((edge, index) =>
+        populationCompact(edge) + "–" + populationCompact(histogram.bin_edges[index + 1])
+      );
+      state.dynamicAnalysisEngine.secondaryChart = new window.Chart(secondary, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: (histogram.datasets || []).map((dataset, index) => ({
+            label: tr(dataset.label),
+            data: dataset.counts,
+            backgroundColor: index % 2
+              ? "rgba(200, 169, 106, .72)"
+              : "rgba(40, 122, 80, .72)",
+            borderRadius: 4,
+            borderSkipped: false
+          }))
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom" } },
+          scales: {
+            x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 8 } },
+            y: { beginAtZero: true, ticks: { precision: 0 } }
+          }
+        }
+      });
+      return;
+    }
+
+    $("#dynamicSecondaryChartTitle").textContent = tr("Median by Category");
+    state.dynamicAnalysisEngine.secondaryChart = new window.Chart(secondary, {
+      type: "bar",
+      data: {
+        labels: items.map((item) => tr(item.label)),
+        datasets: [{
+          label: tr("Median"),
+          data: items.map((item) => item.median),
+          backgroundColor: "rgba(200, 169, 106, .78)",
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  function renderDynamicCorrelationCharts(data) {
+    const source = data.charts?.scatter || {};
+    const primary = $("#dynamicPrimaryChart");
+    const secondary = $("#dynamicSecondaryChart");
+    if (!primary || !secondary) return;
+    $("#dynamicPrimaryChartTitle").textContent = tr("Scatter Plot");
+    $("#dynamicSecondaryChartTitle").textContent = tr("Numeric Summary");
+    $("#dynamicChartDescription").textContent = tr("The scatter plot displays paired observations and an optional fitted trend line.");
+    const datasets = [{
+      label: tr("Observed pairs"),
+      data: source.points || [],
+      backgroundColor: "rgba(40, 122, 80, .65)",
+      pointRadius: 4
+    }];
+    if (source.regression_line) {
+      datasets.push({
+        label: tr("Regression line"),
+        data: source.regression_line,
+        type: "line",
+        borderColor: "#c8a96a",
+        backgroundColor: "#c8a96a",
+        pointRadius: 0,
+        borderWidth: 2
+      });
+    }
+    state.dynamicAnalysisEngine.primaryChart = new window.Chart(primary, {
+      type: "scatter",
+      data: { datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom" } },
+        scales: {
+          x: { type: "linear", position: "bottom" },
+          y: { type: "linear" }
+        }
+      }
+    });
+    const descriptive = data.descriptive_statistics || {};
+    const variables = [data.variables.variable_x, data.variables.variable_y];
+    const summaries = [descriptive.variable_x || {}, descriptive.variable_y || {}];
+    state.dynamicAnalysisEngine.secondaryChart = new window.Chart(secondary, {
+      type: "bar",
+      data: {
+        labels: variables.map(dynamicVariableLabel),
+        datasets: [
+          { label: tr("Mean"), data: summaries.map((item) => item.mean), backgroundColor: "rgba(40, 122, 80, .75)" },
+          { label: tr("Median"), data: summaries.map((item) => item.median), backgroundColor: "rgba(200, 169, 106, .75)" }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom" } },
+        scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  function dynamicExportRows(data) {
+    const test = data.statistical_test || {};
+    const effect = test.effect_size || {};
+    const preparation = data.data_preparation || {};
+    return [
+      ["Variable X", dynamicVariableLabel(data.variables.variable_x)],
+      ["Variable Y", dynamicVariableLabel(data.variables.variable_y)],
+      ["Selected Statistical Test", tr(test.name || "Not Available")],
+      ["Sample Size", preparation.final_sample_size],
+      ["Missing Values Excluded", preparation.missing_values_excluded],
+      ["Test Statistic", test.statistic],
+      ["Degrees of Freedom", test.degrees_of_freedom],
+      ["p-value", test.p_value],
+      ["Effect Size", effect.name],
+      ["Effect Size Value", effect.value],
+      ["Strength", effect.strength],
+      ["Interpretation", localizedDynamicInterpretation(data)],
+      ["Descriptive Statistics", JSON.stringify(data.descriptive_statistics || {})]
+    ];
+  }
+
+  function csvCell(value) {
+    const textValue = value === null || value === undefined ? "" : String(value);
+    return '"' + textValue.replaceAll('"', '""') + '"';
+  }
+
+  function exportDynamicAnalysisCsv() {
+    const data = state.dynamicAnalysisEngine.data;
+    if (!data) return;
+    const csv = "﻿" + dynamicExportRows(data)
+      .map((row) => row.map(csvCell).join(","))
+      .join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "dynamic-analysis-" +
+      data.variables.variable_x.key + "-vs-" + data.variables.variable_y.key + ".csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportDynamicAnalysisPdf() {
+    if (!state.dynamicAnalysisEngine.data) return;
+    document.body.classList.add("dynamic-analysis-print");
+    window.print();
+  }
   function initContactForm() {
     const form = $("#contactForm");
     const status = $("#formStatus");
@@ -1673,6 +3954,8 @@
     });
 
     if ($("#resultsCount")) $("#resultsCount").textContent = message;
+    if ($("#analysisStatus")) setStatisticalAnalysisStatus(message, true);
+    if ($("#analysisDetail")) $("#analysisDetail").setAttribute("aria-busy", "false");
     if ($("#comparisonBody")) $("#comparisonBody").innerHTML = `<tr><td colspan="3" class="empty-state">${escapeHtml(message)}</td></tr>`;
     [$("#compareLeft"), $("#compareRight")].filter(Boolean).forEach((select) => {
       select.innerHTML = `<option>${escapeHtml(tr("Data unavailable"))}</option>`;

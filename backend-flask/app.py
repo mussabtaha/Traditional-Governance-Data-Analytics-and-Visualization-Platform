@@ -39,7 +39,11 @@ def create_app() -> Flask:
 
     @app.errorhandler(Exception)
     def handle_unexpected_error(error: Exception):
-        app.logger.exception("Unhandled API error: %s", error)
+        # Connector exceptions can include host or credential material in their
+        # message. Log only the exception type and return a stable public error.
+        app.logger.error(
+            "Unhandled API error (%s).", type(error).__name__
+        )
         return (
             jsonify(success=False, message="An internal server error occurred."),
             500,

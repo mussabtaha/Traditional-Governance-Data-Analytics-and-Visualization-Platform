@@ -154,6 +154,9 @@ human-readable details, comparisons, maps, and statistical summaries.
   visualizations.
 - ✔ **Interactive Geographic Statistics Filtering** — analyze all data or one
   country, continent, or region without reloading the page.
+- ✔ **Statistical Analysis** — twelve database-backed Chi-Square tests examine
+  leadership against formal recognition and three governance functions, with
+  observed/expected frequencies, p-values, Cramer's V, and interactive charts.
 - ✔ **Group Comparison** — lightweight selector data and on-demand
   side-by-side record details.
 - ✔ **Search** — English names, optional Arabic names, and countries.
@@ -224,13 +227,14 @@ repeats this focused request cycle. It does not download the entire dataset.
 
 | Area | Technology | Use in this project |
 |---|---|---|
-| Structure | HTML5 | Six semantic application pages and native dialog/form elements |
+| Structure | HTML5 | Seven semantic application pages and native dialog/form elements |
 | Styling | CSS3 | Responsive layouts, themes, RTL support, animations, map positioning |
 | UI framework | Bootstrap 5.3.3 | Grid, forms, responsive utilities, and bundled JavaScript |
 | Client logic | Vanilla JavaScript | API loading, normalization, filtering state, pagination, charts, preferences |
 | Charts | Chart.js 4.4.4 | Reusable doughnut and bar charts with accessible canvas labels |
 | Icons | Bootstrap Icons | Navigation, cards, controls, tables, and status indicators |
 | Backend | Python 3.11+ and Flask | REST endpoints, validation, errors, and response formatting |
+| Statistical computing | SciPy | Pearson Chi-Square tests and expected-frequency calculation |
 | CORS | Flask-CORS | Approved local and deployed frontend origins for API requests |
 | Database driver | `mysql-connector-python` | MySQL connection pool and dictionary cursors |
 | Configuration | `python-dotenv` | Local environment-variable loading |
@@ -335,6 +339,7 @@ values to `No`.
 | [`index.html`](index.html) — Home | Hero introduction, live summary cards, tool navigation, latest records, and an SVG world map with live continent counts. Selecting a marker opens the Groups page with that continent filter. |
 | [`groups.html`](groups.html) — Groups | Search, geographic and institutional filters, sortable table, server-side pagination, reset control, URL-synchronized state, and detailed group dialog. |
 | [`statistics.html`](statistics.html) — Statistics | Interactive country, continent, and region analysis with live summary metrics and six Chart.js visualizations that update in place. |
+| [`statistics-analysis.html`](statistics-analysis.html) — Statistical Analysis | Three inferential analyses covering leadership, governance functions, population size, formal recognition, effect sizes, and interactive charts. |
 | [`comparison.html`](comparison.html) — Comparison | Loads lightweight group options, fetches two selected records by ID, supports swapping selections, and renders geography, leadership, functions, structure, and recognition side by side. |
 | [`about.html`](about.html) — About | Explains project purpose, interface methodology, value handling, and supported data fields. |
 | [`contact.html`](contact.html) — Contact | Validated project enquiry form that sends messages through the Flask email endpoint without storing them in the database. |
@@ -426,6 +431,305 @@ The implementation is designed to minimize browser and database work:
   results;
 - empty, inapplicable, loading, and error states preserve the existing page
   layout.
+
+## Statistical Analysis
+
+### Analysis #1 — Leadership and Recognition
+
+The Statistical Analysis module implements only the project's first inferential
+analysis. Its research question is: **Is leadership type associated with formal
+state recognition?** It performs three separate Pearson Chi-Square Tests of
+Independence:
+
+- `king` versus `formackn`;
+- `chief` versus `formackn`;
+- `headman` versus `formackn`.
+
+For each 2 × 2 contingency table, the API returns observed and SciPy-calculated
+expected frequencies, the Chi-Square statistic, one degree of freedom, p-value,
+sample size, Cramer's V, effect-strength label, significance decision at
+`α = 0.05`, and a short interpretation. Cramer's V is described as weak below
+0.30, moderate from 0.30 to below 0.50, and strong from 0.50 upward.
+
+MySQL supplies the source counts in one aggregate query. Rows with `NULL`
+`formackn` are excluded. If the leadership variable being tested is also
+`NULL`, that row cannot be placed in the table and is excluded from that test.
+The response reports recognition missingness, leadership-variable missingness,
+and the exact union of rows excluded for every analysis.
+
+The frontend requests `GET /api/statistical-analysis/leadership-recognition`
+once, allows the researcher to switch among the three detailed results without
+another request, and renders:
+
+- statistical result cards and an automatically localized interpretation;
+- observed and expected frequency tables;
+- a stacked Chart.js bar chart for recognized, not recognized, and missing
+  recognition among records where each leadership indicator is present;
+- an accessible heatmap of recognition percentages among valid
+  leadership-present records.
+
+This analysis identifies association, not causation. It does not estimate
+missing values, make predictions, or use machine learning.
+
+### Analysis #2 — Leadership and Governance Functions
+
+The second research question is: **Is leadership type associated with
+traditional governance functions?** It performs nine separate Pearson
+Chi-Square Tests of Independence by crossing:
+
+- leadership: `king`, `chief`, and `headman`;
+- functions: `func_land`, `func_sec`, and `kingheal`.
+
+MySQL returns all nine observed tables in one aggregate query. For each pair,
+rows with `NULL` in either tested variable are excluded, and the response
+reports leadership missingness, function missingness, and the exact union of
+excluded rows. SciPy calculates expected frequencies, Chi-Square, p-value, and
+Cramer's V. The five-level effect scale is very weak below 0.10, weak from 0.10
+to below 0.30, moderate from 0.30 to below 0.50, strong from 0.50 to below
+0.70, and very strong from 0.70 upward.
+
+The page requests `GET /api/statistical-analysis/leadership-functions` once and
+renders a nine-row summary table, Cramer's V heatmap, grouped function-rate
+chart for statistically significant pairs, and nine expandable result cards.
+Each card contains the observed/expected tables, sample size, missing-value
+counts, test statistics, effect size, and localized interpretation.
+
+Analysis #2 also describes association rather than causation. It performs no
+imputation, prediction, machine learning, or database write.
+
+### Analysis #3 — Population Size and Formal Recognition
+
+The third research question is: **Is group population size associated with
+formal state recognition?** It compares `groupsize` between records where
+`formackn = 1` and `formackn = 0`. The endpoint reads only these two fields,
+then Pandas and NumPy remove missing, non-numeric, non-positive population
+values and non-binary recognition values. It reports total observations,
+excluded observations, and final sample size.
+
+For recognized and non-recognized groups, the response includes count, mean,
+median, minimum, maximum, sample standard deviation, interquartile range, and
+quartiles. SciPy performs a Shapiro-Wilk normality assessment for each group.
+If both groups satisfy normality at `α = 0.05`, the endpoint selects Welch's
+independent samples t-test. Otherwise it selects the two-sided Mann-Whitney U
+test. The effect size is a SciPy point-biserial correlation for the parametric
+path or a rank-based point-biserial correlation for the non-parametric path,
+classified as negligible, small, moderate, or large.
+
+The page requests `GET /api/statistical-analysis/groupsize-recognition` once
+and renders:
+
+- data-preparation and four comparative summary cards;
+- a complete descriptive-statistics table;
+- a logarithmic box plot of the five-number summaries;
+- a histogram using common logarithmic population intervals;
+- the selected test, statistic, p-value, effect size, sample size, normality
+  results, and localized interpretation.
+
+Analysis #3 estimates a group-level difference and association, not causation.
+It does not impute population or model individual people.
+
+### Analysis #4 - Population Size and Governance Functions
+
+The fourth research question is: **Is group population size associated with
+traditional governance functions?** Three independent comparisons test
+`groupsize` against `func_land`, `func_sec`, and `kingheal`. Every comparison
+excludes only rows with an invalid or missing population or tested function
+value, and reports total observations, missing observations removed, and final
+sample size.
+
+For function-present and function-absent groups, Pandas returns count, mean,
+median, minimum, maximum, sample standard deviation, quartiles, and IQR. SciPy
+performs separate Shapiro-Wilk assessments and automatically selects Welch's
+independent samples t-test when both groups satisfy normality, or the two-sided
+Mann-Whitney U test otherwise. The response also contains a point-biserial or
+rank-based correlation effect size, significance decision, direction, and
+automatic interpretation.
+
+`GET /api/statistical-analysis/groupsize-functions` returns all three analyses
+and a summary in one response. The frontend renders a summary table, three
+function result panels, three logarithmic box plots, and three histograms with
+common logarithmic population intervals. Analysis #4 describes group-level
+differences and association, not causation.
+
+### Analysis #5 - Continental Leadership Distribution
+
+The fifth research question is: **Does the distribution of traditional
+leadership types differ across continents?** It compares `continent` with the
+binary leadership indicators `king`, `chief`, and `headman`. Records with a
+missing or blank continent are excluded, and the response reports total
+observations, removed observations, and final group sample size.
+
+For every continent, Pandas calculates group totals, leadership counts,
+prevalence percentages, and normalized leadership-distribution percentages.
+SciPy performs a Chi-Square Test of Independence and returns the observed table,
+expected frequencies, Chi-Square statistic, degrees of freedom, p-value,
+Cramer's V, sample size, and an academic interpretation.
+
+`GET /api/statistical-analysis/continent-leadership` returns the summary,
+statistical result, grouped-count chart data, and 100% stacked chart data. The
+frontend displays summary cards, a descriptive table, both charts, observed and
+expected frequency tables, and the localized interpretation.
+
+The leadership fields are independent binary indicators, so one group can
+contribute more than one leadership occurrence. The Chi-Square sample size
+therefore counts leadership occurrences; `group_sample_size` reports analyzed
+group rows. Analysis #5 describes association, not causation.
+
+### Analysis #6 - Formal Recognition Across Continents
+
+The sixth research question is: **Does formal state recognition differ across
+continents?** It compares `continent` with the binary recognition field
+`formackn`. Rows with missing or blank continent values, missing recognition,
+or non-binary recognition values are excluded.
+
+Pandas calculates total groups, recognized groups, not-recognized groups, and
+recognition percentages for every continent. SciPy performs a Chi-Square Test
+of Independence and returns the observed contingency table, expected
+frequencies, Chi-Square statistic, degrees of freedom, p-value, Cramer's V,
+sample size, significance decision, and effect-strength interpretation.
+
+`GET /api/statistical-analysis/continent-recognition` returns data-preparation
+counts, per-continent descriptive statistics, highest and lowest recognition
+rates, the statistical result, 100% stacked chart data, heatmap data, and an
+academic interpretation. The frontend renders summary cards, a descriptive
+table, stacked recognition chart, percentage heatmap, observed and expected
+tables, and the localized result.
+
+Analysis #6 describes association rather than causation and performs no
+imputation or database write.
+
+### Analysis #7 - Formal Recognition Across Geographic Regions
+
+The seventh research question is: **Does formal state recognition differ
+across geographic regions?** It compares `region` with the binary recognition
+field `formackn`.
+
+`GET /api/statistical-analysis/region-recognition` returns data-preparation
+counts, per-region totals, recognized and not-recognized counts, missing
+recognition counts, recognition percentages, Chi-Square results, Cramer's V,
+expected frequencies, chart datasets, and an academic interpretation.
+
+The Chi-Square Test of Independence uses only rows with a non-blank region and
+a binary recognition value. Missing recognition values are excluded from the
+test but retained in regional descriptive counts and the three-part 100%
+stacked chart. Recognition percentages and the weighted average recognition
+rate use only valid recognition outcomes.
+
+The frontend adds four summary cards, a regional descriptive table, a 100%
+stacked bar chart, a recognition-rate heatmap, observed and expected frequency
+tables, and a bilingual interpretation. Analysis #7 describes association, not
+causation, and does not impute values or modify MySQL.
+
+### Analysis #8 - Dynamic Statistical Analysis Engine
+
+Analysis #8 complements the seven predefined research analyses with a
+metadata-driven engine. A researcher selects two different compatible
+variables; the frontend sends only their registered keys, and Flask selects
+the statistical method automatically.
+
+Supported categorical and binary variables:
+
+`king`, `chief`, `headman`, `formackn`, `func_land`, `func_sec`,
+`kingheal`, `kinginher`, `kingelect`, `kingapp`, `continent`, `region`,
+and `country`.
+
+The supported numeric variable is `groupsize`. The centralized variable
+registry allows additional reviewed numeric or categorical variables to be
+added later.
+
+| Selected variable types | Automatically selected method |
+|---|---|
+| Categorical + categorical | Chi-Square Test of Independence |
+| Numeric + two-category variable, normal groups | Welch's independent samples t-test |
+| Numeric + two-category variable, non-normal groups | Mann-Whitney U Test |
+| Numeric + categorical variable with more than two categories | Kruskal-Wallis Test |
+| Two numeric variables, normal distributions | Pearson Correlation |
+| Two numeric variables, non-normal distribution | Spearman Correlation |
+
+The engine reports the selected variables and method, total and excluded
+observations, final sample size, test statistic, degrees of freedom where
+applicable, p-value, effect size, effect strength, assumption warnings, and a
+non-causal academic interpretation. Chart.js renders a stacked bar and heatmap,
+box plot and histogram, category median chart, or scatter plot according to the
+selected pair.
+
+Results can be downloaded as UTF-8 CSV. The PDF export opens the browser's
+print workflow with a result-focused print layout, allowing the researcher to
+save the analysis as a PDF without sending result data to another service.
+
+Endpoint:
+
+```http
+GET /api/statistical-analysis/run?variable_x=groupsize&variable_y=formackn
+```
+
+Additional examples:
+
+```text
+/api/statistical-analysis/run?variable_x=king&variable_y=func_land
+/api/statistical-analysis/run?variable_x=groupsize&variable_y=continent
+/api/statistical-analysis/run?variable_x=region&variable_y=formackn
+```
+
+Response structure:
+
+```json
+{
+  "success": true,
+  "data": {
+    "analysis_type": "numeric_binary",
+    "variables": {
+      "variable_x": {"key": "groupsize", "type": "numeric"},
+      "variable_y": {"key": "formackn", "type": "binary"}
+    },
+    "data_preparation": {
+      "total_observations": 1557,
+      "missing_values_excluded": 650,
+      "final_sample_size": 907
+    },
+    "statistical_test": {
+      "name": "Mann-Whitney U Test",
+      "statistic": 71896.5,
+      "p_value": 0.00029296097592570845,
+      "effect_size": {"name": "Rank-biserial correlation", "value": 0.12031911910017096}
+    },
+    "charts": {},
+    "interpretation": "Association or difference only; no causal claim."
+  }
+}
+```
+
+### Statistical Integration Verification
+
+Statistical calculations run in Python, not in the browser. MySQL supplies live
+records from `tradgov_groups`; the shared connection pool returns
+analysis-specific columns to Pandas and NumPy for cleaning and grouping. SciPy
+performs the statistical tests and effect-size calculations, Flask serializes
+the results, and the shared frontend JavaScript renders the returned values with
+tables, cards, interpretations, and Chart.js.
+
+Missing values remain missing until each analysis applies its documented
+exclusion rule. All tests use `alpha = 0.05`, report sample and exclusion
+counts, and return expected-frequency warnings where applicable. Statistical
+association must not be interpreted as causation. Statsmodels is not used.
+
+Run the complete backend suite from `backend-flask`:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p 'test_*.py'
+.\.venv\Scripts\python.exe -m compileall -q .
+.\.venv\Scripts\python.exe -m pip check
+```
+
+Test an individual endpoint after starting Flask:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:3000/api/statistical-analysis/continent-recognition
+```
+
+See the complete database, API, independent-statistics, frontend, warning, and
+deployment-readiness audit in
+[Statistical Analysis Integration Verification Report](docs/statistical-analysis-verification-report.md).
 
 ## How to Run Locally
 
@@ -581,11 +885,19 @@ Errors use a non-2xx HTTP status with:
 |---|---|---|---|---|
 | `GET` | `/api/health` | Check Flask and database availability | None | [`/api/health`](https://traditional-governance-data-analytics.onrender.com/api/health) |
 | `GET` | `/api/stats` | Return overall counts, recognition, functions, and coverage totals | None | [`/api/stats`](https://traditional-governance-data-analytics.onrender.com/api/stats) |
+| `GET` | `/api/statistical-analysis/run` | Automatically analyze any two supported compatible variables and return test, effect-size, interpretation, and chart data | `variable_x`, `variable_y` | `/api/statistical-analysis/run?variable_x=groupsize&variable_y=formackn` |
 | `GET` | `/api/statistics` | Return one combined statistics payload for all data or one geographic scope | Optional `country`, `continent`, or `region` | `/api/statistics?continent=Africa` |
+| `GET` | `/api/statistical-analysis/leadership-recognition` | Return three leadership-recognition Chi-Square analyses and chart data | None | `/api/statistical-analysis/leadership-recognition` |
+| `GET` | `/api/statistical-analysis/leadership-functions` | Return nine leadership-function Chi-Square analyses, summary, heatmap, and chart data | None | `/api/statistical-analysis/leadership-functions` |
+| `GET` | `/api/statistical-analysis/groupsize-recognition` | Compare population distributions by formal recognition with an automatically selected test | None | `/api/statistical-analysis/groupsize-recognition` |
+| `GET` | `/api/statistical-analysis/groupsize-functions` | Return three population/function tests, descriptive statistics, effect sizes, and chart data | None | `/api/statistical-analysis/groupsize-functions` |
+| `GET` | `/api/statistical-analysis/continent-leadership` | Return continent leadership counts, percentages, Chi-Square results, Cramer's V, and chart data | None | `/api/statistical-analysis/continent-leadership` |
 | `GET` | `/api/countries` | Return country summary rows ordered by group total | None | [`/api/countries`](https://traditional-governance-data-analytics.onrender.com/api/countries) |
 | `GET` | `/api/continents` | Return group totals by continent | None | [`/api/continents`](https://traditional-governance-data-analytics.onrender.com/api/continents) |
 | `GET` | `/api/regions` | Return group totals by region | None | [`/api/regions`](https://traditional-governance-data-analytics.onrender.com/api/regions) |
 | `GET` | `/api/leadership` | Return king, chief, and headman totals | None | [`/api/leadership`](https://traditional-governance-data-analytics.onrender.com/api/leadership) |
+| `GET` | `/api/statistical-analysis/continent-recognition` | Return continent recognition rates, Chi-Square results, Cramer's V, stacked-chart data, and heatmap data | None | `/api/statistical-analysis/continent-recognition` |
+| `GET` | `/api/statistical-analysis/region-recognition` | Return regional recognition counts, missing-data descriptives, Chi-Square results, Cramer's V, stacked-chart data, and heatmap data | None | `/api/statistical-analysis/region-recognition` |
 | `GET` | `/api/largest-groups` | Return the ten largest records with a population value | None | [`/api/largest-groups`](https://traditional-governance-data-analytics.onrender.com/api/largest-groups) |
 | `GET` | `/api/top-countries` | Return the ten countries with the most group records | None | [`/api/top-countries`](https://traditional-governance-data-analytics.onrender.com/api/top-countries) |
 | `GET` | `/api/group-options` | Return lightweight ID/name/country rows for comparison selectors | None | [`/api/group-options`](https://traditional-governance-data-analytics.onrender.com/api/group-options) |
@@ -625,6 +937,175 @@ scopes conflict:
 ```http
 GET /api/statistics?country=Kenya&continent=Africa
 ```
+
+### `/api/statistical-analysis/leadership-recognition`
+
+The endpoint returns one stable response containing all three tests so the
+browser does not need to download group records or issue one request per
+leadership variable. The main payload shape is:
+
+```json
+{
+  "success": true,
+  "data": {
+    "research_question": "Is leadership type associated with formal state recognition?",
+    "method": {
+      "name": "Pearson Chi-Square Test of Independence",
+      "alpha": 0.05,
+      "effect_size": "Cramer's V"
+    },
+    "data_quality": {
+      "total_rows": 1557,
+      "formal_recognition_missing": 0,
+      "rows_with_recognition": 1557
+    },
+    "analyses": [
+      {
+        "variable": "king",
+        "contingency_table": {
+          "row_labels": ["Leadership present", "Leadership absent"],
+          "column_labels": ["Recognized", "Not recognized"],
+          "observed": [[0, 0], [0, 0]],
+          "expected": [[0.0, 0.0], [0.0, 0.0]]
+        },
+        "chi_square": 0.0,
+        "degrees_of_freedom": 1,
+        "p_value": 1.0,
+        "cramers_v": 0.0,
+        "sample_size": 0,
+        "missing_values_excluded": {
+          "formal_recognition": 0,
+          "leadership_variable": 0,
+          "total_excluded": 0
+        },
+        "interpretation": "..."
+      }
+    ],
+    "charts": {
+      "stacked_bar": { "labels": ["King", "Chief", "Headman"], "items": [] },
+      "heatmap": { "columns": ["Recognized", "Not recognized"], "rows": [] }
+    }
+  }
+}
+```
+
+The zeroes above illustrate field types and are not hardcoded analysis results;
+production values are calculated from the current MySQL records on every
+request.
+
+### `/api/statistical-analysis/leadership-functions`
+
+The endpoint returns all nine tests in one response. Its main structure is:
+
+```json
+{
+  "success": true,
+  "data": {
+    "research_question": "Is leadership type associated with traditional governance functions?",
+    "variables": {
+      "leadership": ["king", "chief", "headman"],
+      "governance_functions": ["func_land", "func_sec", "kingheal"]
+    },
+    "method": {
+      "name": "Pearson Chi-Square Test of Independence",
+      "alpha": 0.05,
+      "effect_size": "Cramer's V"
+    },
+    "analyses": [
+      {
+        "analysis_id": "king_land",
+        "leadership_variable": "king",
+        "function_column": "func_land",
+        "contingency_table": {
+          "observed": [[0, 0], [0, 0]],
+          "expected": [[0.0, 0.0], [0.0, 0.0]]
+        },
+        "chi_square": 0.0,
+        "degrees_of_freedom": 1,
+        "p_value": 1.0,
+        "cramers_v": 0.0,
+        "sample_size": 0,
+        "missing_values_excluded": {
+          "leadership_variable": 0,
+          "governance_function": 0,
+          "total_excluded": 0
+        },
+        "interpretation": "..."
+      }
+    ],
+    "summary": [],
+    "charts": {
+      "cramers_v_heatmap": { "rows": [], "columns": [], "values": [] },
+      "significant_relationships": { "items": [] }
+    }
+  }
+}
+```
+
+The zeroes illustrate the response types only. Every production value is
+calculated from current MySQL aggregates; no statistical result is hardcoded.
+
+### `/api/statistical-analysis/groupsize-recognition`
+
+This endpoint returns the complete third analysis without exposing group
+records to the browser. Its main response structure is:
+
+```json
+{
+  "success": true,
+  "data": {
+    "research_question": "Is group population size associated with formal state recognition?",
+    "variables": {
+      "independent": "groupsize",
+      "dependent": "formackn"
+    },
+    "data_preparation": {
+      "total_observations": 0,
+      "excluded_observations": 0,
+      "final_sample_size": 0
+    },
+    "descriptive_statistics": {
+      "recognized": {
+        "count": 0,
+        "mean": 0.0,
+        "median": 0.0,
+        "minimum": 0.0,
+        "maximum": 0.0,
+        "standard_deviation": 0.0,
+        "interquartile_range": 0.0
+      },
+      "not_recognized": {}
+    },
+    "normality_assessment": {
+      "method": "Shapiro-Wilk test",
+      "distributions_normal": false,
+      "groups": {}
+    },
+    "statistical_test": {
+      "name": "Mann-Whitney U Test",
+      "statistic": 0.0,
+      "p_value": 0.0,
+      "sample_size": 0,
+      "significant": false,
+      "effect_size": {
+        "name": "Rank-biserial correlation",
+        "value": 0.0,
+        "strength": "negligible",
+        "direction": "..."
+      }
+    },
+    "charts": {
+      "box_plot": { "scale": "logarithmic", "items": [] },
+      "histogram": { "scale": "logarithmic population intervals", "bin_edges": [], "datasets": [] }
+    },
+    "interpretation": "..."
+  }
+}
+```
+
+The numeric zeroes illustrate field types only. Every result is recalculated
+from current MySQL observations on each request. A dataset without valid
+observations in both recognition groups returns a safe HTTP `422` response.
 
 ### Contact email delivery
 
@@ -799,6 +1280,7 @@ Traditional-Governance-Data-Analytics-and-Visualization-Platform/
 ├── index.html                       # Home dashboard and interactive map
 ├── groups.html                      # Search, filters, table, details, pagination
 ├── statistics.html                  # Geographic filters, summary cards, and charts
+├── statistics-analysis.html         # Analyses #1-#4 and visual results
 ├── comparison.html                  # Side-by-side group comparison
 ├── about.html                       # Project purpose and field information
 ├── contact.html                     # Email-backed project enquiry form
@@ -854,6 +1336,8 @@ Traditional-Governance-Data-Analytics-and-Visualization-Platform/
 │   │   ├── encoding_diagnosis.py
 │   │   └── apply_encoding_repairs.py
 │   └── tests/
+│       ├── test_statistical_analysis.py
+│       ├── test_statistical_analysis_functions.py
 │       ├── test_statistics.py
 │       ├── test_server_pagination.py
 │       └── test_contact.py
@@ -1157,7 +1641,7 @@ exact new origin and redeploying the backend.
 
 ## Testing and Verification
 
-The repository currently contains 17 Flask contract tests covering:
+The repository currently contains 32 Flask contract tests covering:
 
 - combined SQL filtering, sorting, and pagination;
 - missing recognition values;
@@ -1169,6 +1653,17 @@ The repository currently contains 17 Flask contract tests covering:
 - empty statistics results and context-aware distributions;
 - conflicting, empty, and unknown statistics-scope rejection;
 - parameterized statistics values and bounded query counts without N+1 queries;
+- the leadership-recognition response contract and all three analyses;
+- exact observed/expected contingency frequencies, p-value, and Cramer's V;
+- missing-value exclusion reporting and analysis chart data;
+- safe non-computable results for contingency tables without enough variation;
+- the nine leadership-function response records and single-query contract;
+- exact leadership-function observed/expected frequencies and SciPy results;
+- pair-specific NULL exclusion counts, summary rows, heatmap, and grouped-chart data;
+- population/recognition descriptive statistics, cleaning, normal and non-normal test selection;
+- safe handling when a population/recognition comparison group is unavailable;
+- all three population/function response records, one-query contract, and chart data;
+- per-function NULL exclusions, descriptive statistics, and automatic test selection;
 - valid contact email construction and one mocked Resend HTTPS request;
 - contact input validation and maximum lengths;
 - missing Resend configuration and safe provider failure responses;
