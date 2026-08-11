@@ -2190,18 +2190,331 @@ def top_countries():
     return jsonify(success=True, data=rows)
 
 
-@api.get("/group-options")
-def group_options():
-    """Return the lightweight fields required by the comparison selectors."""
+def _comparison_type() -> tuple[str, str]:
+    """Return a validated comparison type and its allowlisted SQL column."""
+
+    comparison_type = request.args.get("type", "").strip().lower()
+    comparison_column = STATISTICS_SCOPE_COLUMNS.get(comparison_type)
+    if comparison_column is None:
+        raise BadRequest(
+            description="type must be country, continent, or region."
+        )
+    return comparison_type, comparison_column
+
+
+def _comparison_entity(parameter_name: str) -> str:
+    """Return one bounded, required geographic entity value."""
+
+    value = request.args.get(parameter_name, "").strip()
+    if not value:
+        raise BadRequest(description=f"{parameter_name} is required.")
+    if len(value) > 255:
+        raise BadRequest(
+            description=f"{parameter_name} must not exceed 255 characters."
+        )
+    return value
+
+
+def _comparison_rate(value: int, total: int) -> float | None:
+    """Return a percentage while preserving unavailable denominators."""
+
+    return round((value / total) * 100, 2) if total > 0 else None
+
+
+@api.get("/comparison/options")
+def comparison_options():
+    """Return current database values for one geographic comparison type."""
+
+    unexpected = set(request.args) - {"type"}
+    if unexpected:
+        raise BadRequest(
+            description=f"Unsupported query parameter: {sorted(unexpected)[0]}."
+        )
+
+    comparison_type, comparison_column = _comparison_type()
     rows = fetch_all(
-        """
-        SELECT id, group_name, group_name_ar, country
+        f"""
+        SELECT DISTINCT {comparison_column} AS value
         FROM tradgov_groups
-        ORDER BY group_name IS NULL ASC, group_name ASC, id ASC
+        WHERE {comparison_column} IS NOT NULL
+          AND TRIM({comparison_column}) <> ''
+        ORDER BY {comparison_column} ASC
         """
     )
-    return jsonify(success=True, data=rows)
+    return jsonify(
+        success=True,
+        data={
+            "type": comparison_type,
+            "options": [row["value"] for row in rows],
+        },
+    )
 
+
+@api.get("/comparison")
+def geographic_comparison():
+    """Aggregate two geographic entities directly from current MySQL data."""
+
+    unexpected = set(request.args) - {"type", "entity_a", "entity_b"}
+    if unexpected:
+        raise BadRequest(
+            description=f"Unsupported query parameter: {sorted(unexpected)[0]}."
+        )
+
+    comparison_type, comparison_column = _comparison_type()
+    entity_a = _comparison_entity("entity_a")
+    entity_b = _comparison_entity("entity_b")
+    if entity_a == entity_b:
+        raise BadRequest(description="Select two different entities.")
+
+    parameters = [entity_a, entity_b]
+    aggregate_rows = fetch_all(
+        f"""
+        SELECT
+          {comparison_column} AS entity,
+          COUNT(*) AS total_groups,
+          COUNT(DISTINCT country) AS total_countries,
+          COALESCE(SUM(any_tpi = 1), 0) AS groups_with_tpi,
+          COALESCE(SUM(king = 1), 0) AS king,
+          COALESCE(SUM(chief = 1), 0) AS chief,
+          COALESCE(SUM(headman = 1), 0) AS headman,
+          COALESCE(SUM(kinginher = 1), 0) AS hereditary,
+          COALESCE(SUM(kingelect = 1), 0) AS elected,
+          COALESCE(SUM(kingapp = 1), 0) AS appointed,
+          COALESCE(
+            SUM(
+              king = 1
+              AND kinginher IS NULL
+              AND kingelect IS NULL
+              AND kingapp IS NULL
+            ),
+            0
+          ) AS leadership_selection_missing,
+          COALESCE(SUM(formackn = 1), 0) AS recognized,
+          COALESCE(SUM(formackn = 0), 0) AS not_recognized,
+          COALESCE(SUM(formackn IS NULL), 0) AS recognition_missing,
+          COALESCE(SUM(func_land = 1), 0) AS land,
+          COALESCE(SUM(func_sec = 1), 0) AS security,
+          COALESCE(SUM(kingheal = 1), 0) AS healing,
+          AVG(CASE WHEN groupsize > 0 THEN groupsize END) AS average_group_size,
+          MAX(CASE WHEN groupsize > 0 THEN groupsize END) AS largest_population
+        FROM tradgov_groups
+        WHERE {comparison_column} IN (%s, %s)
+        GROUP BY {comparison_column}
+        """,
+        parameters,
+    )
+    rows_by_entity = {
+        str(row.get("entity")): row
+        for row in aggregate_rows
+        if row.get("entity") is not None
+    }
+    missing_entities = [
+        entity for entity in parameters if entity not in rows_by_entity
+    ]
+    if missing_entities:
+        raise BadRequest(
+            description=(
+                f"Unknown {comparison_type}: {', '.join(missing_entities)}."
+            )
+        )
+
+    median_rows = fetch_all(
+        f"""
+        SELECT entity, AVG(groupsize) AS median_group_size
+        FROM (
+          SELECT
+            {comparison_column} AS entity,
+            groupsize,
+            ROW_NUMBER() OVER (
+              PARTITION BY {comparison_column}
+              ORDER BY groupsize
+            ) AS position_index,
+            COUNT(*) OVER (
+              PARTITION BY {comparison_column}
+            ) AS partition_size
+          FROM tradgov_groups
+          WHERE {comparison_column} IN (%s, %s)
+            AND groupsize IS NOT NULL
+            AND groupsize > 0
+        ) ranked
+        WHERE position_index IN (
+          FLOOR((partition_size + 1) / 2),
+          FLOOR((partition_size + 2) / 2)
+        )
+        GROUP BY entity
+        """,
+        parameters,
+    )
+    medians = {
+        str(row.get("entity")): _finite_number(row.get("median_group_size"))
+        for row in median_rows
+        if row.get("entity") is not None
+    }
+
+    largest_rows = fetch_all(
+        f"""
+        SELECT id, entity, group_name, group_name_ar, groupsize
+        FROM (
+          SELECT
+            id,
+            {comparison_column} AS entity,
+            group_name,
+            group_name_ar,
+            groupsize,
+            ROW_NUMBER() OVER (
+              PARTITION BY {comparison_column}
+              ORDER BY groupsize DESC, id ASC
+            ) AS rank_position
+          FROM tradgov_groups
+          WHERE {comparison_column} IN (%s, %s)
+            AND groupsize IS NOT NULL
+            AND groupsize > 0
+        ) ranked
+        WHERE rank_position = 1
+        ORDER BY entity
+        """,
+        parameters,
+    )
+    largest_by_entity = {
+        str(row.get("entity")): row
+        for row in largest_rows
+        if row.get("entity") is not None
+    }
+
+    profiles: list[dict[str, object]] = []
+    for entity in parameters:
+        row = rows_by_entity[entity]
+        total_groups = _integer_value(row, "total_groups")
+        recognized = _integer_value(row, "recognized")
+        not_recognized = _integer_value(row, "not_recognized")
+        largest = largest_by_entity.get(entity)
+        profile = {
+            "name": entity,
+            "type": comparison_type,
+            "general": {
+                "total_groups": total_groups,
+                "total_countries": (
+                    None
+                    if comparison_type == "country"
+                    else _integer_value(row, "total_countries")
+                ),
+                "groups_with_tpi": _integer_value(row, "groups_with_tpi"),
+            },
+            "leadership": {
+                "king": _integer_value(row, "king"),
+                "chief": _integer_value(row, "chief"),
+                "headman": _integer_value(row, "headman"),
+            },
+            "leadership_selection": {
+                "hereditary": _integer_value(row, "hereditary"),
+                "elected": _integer_value(row, "elected"),
+                "appointed": _integer_value(row, "appointed"),
+                "missing": _integer_value(row, "leadership_selection_missing"),
+            },
+            "recognition": {
+                "recognized": recognized,
+                "not_recognized": not_recognized,
+                "missing": _integer_value(row, "recognition_missing"),
+                "rate": _comparison_rate(
+                    recognized,
+                    recognized + not_recognized,
+                ),
+            },
+            "functions": {
+                "land": _integer_value(row, "land"),
+                "security": _integer_value(row, "security"),
+                "healing": _integer_value(row, "healing"),
+            },
+            "population": {
+                "average_group_size": _finite_number(
+                    row.get("average_group_size")
+                ),
+                "median_group_size": medians.get(entity),
+                "largest_population": _finite_number(
+                    row.get("largest_population")
+                ),
+                "largest_group": (
+                    {
+                        "id": largest.get("id"),
+                        "group_name": largest.get("group_name"),
+                        "group_name_ar": largest.get("group_name_ar"),
+                        "population": _finite_number(largest.get("groupsize")),
+                    }
+                    if largest
+                    else None
+                ),
+            },
+        }
+        profiles.append(profile)
+
+    def chart_values(section: str, key: str) -> list[int]:
+        return [
+            int(profile[section][key])  # type: ignore[index]
+            for profile in profiles
+        ]
+
+    radar_keys = [
+        ("general", "groups_with_tpi"),
+        ("recognition", "recognized"),
+        ("leadership", "king"),
+        ("leadership", "chief"),
+        ("leadership", "headman"),
+        ("functions", "land"),
+        ("functions", "security"),
+        ("functions", "healing"),
+    ]
+    radar_datasets = []
+    for profile in profiles:
+        total_groups = int(profile["general"]["total_groups"])  # type: ignore[index]
+        values = [
+            _comparison_rate(int(profile[section][key]), total_groups) or 0
+            for section, key in radar_keys
+        ]
+        radar_datasets.append({"entity": profile["name"], "values": values})
+
+    return jsonify(
+        success=True,
+        data={
+            "comparison_type": comparison_type,
+            "entities": parameters,
+            "profiles": profiles,
+            "charts": {
+                "leadership": {
+                    "labels": parameters,
+                    "king": chart_values("leadership", "king"),
+                    "chief": chart_values("leadership", "chief"),
+                    "headman": chart_values("leadership", "headman"),
+                },
+                "recognition": {
+                    "labels": parameters,
+                    "recognized": chart_values("recognition", "recognized"),
+                    "not_recognized": chart_values(
+                        "recognition", "not_recognized"
+                    ),
+                    "missing": chart_values("recognition", "missing"),
+                },
+                "functions": {
+                    "labels": parameters,
+                    "land": chart_values("functions", "land"),
+                    "security": chart_values("functions", "security"),
+                    "healing": chart_values("functions", "healing"),
+                },
+                "radar": {
+                    "labels": [
+                        "Groups with TPI",
+                        "Recognized",
+                        "Kings",
+                        "Chiefs",
+                        "Headmen",
+                        "Land Administration",
+                        "Security",
+                        "Healing",
+                    ],
+                    "datasets": radar_datasets,
+                },
+            },
+        },
+    )
 
 @api.get("/groups")
 def groups():

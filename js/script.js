@@ -102,8 +102,14 @@
       secondaryChart: null,
       requestController: null
     },
-    explorerRequestController: null,
-    groupDetailCache: new Map()
+    comparison: {
+      type: "country",
+      options: [],
+      data: null,
+      requestController: null,
+      charts: new Map()
+    },
+    explorerRequestController: null
   };
 
   const $ = (selector, scope = document) => scope.querySelector(selector);
@@ -175,9 +181,7 @@
       }
 
       if (page === "comparison") {
-        const options = await loadApiData("group-options");
-        state.groups = Array.isArray(options) ? options.map(normalizeGroup) : [];
-        initComparison();
+        await initComparison();
         return;
       }
 
@@ -1041,113 +1045,445 @@
     return `<section class="detail-section"><h3>${escapeHtml(title)}</h3><div class="detail-grid">${items}</div></section>`;
   }
 
-  function initComparison() {
+  async function initComparison() {
+    const form = $("#comparisonForm");
+    const typeSelect = $("#comparisonType");
+    const leftSelect = $("#compareLeft");
+    const rightSelect = $("#compareRight");
+    if (!form || !typeSelect || !leftSelect || !rightSelect) return;
+
+    if (window.Chart) {
+      window.Chart.defaults.font.family = '"Inter", "Segoe UI", sans-serif';
+      window.Chart.defaults.color =
+        window.SitePreferences?.getTheme() === "dark" ? "#c5cec8" : "#66736b";
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      requestGeographicComparison();
+    });
+    typeSelect.addEventListener("change", () => {
+      state.comparison.type = typeSelect.value;
+      loadComparisonOptions();
+    });
+    $("#swapEntities")?.addEventListener("click", () => {
+      const current = leftSelect.value;
+      leftSelect.value = rightSelect.value;
+      rightSelect.value = current;
+      requestGeographicComparison();
+    });
+
+    state.comparison.type = typeSelect.value;
+    await loadComparisonOptions();
+  }
+
+  async function loadComparisonOptions() {
+    const typeSelect = $("#comparisonType");
+    const leftSelect = $("#compareLeft");
+    const rightSelect = $("#compareRight");
+    if (!typeSelect || !leftSelect || !rightSelect) return;
+
+    state.comparison.requestController?.abort();
+    const controller = new AbortController();
+    state.comparison.requestController = controller;
+    state.comparison.type = typeSelect.value;
+    const loadingOption = `<option value="">${escapeHtml(tr("Loading options…"))}</option>`;
+    leftSelect.innerHTML = loadingOption;
+    rightSelect.innerHTML = loadingOption;
+    leftSelect.disabled = true;
+    rightSelect.disabled = true;
+    setComparisonStatus(tr("Loading geographic options…"));
+    setComparisonBusy(true);
+
+    try {
+      const params = new URLSearchParams({ type: state.comparison.type });
+      const data = await loadApiData(`comparison/options?${params}`, {
+        signal: controller.signal
+      });
+      if (controller.signal.aborted) return;
+      const options = Array.isArray(data?.options)
+        ? data.options.filter((value) => value !== null && String(value).trim() !== "")
+        : [];
+      if (options.length < 2) {
+        throw new Error(tr("At least two geographic entities are required for comparison."));
+      }
+
+      state.comparison.options = options.map(String);
+      populateComparisonSelect(leftSelect, state.comparison.options);
+      populateComparisonSelect(rightSelect, state.comparison.options);
+      leftSelect.value = state.comparison.options[0];
+      rightSelect.value = state.comparison.options[1];
+      leftSelect.disabled = false;
+      rightSelect.disabled = false;
+      await requestGeographicComparison();
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      showComparisonError(error);
+    } finally {
+      if (state.comparison.requestController === controller) {
+        setComparisonBusy(false);
+      }
+    }
+  }
+
+  function populateComparisonSelect(select, options) {
+    select.innerHTML = options.map((value) => (
+      `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`
+    )).join("");
+  }
+
+  async function requestGeographicComparison() {
     const leftSelect = $("#compareLeft");
     const rightSelect = $("#compareRight");
     if (!leftSelect || !rightSelect) return;
 
-    const options = [...state.groups]
-      .sort((left, right) => String(getGroupDisplayName(left) || "").localeCompare(String(getGroupDisplayName(right) || "")))
-      .map((group) => `<option value="${group.id}">${escapeHtml(isolatedGroupNameText(group))} · ${escapeHtml(displayValue(group.Country))}</option>`)
-      .join("");
-    leftSelect.innerHTML = options;
-    rightSelect.innerHTML = options;
-    leftSelect.value = String(state.groups[0]?.id || "");
-    rightSelect.value = String(state.groups[1]?.id || "");
-
-    let renderVersion = 0;
-    const render = async () => {
-      const currentVersion = ++renderVersion;
-      const profiles = $("#compareProfiles");
-      const body = $("#comparisonBody");
-      if (profiles) profiles.innerHTML = "";
-      if (body) {
-        body.innerHTML = `<tr><td colspan="3" class="empty-state">${tr("Loading comparison…")}</td></tr>`;
-      }
-
-      try {
-        const [left, right] = await Promise.all([
-          loadGroupDetail(Number(leftSelect.value)),
-          loadGroupDetail(Number(rightSelect.value))
-        ]);
-        if (currentVersion !== renderVersion) return;
-        renderComparison(left, right);
-      } catch (error) {
-        if (currentVersion !== renderVersion) return;
-        console.error("Could not load comparison details:", error);
-        if (body) {
-          body.innerHTML = `<tr><td colspan="3" class="empty-state">${escapeHtml(error?.message || tr("Unable to load records."))}</td></tr>`;
-        }
-      }
-    };
-    leftSelect.addEventListener("change", render);
-    rightSelect.addEventListener("change", render);
-    $("#swapGroups")?.addEventListener("click", () => {
-      const current = leftSelect.value;
-      leftSelect.value = rightSelect.value;
-      rightSelect.value = current;
-      render();
-    });
-    render();
-  }
-
-  function loadGroupDetail(id) {
-    if (!Number.isInteger(id) || id < 1) {
-      return Promise.reject(new Error("A valid group must be selected."));
+    const entityA = leftSelect.value;
+    const entityB = rightSelect.value;
+    if (!entityA || !entityB) {
+      showComparisonError(new Error(tr("Select both geographic entities.")));
+      return;
     }
-    if (state.groupDetailCache.has(id)) return state.groupDetailCache.get(id);
+    if (entityA === entityB) {
+      showComparisonError(new Error(tr("Select two different entities.")));
+      return;
+    }
 
-    const request = loadApiData(`groups/${id}`)
-      .then(normalizeGroup)
-      .catch((error) => {
-        state.groupDetailCache.delete(id);
-        throw error;
+    state.comparison.requestController?.abort();
+    const controller = new AbortController();
+    state.comparison.requestController = controller;
+    setComparisonBusy(true);
+    setComparisonStatus(tr("Loading comparison…"));
+    const body = $("#comparisonBody");
+    if (body) {
+      body.innerHTML = `<tr><td colspan="3" class="empty-state">${escapeHtml(tr("Loading comparison…"))}</td></tr>`;
+    }
+
+    try {
+      const params = new URLSearchParams({
+        type: state.comparison.type,
+        entity_a: entityA,
+        entity_b: entityB
       });
-    state.groupDetailCache.set(id, request);
-    return request;
+      const data = await loadApiData(`comparison?${params}`, {
+        signal: controller.signal
+      });
+      if (controller.signal.aborted) return;
+      if (!Array.isArray(data?.profiles) || data.profiles.length !== 2 || !data?.charts) {
+        throw new Error(tr("The comparison service returned an unexpected response."));
+      }
+      state.comparison.data = data;
+      renderGeographicComparison(data);
+      setComparisonStatus(tr("Comparison updated."));
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      showComparisonError(error);
+    } finally {
+      if (state.comparison.requestController === controller) {
+        setComparisonBusy(false);
+      }
+    }
   }
 
-  function renderComparison(left, right) {
-    const profiles = $("#compareProfiles");
-    const body = $("#comparisonBody");
-    if (!left || !right || !profiles || !body) return;
+  function setComparisonBusy(isBusy) {
+    const button = $("#compareButton");
+    if (!button) return;
+    button.disabled = isBusy;
+    button.setAttribute("aria-busy", String(isBusy));
+    const label = $("span", button);
+    if (label) label.textContent = tr(isBusy ? "Comparing…" : "Compare");
+  }
 
-    profiles.innerHTML = [left, right].map((group, index) => `
-      <article class="surface compare-profile">
-        <small>${tr(index === 0 ? "Group A" : "Group B")}</small>
-        <h2>${groupNameMarkup(group)}</h2>
-        <p><i class="bi bi-geo-alt me-1"></i>${escapeHtml(displayValue(group.Country))} · ${escapeHtml(displayValue(group.Region))}</p>
+  function setComparisonStatus(message, isError = false) {
+    const status = $("#compareStatus");
+    if (!status) return;
+    status.textContent = message || "";
+    status.classList.toggle("is-error", isError);
+  }
+
+  function showComparisonError(error) {
+    const message = error?.message || tr("Unable to load comparison data.");
+    setComparisonStatus(message, true);
+    const body = $("#comparisonBody");
+    if (body) {
+      body.innerHTML = `<tr><td colspan="3" class="empty-state">${escapeHtml(message)}</td></tr>`;
+    }
+  }
+
+  function renderGeographicComparison(data) {
+    renderComparisonHighlights(data.profiles);
+    renderComparisonProfiles(data.profiles);
+    renderComparisonTable(data.profiles, data.comparison_type);
+    renderComparisonCharts(data.charts);
+  }
+
+  function comparisonNumber(value, maximumFractionDigits = 0) {
+    if (value === null || value === undefined || !Number.isFinite(Number(value))) {
+      return tr("Not Available");
+    }
+    return Number(value).toLocaleString(isArabic() ? "ar" : "en", {
+      maximumFractionDigits
+    });
+  }
+
+  function comparisonPercent(value) {
+    return value === null || value === undefined
+      ? tr("Not Available")
+      : `${comparisonNumber(value, 1)}%`;
+  }
+
+  function comparisonTypeLabel(type) {
+    return tr(type === "continent" ? "Continent" : type === "region" ? "Region" : "Country");
+  }
+
+  function largestGroupMarkup(group) {
+    if (!group) return escapeHtml(tr("Not Available"));
+    const usesArabicName = isArabic() && group.group_name_ar;
+    const name = usesArabicName ? group.group_name_ar : group.group_name;
+    if (!name) return escapeHtml(tr("Not Available"));
+    return `<bdi dir="${usesArabicName ? "rtl" : "ltr"}" class="group-name-bidi">${escapeHtml(name)}</bdi>`;
+  }
+
+  function renderComparisonHighlights(profiles) {
+    const container = $("#comparisonHighlights");
+    if (!container) return;
+    const cards = [
+      ["bi-people-fill", "Total traditional groups", "general", "total_groups", false],
+      ["bi-bank2", "Groups with TPI", "general", "groups_with_tpi", false],
+      ["bi-patch-check-fill", "Recognition rate", "recognition", "rate", true],
+      ["bi-bar-chart-fill", "Average group size", "population", "average_group_size", false]
+    ];
+    container.innerHTML = cards.map(([icon, label, section, key, isPercent]) => `
+      <article class="surface comparison-highlight-card">
+        <div class="comparison-highlight-heading"><i class="bi ${icon}" aria-hidden="true"></i><span>${escapeHtml(tr(label))}</span></div>
+        <div class="comparison-highlight-values">
+          ${profiles.map((profile) => `<div><small>${escapeHtml(profile.name)}</small><strong>${escapeHtml(isPercent ? comparisonPercent(profile[section][key]) : comparisonNumber(profile[section][key], key === "average_group_size" ? 1 : 0))}</strong></div>`).join("")}
+        </div>
       </article>`).join("");
+  }
+
+  function comparisonDistribution(items, total) {
+    return items.map(([label, value]) => {
+      const percentage = total > 0 ? Math.min(100, (Number(value) / total) * 100) : 0;
+      return `<li><span>${escapeHtml(tr(label))}</span><strong>${escapeHtml(comparisonNumber(value))}</strong><div class="comparison-mini-track" aria-hidden="true"><span style="width:${percentage.toFixed(2)}%"></span></div></li>`;
+    }).join("");
+  }
+
+  function renderComparisonProfiles(profiles) {
+    const container = $("#compareProfiles");
+    if (!container) return;
+    container.innerHTML = profiles.map((profile, index) => {
+      const total = Number(profile.general?.total_groups) || 0;
+      const largest = profile.population?.largest_group;
+      return `
+        <article class="surface compare-profile">
+          <small>${escapeHtml(tr(index === 0 ? "Entity A" : "Entity B"))} · ${escapeHtml(comparisonTypeLabel(profile.type))}</small>
+          <h2><bdi>${escapeHtml(profile.name)}</bdi></h2>
+          <div class="comparison-profile-summary">
+            <div><span>${escapeHtml(tr("Traditional groups"))}</span><strong>${escapeHtml(comparisonNumber(total))}</strong></div>
+            <div><span>${escapeHtml(tr("Recognition rate"))}</span><strong>${escapeHtml(comparisonPercent(profile.recognition?.rate))}</strong></div>
+            ${profile.general?.total_countries === null ? "" : `<div><span>${escapeHtml(tr("Countries represented"))}</span><strong>${escapeHtml(comparisonNumber(profile.general.total_countries))}</strong></div>`}
+            <div><span>${escapeHtml(tr("Largest traditional group"))}</span><strong>${largestGroupMarkup(largest)}</strong></div>
+            <div><span>${escapeHtml(tr("Average group size"))}</span><strong>${escapeHtml(comparisonNumber(profile.population?.average_group_size, 1))}</strong></div>
+            <div><span>${escapeHtml(tr("Median group size"))}</span><strong>${escapeHtml(comparisonNumber(profile.population?.median_group_size, 1))}</strong></div>
+          </div>
+          <div class="comparison-distribution-grid">
+            <section><h3>${escapeHtml(tr("Leadership distribution"))}</h3><ul>${comparisonDistribution([["Kings", profile.leadership?.king], ["Chiefs", profile.leadership?.chief], ["Headmen", profile.leadership?.headman]], total)}</ul></section>
+            <section><h3>${escapeHtml(tr("Function distribution"))}</h3><ul>${comparisonDistribution([["Land Administration", profile.functions?.land], ["Security", profile.functions?.security], ["Healing", profile.functions?.healing]], total)}</ul></section>
+          </div>
+        </article>`;
+    }).join("");
+  }
+
+  function comparisonPath(profile, path) {
+    return path.split(".").reduce((value, key) => value?.[key], profile);
+  }
+
+  function renderComparisonTable(profiles, comparisonType) {
+    const body = $("#comparisonBody");
+    const leftHeader = $("#comparisonEntityAHeader");
+    const rightHeader = $("#comparisonEntityBHeader");
+    if (!body || profiles.length !== 2) return;
+    if (leftHeader) leftHeader.textContent = profiles[0].name;
+    if (rightHeader) rightHeader.textContent = profiles[1].name;
 
     const categories = [
-      ["Geography & group", ["Country", "Continent", "Region", "Population", "Any_TPI"]],
-      ["Leadership", ["King", "Chief", "Headman", "KingInher", "KingElect", "KingApp"]],
-      ["Functions", ["Func_Land", "Func_DR", "Func_Sec", "Func_Heal"]],
-      ["Administrative structure", ["CouncilD", "Assembly", "FormAckn"]]
+      ["General", [
+        ["Total traditional groups", "general.total_groups", "number"],
+        ...(comparisonType === "country" ? [] : [["Countries represented", "general.total_countries", "number"]]),
+        ["Groups with TPI", "general.groups_with_tpi", "number"]
+      ]],
+      ["Leadership", [
+        ["Kings", "leadership.king", "number"],
+        ["Chiefs", "leadership.chief", "number"],
+        ["Headmen", "leadership.headman", "number"]
+      ]],
+      ["Leadership Selection", [
+        ["Hereditary", "leadership_selection.hereditary", "number"],
+        ["Elected", "leadership_selection.elected", "number"],
+        ["Appointed", "leadership_selection.appointed", "number"],
+        ["Missing", "leadership_selection.missing", "number"]
+      ]],
+      ["Formal Recognition", [
+        ["Recognized", "recognition.recognized", "number"],
+        ["Not Recognized", "recognition.not_recognized", "number"],
+        ["Missing", "recognition.missing", "number"],
+        ["Recognition rate", "recognition.rate", "percent"]
+      ]],
+      ["Traditional Governance Functions", [
+        ["Land Administration", "functions.land", "number"],
+        ["Security", "functions.security", "number"],
+        ["Healing", "functions.healing", "number"]
+      ]],
+      ["Population", [
+        ["Average group size", "population.average_group_size", "decimal"],
+        ["Median group size", "population.median_group_size", "decimal"],
+        ["Largest traditional group", "population.largest_group", "group"],
+        ["Largest population", "population.largest_population", "number"]
+      ]]
     ];
 
     body.innerHTML = categories.map(([category, fields]) => {
-      const rows = fields.map((field) => {
-        const leftValue = comparisonValue(field, left[field]);
-        const rightValue = comparisonValue(field, right[field]);
-        const differentClass = leftValue !== rightValue ? "is-different" : "";
-        return `<tr><td>${escapeHtml(tr(FIELD_LABELS[field]))}</td><td class="${differentClass}">${comparisonBadge(field, left[field])}</td><td class="${differentClass}">${comparisonBadge(field, right[field])}</td></tr>`;
+      const rows = fields.map(([label, path, format]) => {
+        const rawLeft = comparisonPath(profiles[0], path);
+        const rawRight = comparisonPath(profiles[1], path);
+        const formatValue = (value) => {
+          if (format === "percent") return escapeHtml(comparisonPercent(value));
+          if (format === "decimal") return escapeHtml(comparisonNumber(value, 1));
+          if (format === "group") return largestGroupMarkup(value);
+          return escapeHtml(comparisonNumber(value));
+        };
+        const leftValue = formatValue(rawLeft);
+        const rightValue = formatValue(rawRight);
+        const differentClass = JSON.stringify(rawLeft) !== JSON.stringify(rawRight) ? "is-different" : "";
+        return `<tr><td>${escapeHtml(tr(label))}</td><td class="${differentClass}">${leftValue}</td><td class="${differentClass}">${rightValue}</td></tr>`;
       }).join("");
       return `<tr class="category-row"><td colspan="3">${escapeHtml(tr(category))}</td></tr>${rows}`;
     }).join("");
   }
 
-  function comparisonValue(field, value) {
-    if (field === "Population") return formatPopulation(value);
-    if (BINARY_FIELDS.includes(field)) return displayBinary(value);
-    return displayValue(value);
+  function comparisonChartColors() {
+    const dark = window.SitePreferences?.getTheme() === "dark";
+    return {
+      green: "#0b5137",
+      greenSoft: "rgba(11, 81, 55, 0.22)",
+      gold: "#c8a96a",
+      goldSoft: "rgba(200, 169, 106, 0.24)",
+      sage: "#70947c",
+      red: "#b85c52",
+      gray: dark ? "#758078" : "#a7aea9",
+      grid: dark ? "#334139" : "#edf0ec",
+      text: dark ? "#c5cec8" : "#66736b"
+    };
   }
 
-  function comparisonBadge(field, value) {
-    if (BINARY_FIELDS.includes(field)) return binaryBadge(value);
-    return escapeHtml(comparisonValue(field, value));
+  function upsertComparisonChart(id, type, data, options) {
+    const canvas = $(`#${id}`);
+    if (!canvas || !window.Chart) return;
+    const existing = state.comparison.charts.get(id);
+    if (existing && existing.config.type === type) {
+      existing.data = data;
+      existing.options = options;
+      existing.update();
+      return;
+    }
+    existing?.destroy();
+    state.comparison.charts.set(id, new window.Chart(canvas, { type, data, options }));
   }
 
+  function comparisonChartOptions(colors, extra = {}) {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 450 },
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: {
+          position: "bottom",
+          rtl: isArabic(),
+          labels: { color: colors.text, usePointStyle: true, padding: 18 }
+        },
+        tooltip: {
+          rtl: isArabic(),
+          backgroundColor: "#081c13",
+          padding: 11,
+          cornerRadius: 8
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: colors.text } },
+        y: { beginAtZero: true, grid: { color: colors.grid }, ticks: { color: colors.text } }
+      },
+      ...extra
+    };
+  }
+
+  function renderComparisonCharts(charts) {
+    const colors = comparisonChartColors();
+    const leadership = charts.leadership || {};
+    upsertComparisonChart("comparisonLeadershipChart", "bar", {
+      labels: leadership.labels || [],
+      datasets: [
+        { label: tr("Kings"), data: leadership.king || [], backgroundColor: colors.gold, borderRadius: 6 },
+        { label: tr("Chiefs"), data: leadership.chief || [], backgroundColor: colors.green, borderRadius: 6 },
+        { label: tr("Headmen"), data: leadership.headman || [], backgroundColor: colors.sage, borderRadius: 6 }
+      ]
+    }, comparisonChartOptions(colors));
+
+    const recognition = charts.recognition || {};
+    const stackedOptions = comparisonChartOptions(colors);
+    stackedOptions.scales.x.stacked = true;
+    stackedOptions.scales.y.stacked = true;
+    upsertComparisonChart("comparisonRecognitionChart", "bar", {
+      labels: recognition.labels || [],
+      datasets: [
+        { label: tr("Recognized"), data: recognition.recognized || [], backgroundColor: colors.green, borderRadius: 5 },
+        { label: tr("Not Recognized"), data: recognition.not_recognized || [], backgroundColor: colors.gold, borderRadius: 5 },
+        { label: tr("Missing"), data: recognition.missing || [], backgroundColor: colors.gray, borderRadius: 5 }
+      ]
+    }, stackedOptions);
+
+    const functions = charts.functions || {};
+    upsertComparisonChart("comparisonFunctionsChart", "bar", {
+      labels: functions.labels || [],
+      datasets: [
+        { label: tr("Land Administration"), data: functions.land || [], backgroundColor: colors.green, borderRadius: 6 },
+        { label: tr("Security"), data: functions.security || [], backgroundColor: colors.gold, borderRadius: 6 },
+        { label: tr("Healing"), data: functions.healing || [], backgroundColor: colors.sage, borderRadius: 6 }
+      ]
+    }, comparisonChartOptions(colors));
+
+    const radar = charts.radar || {};
+    const radarDatasets = (radar.datasets || []).map((dataset, index) => ({
+      label: dataset.entity,
+      data: dataset.values,
+      borderColor: index === 0 ? colors.green : colors.gold,
+      backgroundColor: index === 0 ? colors.greenSoft : colors.goldSoft,
+      pointBackgroundColor: index === 0 ? colors.green : colors.gold,
+      borderWidth: 2
+    }));
+    upsertComparisonChart("comparisonRadarChart", "radar", {
+      labels: (radar.labels || []).map((label) => tr(label)),
+      datasets: radarDatasets
+    }, {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 450 },
+      plugins: {
+        legend: { position: "bottom", rtl: isArabic(), labels: { color: colors.text, usePointStyle: true, padding: 18 } },
+        tooltip: { rtl: isArabic(), backgroundColor: "#081c13", padding: 11, cornerRadius: 8, callbacks: { label: (context) => `${context.dataset.label}: ${comparisonNumber(context.raw, 1)}%` } }
+      },
+      scales: {
+        r: {
+          beginAtZero: true,
+          max: 100,
+          grid: { color: colors.grid },
+          angleLines: { color: colors.grid },
+          pointLabels: { color: colors.text, font: { size: 11 } },
+          ticks: { display: false }
+        }
+      }
+    });
+  }
   async function initStatisticsPage() {
     if (!$("#leadershipChart")) return;
 

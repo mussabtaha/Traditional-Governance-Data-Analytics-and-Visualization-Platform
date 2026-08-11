@@ -157,9 +157,8 @@ human-readable details, comparisons, maps, and statistical summaries.
 - ✔ **Statistical Analysis** — twelve database-backed Chi-Square tests examine
   leadership against formal recognition and three governance functions, with
   observed/expected frequencies, p-values, Cramer's V, and interactive charts.
-- ✔ **Group Comparison** — lightweight selector data and on-demand
-  side-by-side record details.
-- ✔ **Search** — English names, optional Arabic names, and countries.
+- ✔ **Geographic Comparison** — country, continent, and region profiles with
+  live aggregate cards, charts, and side-by-side indicators.- ✔ **Search** — English names, optional Arabic names, and countries.
 - ✔ **Pagination** — one SQL-backed result page at a time.
 - ✔ **Server-Side Filtering** — country, continent, region, leadership,
   recognition, and TPI filters execute in MySQL.
@@ -340,7 +339,7 @@ values to `No`.
 | [`groups.html`](groups.html) — Groups | Search, geographic and institutional filters, sortable table, server-side pagination, reset control, URL-synchronized state, and detailed group dialog. |
 | [`statistics.html`](statistics.html) — Statistics | Interactive country, continent, and region analysis with live summary metrics and six Chart.js visualizations that update in place. |
 | [`statistics-analysis.html`](statistics-analysis.html) — Statistical Analysis | Three inferential analyses covering leadership, governance functions, population size, formal recognition, effect sizes, and interactive charts. |
-| [`comparison.html`](comparison.html) — Comparison | Loads lightweight group options, fetches two selected records by ID, supports swapping selections, and renders geography, leadership, functions, structure, and recognition side by side. |
+| [`comparison.html`](comparison.html) — Comparison | Compares two countries, continents, or regions using live MySQL aggregates, detailed profiles, summary cards, a comparison table, and four Chart.js visualizations. |
 | [`about.html`](about.html) — About | Explains project purpose, interface methodology, value handling, and supported data fields. |
 | [`contact.html`](contact.html) — Contact | Validated project enquiry form that sends messages through the Flask email endpoint without storing them in the database. |
 
@@ -370,9 +369,9 @@ tables, charts, and controls were ready.
       All-data, country, continent, and region scopes update leadership, functions, recognition, distributions, largest groups, and top-country charts.
     </td>
     <td width="50%" align="center">
-      <img src="assets/screenshots/comparison-view.png" width="100%" alt="Comparison page showing Aborigines and Acehnese records side by side with populated profile cards and comparison fields"><br>
+      <img src="assets/screenshots/comparison-view.png" width="100%" alt="Geographic Comparison page with two aggregate entity profiles, summary cards, charts, and a detailed comparison table"><br>
       <strong>Comparison View</strong><br>
-      Two real records compared across geography, leadership, functions, administrative structure, and recognition.
+      Two countries, continents, or regions compared using live leadership, recognition, governance-function, and population aggregates.
     </td>
   </tr>
   <tr>
@@ -900,11 +899,31 @@ Errors use a non-2xx HTTP status with:
 | `GET` | `/api/statistical-analysis/region-recognition` | Return regional recognition counts, missing-data descriptives, Chi-Square results, Cramer's V, stacked-chart data, and heatmap data | None | `/api/statistical-analysis/region-recognition` |
 | `GET` | `/api/largest-groups` | Return the ten largest records with a population value | None | [`/api/largest-groups`](https://traditional-governance-data-analytics.onrender.com/api/largest-groups) |
 | `GET` | `/api/top-countries` | Return the ten countries with the most group records | None | [`/api/top-countries`](https://traditional-governance-data-analytics.onrender.com/api/top-countries) |
-| `GET` | `/api/group-options` | Return lightweight ID/name/country rows for comparison selectors | None | [`/api/group-options`](https://traditional-governance-data-analytics.onrender.com/api/group-options) |
+| `GET` | `/api/comparison/options` | Return live geographic values for same-type entity selectors | `type=country`, `continent`, or `region` | `/api/comparison/options?type=continent` |
+| `GET` | `/api/comparison` | Compare two geographic entities using live aggregate indicators and chart-ready data | `type`, `entity_a`, `entity_b` | `/api/comparison?type=country&entity_a=Kenya&entity_b=Nigeria` |
 | `GET` | `/api/groups` | Return one filtered, sorted, paginated group page | Query parameters below | [`/api/groups?page=1&limit=100`](https://traditional-governance-data-analytics.onrender.com/api/groups?page=1&limit=100) |
 | `GET` | `/api/groups/<id>` | Return one complete group record | Positive integer path ID | [`/api/groups/1`](https://traditional-governance-data-analytics.onrender.com/api/groups/1) |
 | `POST` | `/api/contact` | Validate and deliver a contact message by email | JSON: `name`, `email`, `subject`, `message` | No database write |
 
+### Geographic comparison API
+
+The Comparison page supports only same-type geographic comparisons. First load
+current selector values from `GET /api/comparison/options?type=...`, then request
+two distinct values from `GET /api/comparison`. Both endpoints accept only an
+allowlisted `country`, `continent`, or `region` type. Entity values are bound as
+SQL parameters.
+
+The comparison endpoint performs three bounded aggregate queries: one grouped
+summary for institutional counts and population averages, one window query for
+medians, and one window query for the largest group in each entity. Its response
+contains two entity profiles plus grouped leadership, stacked recognition,
+grouped function, and normalized radar datasets. No individual group records are
+loaded for comparison selectors.
+
+```http
+GET /api/comparison/options?type=region
+GET /api/comparison?type=region&entity_a=East%20Africa&entity_b=West%20Africa
+```
 ### `/api/statistics` geographic analysis
 
 The Statistics page uses one combined endpoint for summary counts, recognition,
@@ -1281,7 +1300,7 @@ Traditional-Governance-Data-Analytics-and-Visualization-Platform/
 ├── groups.html                      # Search, filters, table, details, pagination
 ├── statistics.html                  # Geographic filters, summary cards, and charts
 ├── statistics-analysis.html         # Analyses #1-#4 and visual results
-├── comparison.html                  # Side-by-side group comparison
+├── comparison.html                  # Country, continent, and region comparison
 ├── about.html                       # Project purpose and field information
 ├── contact.html                     # Email-backed project enquiry form
 ├── css/

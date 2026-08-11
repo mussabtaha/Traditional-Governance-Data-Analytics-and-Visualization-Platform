@@ -117,25 +117,5 @@ class GroupsApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertFalse(response.get_json()["success"])
 
-    @patch("routes.api.fetch_all")
-    def test_group_options_returns_lightweight_records(self, fetch_all) -> None:
-        fetch_all.return_value = [
-            {
-                "id": 1,
-                "group_name": "Example",
-                "group_name_ar": None,
-                "country": "Kenya",
-            }
-        ]
-
-        response = self.client.get("/api/group-options")
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.get_json()["success"])
-        self.assertIn(
-            "SELECT id, group_name, group_name_ar, country",
-            fetch_all.call_args.args[0],
-        )
-
 if __name__ == "__main__":
     unittest.main()

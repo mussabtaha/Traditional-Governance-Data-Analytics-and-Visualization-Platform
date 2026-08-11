@@ -45,7 +45,8 @@ The API will be available at `http://localhost:3000/api`.
 - `GET /api/leadership`
 - `GET /api/largest-groups`
 - `GET /api/top-countries`
-- `GET /api/group-options`
+- `GET /api/comparison/options`
+- `GET /api/comparison`
 - `GET /api/statistics`
 - `GET /api/statistical-analysis/leadership-recognition`
 - `GET /api/statistical-analysis/leadership-functions`
@@ -70,9 +71,13 @@ supports:
 - `any_tpi` (`0`, `1`, or `missing`)
 - `sort` and `direction` (`asc` or `desc`)
 
-`GET /api/group-options` returns only the lightweight id, name, Arabic name,
-and country fields needed by the comparison selectors. Full comparison records
-are loaded from `GET /api/groups/:id` when selected.
+`GET /api/comparison/options?type=country|continent|region` returns current,
+non-empty geographic values for the matching selectors. `GET /api/comparison`
+accepts `type`, `entity_a`, and `entity_b`; it requires two distinct entities of
+the same type and returns two live aggregate profiles plus chart-ready datasets.
+The endpoint uses a grouped aggregate query and two MySQL window queries for the
+median population and largest group. Values are parameterized and SQL columns
+come only from a server-side allowlist.
 
 ## Statistical analysis
 
