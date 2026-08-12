@@ -1126,11 +1126,11 @@
     }
   }
 
-  function populateComparisonSelect(select, options) {
-    select.innerHTML = options.map((value) => (
-      `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`
-    )).join("");
-  }
+ function populateComparisonSelect(select, options) {
+  select.innerHTML = options.map((value) => (
+    `<option value="${escapeHtml(value)}">${escapeHtml(tr(value))}</option>`
+  )).join("");
+}
 
   async function requestGeographicComparison() {
     const leftSelect = $("#compareLeft");
