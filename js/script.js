@@ -1256,7 +1256,7 @@
       <article class="surface comparison-highlight-card">
         <div class="comparison-highlight-heading"><i class="bi ${icon}" aria-hidden="true"></i><span>${escapeHtml(tr(label))}</span></div>
         <div class="comparison-highlight-values">
-          ${profiles.map((profile) => `<div><small>${escapeHtml(profile.name)}</small><strong>${escapeHtml(isPercent ? comparisonPercent(profile[section][key]) : comparisonNumber(profile[section][key], key === "average_group_size" ? 1 : 0))}</strong></div>`).join("")}
+          ${profiles.map((profile) => `<div><small>${escapeHtml(tr(profile.name))}</small><strong>${escapeHtml(isPercent ? comparisonPercent(profile[section][key]) : comparisonNumber(profile[section][key], key === "average_group_size" ? 1 : 0))}</strong></div>`).join("")}
         </div>
       </article>`).join("");
   }
@@ -1277,7 +1277,7 @@
       return `
         <article class="surface compare-profile">
           <small>${escapeHtml(tr(index === 0 ? "Entity A" : "Entity B"))} · ${escapeHtml(comparisonTypeLabel(profile.type))}</small>
-          <h2><bdi>${escapeHtml(profile.name)}</bdi></h2>
+          <h2><bdi>${escapeHtml(tr(profile.name))}</bdi></h2>
           <div class="comparison-profile-summary">
             <div><span>${escapeHtml(tr("Traditional groups"))}</span><strong>${escapeHtml(comparisonNumber(total))}</strong></div>
             <div><span>${escapeHtml(tr("Recognition rate"))}</span><strong>${escapeHtml(comparisonPercent(profile.recognition?.rate))}</strong></div>
@@ -1303,8 +1303,8 @@
     const leftHeader = $("#comparisonEntityAHeader");
     const rightHeader = $("#comparisonEntityBHeader");
     if (!body || profiles.length !== 2) return;
-    if (leftHeader) leftHeader.textContent = profiles[0].name;
-    if (rightHeader) rightHeader.textContent = profiles[1].name;
+    if (leftHeader) leftHeader.textContent = tr(profiles[0].name);
+    if (rightHeader) rightHeader.textContent = tr(profiles[1].name);
 
     const categories = [
       ["General", [
