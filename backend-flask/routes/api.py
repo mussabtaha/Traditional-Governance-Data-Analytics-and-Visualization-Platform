@@ -2019,19 +2019,51 @@ def filtered_statistics():
           COALESCE(SUM(chief = 1), 0) AS chief,
           COALESCE(SUM(headman = 1), 0) AS headman,
 
-          COALESCE(SUM(kinginher = 1), 0) AS hereditary,
-          COALESCE(SUM(kingelect = 1), 0) AS elected,
-          COALESCE(SUM(kingapp = 1), 0) AS appointed,
-          COALESCE(
-            SUM(
-              king = 1
-              AND kinginher IS NULL
-              AND kingelect IS NULL
-              AND kingapp IS NULL
-            ),
-            0
-          ) AS leadership_selection_missing,
+COALESCE(SUM(kinginher = 1), 0)
++ COALESCE(SUM(chief_inheritance = 1), 0)
++ COALESCE(SUM(headman_inheritance = 1), 0)
+AS hereditary,
 
+COALESCE(SUM(kingelect = 1), 0)
++ COALESCE(SUM(chief_election = 1), 0)
++ COALESCE(SUM(headman_election = 1), 0)
+AS elected,
+
+COALESCE(SUM(kingapp = 1), 0)
++ COALESCE(SUM(chief_appointment = 1), 0)
++ COALESCE(SUM(headman_appointment = 1), 0)
+AS appointed,
+
+COALESCE(
+  SUM(
+    king = 1
+    AND kinginher IS NULL
+    AND kingelect IS NULL
+    AND kingapp IS NULL
+  ),
+  0
+)
++
+COALESCE(
+  SUM(
+    chief = 1
+    AND chief_inheritance IS NULL
+    AND chief_election IS NULL
+    AND chief_appointment IS NULL
+  ),
+  0
+)
++
+COALESCE(
+  SUM(
+    headman = 1
+    AND headman_inheritance IS NULL
+    AND headman_election IS NULL
+    AND headman_appointment IS NULL
+  ),
+  0
+)
+AS leadership_selection_missing,
           COALESCE(SUM(func_land = 1), 0) AS land,
           COALESCE(SUM(func_sec = 1), 0) AS security,
           COALESCE(SUM(kingheal = 1), 0) AS healing
@@ -2277,18 +2309,51 @@ def geographic_comparison():
           COALESCE(SUM(king = 1), 0) AS king,
           COALESCE(SUM(chief = 1), 0) AS chief,
           COALESCE(SUM(headman = 1), 0) AS headman,
-          COALESCE(SUM(kinginher = 1), 0) AS hereditary,
-          COALESCE(SUM(kingelect = 1), 0) AS elected,
-          COALESCE(SUM(kingapp = 1), 0) AS appointed,
-          COALESCE(
-            SUM(
-              king = 1
-              AND kinginher IS NULL
-              AND kingelect IS NULL
-              AND kingapp IS NULL
-            ),
-            0
-          ) AS leadership_selection_missing,
+COALESCE(SUM(kinginher = 1), 0)
++ COALESCE(SUM(chief_inheritance = 1), 0)
++ COALESCE(SUM(headman_inheritance = 1), 0)
+AS hereditary,
+
+COALESCE(SUM(kingelect = 1), 0)
++ COALESCE(SUM(chief_election = 1), 0)
++ COALESCE(SUM(headman_election = 1), 0)
+AS elected,
+
+COALESCE(SUM(kingapp = 1), 0)
++ COALESCE(SUM(chief_appointment = 1), 0)
++ COALESCE(SUM(headman_appointment = 1), 0)
+AS appointed,
+
+COALESCE(
+  SUM(
+    king = 1
+    AND kinginher IS NULL
+    AND kingelect IS NULL
+    AND kingapp IS NULL
+  ),
+  0
+)
++
+COALESCE(
+  SUM(
+    chief = 1
+    AND chief_inheritance IS NULL
+    AND chief_election IS NULL
+    AND chief_appointment IS NULL
+  ),
+  0
+)
++
+COALESCE(
+  SUM(
+    headman = 1
+    AND headman_inheritance IS NULL
+    AND headman_election IS NULL
+    AND headman_appointment IS NULL
+  ),
+  0
+)
+AS leadership_selection_missing,
           COALESCE(SUM(formackn = 1), 0) AS recognized,
           COALESCE(SUM(formackn = 0), 0) AS not_recognized,
           COALESCE(SUM(formackn IS NULL), 0) AS recognition_missing,
