@@ -1421,7 +1421,7 @@
     const colors = comparisonChartColors();
     const leadership = charts.leadership || {};
     upsertComparisonChart("comparisonLeadershipChart", "bar", {
-      labels: leadership.labels || [],
+      labels: (leadership.labels || []).map((label) => tr(label)),
       datasets: [
         { label: tr("Kings"), data: leadership.king || [], backgroundColor: colors.gold, borderRadius: 6 },
         { label: tr("Chiefs"), data: leadership.chief || [], backgroundColor: colors.green, borderRadius: 6 },
@@ -1434,7 +1434,7 @@
     stackedOptions.scales.x.stacked = true;
     stackedOptions.scales.y.stacked = true;
     upsertComparisonChart("comparisonRecognitionChart", "bar", {
-      labels: recognition.labels || [],
+      labels: (recognition.labels || []).map((label) => tr(label)),
       datasets: [
         { label: tr("Recognized"), data: recognition.recognized || [], backgroundColor: colors.green, borderRadius: 5 },
         { label: tr("Not Recognized"), data: recognition.not_recognized || [], backgroundColor: colors.gold, borderRadius: 5 },
@@ -1444,7 +1444,7 @@
 
     const functions = charts.functions || {};
     upsertComparisonChart("comparisonFunctionsChart", "bar", {
-      labels: functions.labels || [],
+      labels: (functions.labels || []).map((label) => tr(label)),
       datasets: [
         { label: tr("Land Administration"), data: functions.land || [], backgroundColor: colors.green, borderRadius: 6 },
         { label: tr("Security"), data: functions.security || [], backgroundColor: colors.gold, borderRadius: 6 },
@@ -1454,7 +1454,7 @@
 
     const radar = charts.radar || {};
     const radarDatasets = (radar.datasets || []).map((dataset, index) => ({
-      label: dataset.entity,
+      label: tr(dataset.entity),
       data: dataset.values,
       borderColor: index === 0 ? colors.green : colors.gold,
       backgroundColor: index === 0 ? colors.greenSoft : colors.goldSoft,
