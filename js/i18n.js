@@ -24,6 +24,70 @@
     "University Graduation Project": "مشروع تخرج جامعي",
     "© 2026 Traditional Governance Institutions Database & Explorer": "© 2026 قاعدة بيانات ومستكشف المؤسسات الحكومية المحلية",
     "© 2026 Traditional Governance Institutions Database & Explorer. All rights reserved.": "© 2026 قاعدة بيانات ومستكشف المؤسسات الحكومية المحلية. جميع الحقوق محفوظة.",
+  
+        "Statistical Reports": "التقارير الإحصائية",
+    "Seven source-based statistical reports from Reports.pdf, presented without recalculating or changing the reported results.": "سبعة تقارير إحصائية مستندة إلى الملف Reports.pdf، مع عرض النتائج كما وردت دون إعادة حسابها أو تغييرها.",
+    "Report": "التقرير",
+    
+    // نصوص وتقارير التحليل الإحصائي الإضافية
+    // ==========================================
+    "Statistical Reports (1 - 7)": "التقارير الإحصائية (1 - 7)",
+    "Report No. 1": "التقرير رقم 1",
+    "Report No. 2": "التقرير رقم 2",
+    "Report No. 3": "التقرير رقم 3",
+    "Report No. 4": "التقرير رقم 4",
+    "Report No. 5": "التقرير رقم 5",
+    "Report No. 6": "التقرير رقم 6",
+    "Report No. 7": "التقرير رقم 7",
+
+    "Recognition of Traditional Institutions":"الاعتراف بالمؤسسات التقليدية",
+    "Statistical relationship":"العلاقة الإحصائية",
+    "Relationship Strength":"قوة العلاقة",
+    "Continent → Recognition":"قارة → اعتراف",
+    "Roles and Functions of Traditional Institutions":"أدوار ووظائف المؤسسات التقليدية",
+    "Continent → Roles and Functions":"القارة → الأدوار والوظائف",
+    "Funding Mechanisms and Expenditures":"آليات التمويل والنفقات",
+    "Continent → Funding":"القارة → التمويل",
+    "Political and Electoral Participation":"المشاركة السياسية والانتخابية",
+    "Continent → Political and Electoral Participation":"القارة → المشاركة السياسية والانتخابية",
+    "Dispute Resolution and Customary Justice":"حل النزاعات والعدالة العرفية",
+    "Continent → Dispute Resolution and Customary Justice":"القارة → حل النزاعات والعدالة العرفية",
+    "Official State Recognition":"الاعتراف الرسمي بالدولة",
+    "Geographic Region Recognition":"التعرف على المنطقة الجغرافية",
+    "Geographic Region → Official State Recognition":"المنطقة الجغرافية → الاعتراف الرسمي بالدولة",
+    "Continent → Official State Recognition":"القارة ← الاعتراف الرسمي من الدولة",
+    "Statistically Significant":"دال إحصائياً",
+    "King vs Formal Recognition":"الملك مقابل الاعتراف الرسمي",
+    "Key findings":"النتائج الرئيسية",
+
+    // تقرير 1: الاعتراف بالمرؤسسات التقليدية
+    "There is a statistically significant relationship between the continent and the distribution of forms of recognition for traditional institutions, though the strength of this relationship is weak.": "توجد علاقة ذات دلالة إحصائية بين القارة وتوزيع أشكال الاعتراف بالمؤسسات التقليدية، لكن قوة هذه العلاقة تعتبر ضعيفة.",
+    "The key findings show that Africa records the highest rate of constitutional and legal recognition of its traditional institutions at 82.7%, followed by the Americas at 66.7%, then Europe at 58.1%, while Asia records the lowest official recognition rate at 55.4%.": "أبرز النتائج تظهر أن قارة أفريقيا تسجل أعلى نسبة اعتراف دستوري وقانوني بمؤسساتها التقليدية بنسبة 82.7%، يليها الأمريكيتان بنسبة 66.7%، ثم أوروبا بنسبة 58.1%، بينما تسجل آسيا أدنى نسبة اعتراف رسمي بنسبة 55.4%.",
+
+    // تقرير 2: الأدوار والوظائف
+    "There is a statistically significant relationship between the continent and the nature of the roles and functions performed by traditional institutions, though the strength of this relationship is weak.": "توجد علاقة ذات دلالة إحصائية بين القارة وطبيعة الأدوار والوظائف التي تؤديها المؤسسات التقليدية، لكن قوة هذه العلاقة تعتبر ضعيفة.",
+    "The key findings show that Africa records the highest level of traditional institution involvement in local affairs and service delivery at 86.4%, followed by the Americas at 73.3%, then Asia at 67.6%, while Europe records the lowest involvement rate at 51.6%.": "أبرز النتائج تظهر أن قارة أفريقيا تسجل أعلى نسبة لمشاركة المؤسسات التقليدية في إدارة الشؤون المحلية والخدمات بنسبة 86.4%، يليها الأمريكيتان بنسبة 73.3%، ثم آسيا بنسبة 67.6%، بينما تسجل أوروبا أدنى نسبة مشاركة بنسبة 51.6%.",
+
+    // تقرير 3: آليات التمويل
+    "There is a statistically significant relationship between the continent and the funding mechanisms and expenditures of traditional institutions, though the strength of this relationship is weak.": "توجد علاقة ذات دلالة إحصائية بين القارة وآليات تمويل ونفقات المؤسسات التقليدية، إلا أن قوة هذه العلاقة تعتبر ضعيفة.",
+    "The key findings show that Africa records the highest percentage of financial allocations and support for traditional institutions at 78.2%, followed by Asia at 61.5%, then the Americas at 59.0%, while Europe records the lowest financial support rate at 44.8%.": "أبرز النتائج تظهر أن قارة أفريقيا تسجل أعلى نسبة اعترافات مالية ودعم موجه للمؤسسات التقليدية بنسبة 78.2%، تليها آسيا بنسبة 61.5%، ثم الأمريكيتان بنسبة 59.0%، بينما تسجل أوروبا أدنى نسبة دعم مالي بنسبة 44.8%.",
+
+    // تقرير 4: المشاركة السياسية والانتخابية
+    "There is a statistically significant relationship between the continent and the level of political and electoral participation of traditional institutions, though the strength of this relationship is weak.": "توجد علاقة ذات دلالة إحصائية بين القارة ومستوى المشاركة السياسية والانتخابية للمؤسسات التقليدية، إلا أن قوة هذه العلاقة تعتبر ضعيفة.",
+    "The key findings show that Africa records the highest rate of traditional institution involvement in political and advisory processes at 79.5%, followed by the Americas at 64.2%, then Asia at 58.9%, while Europe records the lowest political participation rate at 42.1%.": "أبرز النتائج تظهر أن قارة أفريقيا تسجل أعلى معدل مشاركة للمؤسسات التقليدية في العمليات السياسية والاستشارية بنسبة 79.5%، تليها الأمريكيتان بنسبة 64.2%، ثم آسيا بنسبة 58.9%، بينما تسجل أوروبا أدنى نسبة مشاركة سياسية بنسبة 42.1%.",
+
+    // تقرير 5: القضاء العرفي ونزاعات
+    "There is a statistically significant relationship between the continent and the pattern of dispute resolution and customary justice under traditional institutions, though the strength of this relationship is weak.": "توجد علاقة ذات دلالة إحصائية بين القارة ونمط حسم النزاعات والقضاء العرفي التابع للمؤسسات التقليدية، إلا أن قوة هذه العلاقة تعتبر ضعيفة.",
+    "The key findings show that Africa records the highest reliance on customary justice and dispute resolution at 85.1%, followed by Asia at 70.4%, then the Americas at 68.8%, while Europe records the lowest rate for providing customary legal services at 39.5%.": "أبرز النتائج تظهر أن قارة أفريقيا تسجل أعلى نسبة اعتماد على القضاء العرفي وحل النزاعات بنسبة 85.1%، تليها آسيا بنسبة 70.4%، ثم الأمريكيتان بنسبة 68.8%، بينما تسجل أوروبا أدنى نسبة لتقديم هذه الخدمات القضائية بنسبة 39.5%.",
+
+    // تقرير 6: مستوى الاعتراف الرسمي
+    "There is a statistically significant relationship between the continent and the level of official state recognition of traditional institutions, though the strength of this relationship is weak.": "توجد علاقة إحصائية بين القارة ومستوى الاعتراف الرسمي بالمؤسسات التقليدية، لكن قوة هذه العلاقة تعتبر ضعيفة.",
+    "The key findings show that Africa records the highest official state recognition rate at 82.7%, followed by the Americas at 66.7%, then Europe at 58.1%, while Asia records the lowest recognition rate at 55.4%.": "أبرز النتائج تظهر أن قارة أفريقيا تسجل أعلى نسبة اعتراف رسمي من الدولة بمؤسساتها التقليدية بنسبة 82.7%، يليها الأمريكيتان بنسبة 66.7%، ثم أوروبا بنسبة 58.1%، بينما تسجل آسيا أدنى نسبة اعتراف رسمي بنسبة 55.4%.",
+
+    // تقرير 7: الاعتراف حسب المنطقة الجغرافية
+    "There is a statistically significant relationship between the geographic region and the level of official state recognition of traditional institutions, with a moderate correlation strength.": "توجد علاقة ذات دلالة بين المنطقة الجغرافية ومستوى الاعتراف الرسمي بالمؤسسات التقليدية، وتعتبر قوة هذه العلاقة متوسطة.",
+    "The key findings show that the Middle East and North Africa region records the highest official recognition rate at 91.3%, followed by North America at 84.2%, then Sub-Saharan Africa at 82.4%, while South Asia records the lowest recognition rate at 40.4%.": "أبرز النتائج تظهر أن منطقة الشرق الأوسط وشمال أفريقيا تسجل أعلى نسبة اعتراف رسمي بمؤسساتها التقليدية بنسبة 91.3%، تليها أمريكا الشمالية بنسبة 84.2%، ثم أفريقيا جنوب الصحراء بنسبة 82.4%، بينما تسجل منطقة جنوب آسيا أدنى نسبة اعتراف رسمي بنسبة 40.4%.",
+
 
     "Groups Explorer | Traditional Governance Institutions": "مستكشف المجموعات | المؤسسات الحكومية المحلية",
     "Groups Explorer": "مستكشف المجموعات",
@@ -539,6 +603,8 @@
     "Region": "المنطقة",
     "About the Project | Traditional Governments": "عن المشروع | الحكومات التقليدية",
     "About the Project": "عن المشروع",
+    "A modular academic frontend designed to make a structured traditional governance dataset easier to search, interpret, compare, and communicate.":"واجهة أكاديمية معيارية (مُصممة بنظام الوحدات) تهدف إلى تسهيل عمليات البحث في مجموعة بيانات تقليدية ومنظمة حول الحوكمة، وتفسيرها، ومقارنتها، ومشاركتها.",
+    "The Traditional Governance Institutions Database & Explorer is a university graduation project that helps researchers and students explore structured governance data without exposing raw database codes or requiring technical database knowledge.":"قاعدة بيانات ومستكشف مؤسسات الحكم التقليدي هي مشروع تخرج جامعي يساعد الباحثين والطلاب على استكشاف بيانات الحكم المنظمة دون الكشف عن رموز قواعد البيانات الخام أو الحاجة إلى معرفة تقنية بقواعد البيانات.",
     "A modular academic frontend designed to make a structured traditional governments dataset easier to search, interpret, compare, and communicate.": "واجهة أكاديمية معيارية صُممت لتسهيل البحث في بيانات الحكومات التقليدية المنظمة وتفسيرها ومقارنتها وعرضها.",
     "Project purpose": "هدف المشروع",
     "Turning structured records into an accessible research experience.": "تحويل السجلات المنظمة إلى تجربة بحثية سهلة الوصول.",

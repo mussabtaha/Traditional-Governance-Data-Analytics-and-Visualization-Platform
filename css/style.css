@@ -2977,3 +2977,291 @@ html[data-theme="dark"] .population-effect-explanation {
   .analysis-test-summary-metrics { gap: 8px; }
   .population-summary-grid { grid-template-columns: 1fr; }
 }
+
+/* Statistical Reports — reuses the existing analysis surfaces and design tokens. */
+.statistical-reports-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.statistical-report-card {
+  padding: 24px;
+}
+
+.statistical-report-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.statistical-report-card .section-kicker {
+  margin-bottom: 0;
+}
+
+.statistical-report-card h3 {
+  margin: 0 0 20px;
+  color: var(--forest-950);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.statistical-report-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 11px 0;
+  border-top: 1px solid var(--line);
+}
+
+.statistical-report-meta span,
+.statistical-report-findings h4 {
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 750;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.statistical-report-meta strong {
+  color: var(--forest-700);
+  text-align: end;
+  font-size: .92rem;
+}
+
+.statistical-report-findings {
+  margin-top: 18px;
+  padding-top: 17px;
+  border-top: 1px solid var(--line);
+}
+
+.statistical-report-findings h4 {
+  margin: 0 0 13px;
+}
+
+.statistical-report-rate + .statistical-report-rate {
+  margin-top: 12px;
+}
+
+.statistical-report-rate-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 5px;
+  font-size: .9rem;
+}
+
+.statistical-report-rate-heading strong {
+  color: var(--forest-800);
+  font-variant-numeric: tabular-nums;
+}
+
+.statistical-report-track {
+  height: 7px;
+  overflow: hidden;
+  background: rgba(18, 53, 36, .1);
+  border-radius: 999px;
+}
+
+.statistical-report-track span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--forest-600), var(--gold-500));
+  border-radius: inherit;
+}
+
+html[data-theme="dark"] .statistical-report-card h3,
+body.theme-dark .statistical-report-card h3 {
+  color: var(--gold-200);
+}
+
+html[data-theme="dark"] .statistical-report-meta strong,
+body.theme-dark .statistical-report-meta strong,
+html[data-theme="dark"] .statistical-report-rate-heading strong,
+body.theme-dark .statistical-report-rate-heading strong {
+  color: var(--gold-400);
+}
+
+html[data-theme="dark"] .statistical-report-track,
+body.theme-dark .statistical-report-track {
+  background: rgba(255, 255, 255, .12);
+}
+
+@media (max-width: 767.98px) {
+  .statistical-reports-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .statistical-report-card {
+    padding: 20px;
+  }
+
+  .statistical-report-card-header,
+  .statistical-report-meta {
+    align-items: flex-start;
+  }
+
+  .statistical-report-card-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .statistical-report-meta {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .statistical-report-meta strong {
+    text-align: start;
+  }
+}
+
+html[dir="rtl"] .statistical-report-rate-heading strong {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+html[dir="rtl"] .statistical-report-meta strong {
+  text-align: start;
+}
+
+html[dir="rtl"] .statistical-report-track span {
+  margin-inline-start: auto;
+}
+
+
+/* Inline PDF report blocks. Scoped only to the report additions; no global layout changes. */
+.analysis-report-card {
+  width: 100%;
+  max-width: 100%;
+  margin: 24px 0 0;
+  padding: 24px;
+}
+
+.analysis-report-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.analysis-report-header .section-kicker {
+  margin-bottom: 8px;
+}
+
+.analysis-report-card h3 {
+  margin: 0;
+  color: var(--forest-950);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.analysis-report-relationship {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: .86rem;
+}
+
+.analysis-report-relationship strong {
+  color: var(--forest-700);
+  text-align: end;
+}
+
+.analysis-report-findings {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+}
+
+.analysis-report-findings h4 {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.analysis-report-rates {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 18px;
+  align-items: center;
+  font-size: .9rem;
+}
+
+.analysis-report-rates bdi {
+  color: var(--forest-800);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-theme="dark"] .analysis-report-card h3,
+body.theme-dark .analysis-report-card h3 {
+  color: var(--gold-200);
+}
+
+html[data-theme="dark"] .analysis-report-relationship strong,
+body.theme-dark .analysis-report-relationship strong,
+html[data-theme="dark"] .analysis-report-rates bdi,
+body.theme-dark .analysis-report-rates bdi {
+  color: var(--gold-400);
+}
+
+@media (max-width: 767.98px) {
+  .analysis-report-header,
+  .analysis-report-relationship {
+    align-items: flex-start;
+  }
+
+  .analysis-report-header {
+    flex-direction: column;
+  }
+
+  .analysis-report-relationship {
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .analysis-report-relationship strong {
+    text-align: start;
+  }
+}
+
+html[dir="rtl"] .analysis-report-relationship strong {
+  text-align: start;
+}
+
+html[dir="rtl"] .analysis-report-rates bdi {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+
+.analysis-report-narrative {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: .92rem;
+  line-height: 1.7;
+}
+
+.analysis-report-narrative + .analysis-report-narrative {
+  margin-bottom: 16px;
+}
+
+html[data-theme="dark"] .analysis-report-narrative,
+body.theme-dark .analysis-report-narrative {
+  color: rgba(238, 225, 200, .74);
+}
