@@ -60,34 +60,61 @@
     "King vs Formal Recognition":"الملك مقابل الاعتراف الرسمي",
     "Key findings":"النتائج الرئيسية",
 
-    // تقرير 1: الاعتراف بالمرؤسسات التقليدية
-    "There is a statistically significant relationship between the continent and the distribution of forms of recognition for traditional institutions, though the strength of this relationship is weak.": "توجد علاقة ذات دلالة إحصائية بين القارة وتوزيع أشكال الاعتراف بالمؤسسات التقليدية، لكن قوة هذه العلاقة تعتبر ضعيفة.",
-    "The key findings show that Africa records the highest rate of constitutional and legal recognition of its traditional institutions at 82.7%, followed by the Americas at 66.7%, then Europe at 58.1%, while Asia records the lowest official recognition rate at 55.4%.": "أبرز النتائج تظهر أن قارة أفريقيا تسجل أعلى نسبة اعتراف دستوري وقانوني بمؤسساتها التقليدية بنسبة 82.7%، يليها الأمريكيتان بنسبة 66.7%، ثم أوروبا بنسبة 58.1%، بينما تسجل آسيا أدنى نسبة اعتراف رسمي بنسبة 55.4%.",
+  
+    "Examine Nine Statistical Tests": "افحص الاختبارات الإحصائية التسعة",
+    "Expand any result to display its interpretation, expected frequencies table, sample size, and excluded missing values.": "وسع أي نتيجة لعرض تفسيرها وجدول التوافق والتكرارات المتوقعة وحجم العينة والقيم المفقودة المستبعدة.",
+    "Traditional Governance Functions": "وظائف الحوكمة التقليدية",
+    "Leadership Type → Governance Functions": "نوع القيادة ← وظائف الحوكمة",
+    "Land management, security": "إدارة الأراضي والأمن",
+    "Governance functions": "وظائف الحوكمة",
+    "No significant relationship": "لا توجد علاقة ذات دلالة إحصائية",
+    "Healing/treatment": "العلاج/التداوي",
+    "Leadership Type and Official State Recognition":"نوع القيادة والاعتراف الرسمي من الدولة",
+    "Leadership Type → Official State Recognition":"نوع القيادة → الاعتراف الرسمي من الدولة",
+    "Population Size → Governance Functions":"حجم السكان → وظائف الحوكمة",
+    "Slightly more likely":"أكثر احتمالًا قليلًا",
+    "Land management and security":"إدارة الأراضي والأمن",
+    "Population Size → Governance Functions":"حجم السكان → وظائف الحوكمة",
+    "No significant difference":"لا فرق كبير",
 
-    // تقرير 2: الأدوار والوظائف
-    "There is a statistically significant relationship between the continent and the nature of the roles and functions performed by traditional institutions, though the strength of this relationship is weak.": "توجد علاقة ذات دلالة إحصائية بين القارة وطبيعة الأدوار والوظائف التي تؤديها المؤسسات التقليدية، لكن قوة هذه العلاقة تعتبر ضعيفة.",
-    "The key findings show that Africa records the highest level of traditional institution involvement in local affairs and service delivery at 86.4%, followed by the Americas at 73.3%, then Asia at 67.6%, while Europe records the lowest involvement rate at 51.6%.": "أبرز النتائج تظهر أن قارة أفريقيا تسجل أعلى نسبة لمشاركة المؤسسات التقليدية في إدارة الشؤون المحلية والخدمات بنسبة 86.4%، يليها الأمريكيتان بنسبة 73.3%، ثم آسيا بنسبة 67.6%، بينما تسجل أوروبا أدنى نسبة مشاركة بنسبة 51.6%.",
+    "There is a statistically significant relationship between leadership types and traditional governance functions (land management and security), though overall, the strength of this relationship is weak. The results show that Chief have the strongest connection to land management and security, followed by Kings. Conversely, Headman show the weakest connection to governance functions, while the healing/treatment function shows no significant relationship with either Kings or Headman.": "توجد علاقة ذات دلالة إحصائية بين أنواع القيادة ووظائف الحوكمة التقليدية (إدارة الأراضي والأمن)، وإن كانت قوة هذه العلاقة ضعيفة بشكل عام. تظهر النتائج أن الشيوخ لديهم أقوى ارتباط بإدارة الأراضي والأمن، يليهم الملوك. وعلى العكس، أظهر القادة المحليون أضعف ارتباط بوظائف الحوكمة، بينما لم تظهر وظيفة العلاج/التداوي أي علاقة ذات دلالة مع الملوك أو القادة المحليين.",
 
-    // تقرير 3: آليات التمويل
-    "There is a statistically significant relationship between the continent and the funding mechanisms and expenditures of traditional institutions, though the strength of this relationship is weak.": "توجد علاقة ذات دلالة إحصائية بين القارة وآليات تمويل ونفقات المؤسسات التقليدية، إلا أن قوة هذه العلاقة تعتبر ضعيفة.",
-    "The key findings show that Africa records the highest percentage of financial allocations and support for traditional institutions at 78.2%, followed by Asia at 61.5%, then the Americas at 59.0%, while Europe records the lowest financial support rate at 44.8%.": "أبرز النتائج تظهر أن قارة أفريقيا تسجل أعلى نسبة اعترافات مالية ودعم موجه للمؤسسات التقليدية بنسبة 78.2%، تليها آسيا بنسبة 61.5%، ثم الأمريكيتان بنسبة 59.0%، بينما تسجل أوروبا أدنى نسبة دعم مالي بنسبة 44.8%.",
+    "Population Size and Official State Recognition": "حجم السكان والاعتراف الرسمي من الدولة",
+    "Population Size → Official State Recognition": "حجم السكان ← الاعتراف الرسمي من الدولة",
+    "Larger population sizes": "أحجام سكانية أكبر",
+    "Recognized institutions": "المؤسسات المعترف بها",
+    "Small/weak": "صغير/ضعيف",
+    "Effect size": "حجم الأثر",
 
-    // تقرير 4: المشاركة السياسية والانتخابية
-    "There is a statistically significant relationship between the continent and the level of political and electoral participation of traditional institutions, though the strength of this relationship is weak.": "توجد علاقة ذات دلالة إحصائية بين القارة ومستوى المشاركة السياسية والانتخابية للمؤسسات التقليدية، إلا أن قوة هذه العلاقة تعتبر ضعيفة.",
-    "The key findings show that Africa records the highest rate of traditional institution involvement in political and advisory processes at 79.5%, followed by the Americas at 64.2%, then Asia at 58.9%, while Europe records the lowest political participation rate at 42.1%.": "أبرز النتائج تظهر أن قارة أفريقيا تسجل أعلى معدل مشاركة للمؤسسات التقليدية في العمليات السياسية والاستشارية بنسبة 79.5%، تليها الأمريكيتان بنسبة 64.2%، ثم آسيا بنسبة 58.9%، بينما تسجل أوروبا أدنى نسبة مشاركة سياسية بنسبة 42.1%.",
+    "There is a statistically significant difference between the population size of a group and its official state recognition status, though the effect size is small/weak. Using the Mann-Whitney U test (due to non-normal distribution), the results show that officially recognized traditional institutions tend to have larger population sizes compared to unrecognized ones. In conclusion, despite the weak effect, having a larger population size slightly increases the likelihood of gaining official state recognition.": "يوجد فرق ذو دلالة إحصائية بين حجم السكان للمجموعة وحالة الاعتراف الرسمي بها من الدولة، رغم أن حجم الأثر صغير/ضعيف. باستخدام اختبار \"مان-ويتني\" (بسبب عدم التوزيع الطبيعي)، تظهر النتائج أن المؤسسات التقليدية المعترف بها رسمياً تميل إلى امتلاك حجم سكان أكبر مقارنة بتلك غير المعترف بها. وفي الخاتمة، ورغم الأثر الضعيف، فإن امتلاك حجم سكان أكبر يزيد قليلاً من احتمالية الحصول على الاعتراف الرسمي.",
 
-    // تقرير 5: القضاء العرفي ونزاعات
-    "There is a statistically significant relationship between the continent and the pattern of dispute resolution and customary justice under traditional institutions, though the strength of this relationship is weak.": "توجد علاقة ذات دلالة إحصائية بين القارة ونمط حسم النزاعات والقضاء العرفي التابع للمؤسسات التقليدية، إلا أن قوة هذه العلاقة تعتبر ضعيفة.",
-    "The key findings show that Africa records the highest reliance on customary justice and dispute resolution at 85.1%, followed by Asia at 70.4%, then the Americas at 68.8%, while Europe records the lowest rate for providing customary legal services at 39.5%.": "أبرز النتائج تظهر أن قارة أفريقيا تسجل أعلى نسبة اعتماد على القضاء العرفي وحل النزاعات بنسبة 85.1%، تليها آسيا بنسبة 70.4%، ثم الأمريكيتان بنسبة 68.8%، بينما تسجل أوروبا أدنى نسبة لتقديم هذه الخدمات القضائية بنسبة 39.5%.",
+    "Traditional Leadership Type by Continent": "نوع القيادة التقليدية حسب القارة",
+    "Continent → Traditional Leadership Type": "القارة ← نوع القيادة التقليدية",
+    "King — Africa": "ملك — أفريقيا",
+    "Chief — Africa": "شيخ — أفريقيا",
+    "Headman — Africa": "زعيم محلي — أفريقيا",
+    "Other continents": "قارات أخرى",
 
-    // تقرير 6: مستوى الاعتراف الرسمي
-    "There is a statistically significant relationship between the continent and the level of official state recognition of traditional institutions, though the strength of this relationship is weak.": "توجد علاقة إحصائية بين القارة ومستوى الاعتراف الرسمي بالمؤسسات التقليدية، لكن قوة هذه العلاقة تعتبر ضعيفة.",
-    "The key findings show that Africa records the highest official state recognition rate at 82.7%, followed by the Americas at 66.7%, then Europe at 58.1%, while Asia records the lowest recognition rate at 55.4%.": "أبرز النتائج تظهر أن قارة أفريقيا تسجل أعلى نسبة اعتراف رسمي من الدولة بمؤسساتها التقليدية بنسبة 82.7%، يليها الأمريكيتان بنسبة 66.7%، ثم أوروبا بنسبة 58.1%، بينما تسجل آسيا أدنى نسبة اعتراف رسمي بنسبة 55.4%.",
+    "There is a statistically significant relationship between the continent and the traditional leadership type, though the strength of this relationship is weak. The key findings show that Africa has the highest overall presence across all leadership types (Kings 38.8%, Chief 49.3%, and Headman 41.5%). In contrast, Kings are rare in other continents, where Chief and Headman dominate across Asia, the Americas, and Europe at rates ranging between 15% and 38%.": "توجد علاقة ذات دلالة إحصائية بين القارة ونوع القيادة التقليدية، إلا أن قوة هذه العلاقة تعتبر ضعيفة. تظهر النتائج الرئيسية أن قارة أفريقيا تسجل أعلى نسبة تواجد إجمالي لجميع أنواع القيادات (الملوك 38.8%، الشيوخ 49.3%، والقادة المحليون 41.5%). في المقابل، نادراً ما يتواجد الملوك في القارات الأخرى، حيث يسيطر الشيوخ والقادة المحليون في آسيا، الأمريكيتين، وأوروبا بنسب تتراوح بين 15% و 38%.",
 
-    // تقرير 7: الاعتراف حسب المنطقة الجغرافية
-    "There is a statistically significant relationship between the geographic region and the level of official state recognition of traditional institutions, with a moderate correlation strength.": "توجد علاقة ذات دلالة بين المنطقة الجغرافية ومستوى الاعتراف الرسمي بالمؤسسات التقليدية، وتعتبر قوة هذه العلاقة متوسطة.",
-    "The key findings show that the Middle East and North Africa region records the highest official recognition rate at 91.3%, followed by North America at 84.2%, then Sub-Saharan Africa at 82.4%, while South Asia records the lowest recognition rate at 40.4%.": "أبرز النتائج تظهر أن منطقة الشرق الأوسط وشمال أفريقيا تسجل أعلى نسبة اعتراف رسمي بمؤسساتها التقليدية بنسبة 91.3%، تليها أمريكا الشمالية بنسبة 84.2%، ثم أفريقيا جنوب الصحراء بنسبة 82.4%، بينما تسجل منطقة جنوب آسيا أدنى نسبة اعتراف رسمي بنسبة 40.4%.",
 
+    "There is a real relationship between the type of leadership and official state recognition, though it is a weak relationship. The results show that the state recognizes Kings the most at 91%, followed by Chief at 83%, while Headman are the least recognized at 75%. In conclusion, despite the weak effect, the more traditional or monarchical the leadership is, the higher its chances of getting state recognition.": "توجد علاقة حقيقية بين نوع القيادة والاعتراف الرسمي من الدولة، رغم أنها علاقة ضعيفة. تظهر النتائج أن الدولة تعترف بالملوك بدرجة أكبر وبنسبة 91%، يليها الشيخ بنسبة 83%، بينما يعتبر الزعيم المحلي أقلهم اعترافاً بنسبة 75%. في الختام، وعلى الرغم من الأثر الضعيف، فكلما كانت القيادة تقليدية أو ملكية أكثر، زادت فرصها في الحصول على اعتراف الدولة.",
+
+
+    "Analysis No. 2": "التحليل رقم 2",
+    "Leadership and Traditional Governance Functions": "القيادة ووظائف الحوكمة التقليدية",
+    "Examines nine independent tests of land, security, and healing responsibilities across monarchical leadership, chief leadership, and local leader.": "تفحص تسعة اختبارات مستقلة لمسؤوليات إدارة الأراضي والأمن والعلاج عبر القيادة الملكية وقيادة الشيخ والزعيم المحلي.",
+    "Research Question": "سؤال البحث",
+    
+    "There is a statistically significant difference between the population size of a group and its official state recognition status, though the effect size is small/weak. Using the Mann-Whitney U test (due to non-normal distribution), the results show that officially recognized traditional institutions tend to have larger population sizes compared to un-recognized ones. In conclusion, despite the weak effect, having a larger population size slightly increases the likelihood of gaining official state recognition.": "يوجد فرق ذو دلالة إحصائية بين حجم السكان للمجموعة وحالة الاعتراف الرسمي بها من الدولة، رغم أن حجم الأثر صغير/ضعيف. باستخدام اختبار \"مان-ويتني\" (بسبب عدم التوزيع الطبيعي)، تظهر النتائج أن المؤسسات التقليدية المعترف بها رسمياً تميل إلى امتلاك حجم سكان أكبر مقارنة بتلك غير المعترف بها. وفي الخاتمة، ورغم الأثر الضعيف، فإن امتلاك حجم سكان أكبر يزيد قليلاً من احتمالية الحصول على الاعتراف الرسمي.",
+
+    "Larger population groups are slightly more likely to perform land management and security functions (with a very small effect size). However, there is no statistically significant difference in population size regarding the presence or absence of the healing/treatment function.": "المجموعات السكانية الأكبر حجماً هي الأكثر احتمالاً بشكل طفيف لأداء وظائف إدارة الأراضي والأمن (بحجم أثر صغير جداً). ومع ذلك، لا يوجد فرق ذو دلالة إحصائية في حجم السكان فيما يتعلق بوجود أو غياب وظيفة العلاج/التداوي.",
+
+    "There is a statistically significant relationship between the continent and the traditional leadership type, though the strength of this relationship is weak. The key findings show that Africa has the highest overall presence across all leadership types (Kings 38.8%, Sheikhs 49.3%, and Local Leaders 41.5%). In contrast, Kings are rare in other continents, where Sheikhs and Local Leaders dominate across Asia, the Americas, and Europe at rates ranging between 15% and 38%.": "توجد علاقة ذات دلالة إحصائية بين القارة ونوع القيادة التقليدية، إلا أن قوة هذه العلاقة تعتبر ضعيفة. تظهر النتائج الرئيسية أن قارة أفريقيا تسجل أعلى نسبة تواجد إجمالي لجميع أنواع القيادات (الملوك 38.8%، الشيوخ 49.3%، والقادة المحليون 41.5%). في المقابل، نادراً ما يتواجد الملوك في القارات الأخرى، حيث يسيطر الشيوخ والقادة المحليون في آسيا، الأمريكيتين، وأوروبا بنسب تتراوح بين 15% و 38%.",
+
+    "There is a statistically significant relationship between the continent and the level of official state recognition of traditional institutions, though the strength of this relationship is weak. The key findings show that Africa records the highest official state recognition rate at 82.7%, followed by the Americas at 66.7%, then Europe at 58.1%, while Asia records the lowest recognition rate at 55.4%.": "توجد علاقة ذات دلالة إحصائية بين القارة ومستوى الاعتراف الرسمي بالمؤسسات التقليدية، إلا أن قوة هذه العلاقة تعتبر ضعيفة. أبرز النتائج تظهر أن قارة أفريقيا تسجل أعلى نسبة اعتراف رسمي بمؤسساتها التقليدية بنسبة 82.7%، يليها الأمريكيتان بنسبة 66.7%، ثم أوروبا بنسبة 58.1%، بينما تسجل آسيا أدنى نسبة اعتراف رسمي بنسبة 55.4%.",
+
+    "There is a statistically significant relationship between the geographic region and the level of official state recognition of traditional institutions, with a moderate correlation strength. The key findings show that the Middle East and North Africa region records the highest official recognition rate at 91.3%, followed by North America at 84.2%, then Sub-Saharan Africa at 82.4%, while South Asia records the lowest recognition rate at 40.4%.": "توجد علاقة ذات دلالة إحصائية بين المنطقة الجغرافية ومستوى الاعتراف الرسمي بالمؤسسات التقليدية، وتعتبر قوة هذه العلاقة متوسطة. أبرز النتائج تظهر أن منطقة الشرق الأوسط وشمال أفريقيا تسجل أعلى نسبة اعتراف رسمي بنسبة 91.3%، تليها أمريكا الشمالية بنسبة 84.2%، ثم أفريقيا جنوب الصحراء بنسبة 82.4%، بينما تسجل منطقة جنوب آسيا أدنى نسبة اعتراف بنسبة 40.4%.",
 
     "Groups Explorer | Traditional Governance Institutions": "مستكشف المجموعات | المؤسسات الحكومية المحلية",
     "Groups Explorer": "مستكشف المجموعات",
